@@ -11,5 +11,5 @@ def ls(**filters: str) -> None:
         None
 
     """
-    start_session(name, **kwargs)
+    pass
 

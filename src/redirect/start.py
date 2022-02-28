@@ -1,5 +1,5 @@
 import subprocess
-from _ssm import start_session
+from .._ssm import start_session
 from typing import Tuple
 
 def _get_port_mapping(kwargs: dict) -> tuple:
@@ -23,9 +23,9 @@ def redirect_port(name: str, **kwargs: str) -> Tuple[subprocess.Popen, str]:
         **kwargs
     ), port
 
-def redirect(name: str, **kwargs: str) -> None:
+def start(name: str, **kwargs: str) -> None:
     """
-    redirect ports to a Virtual Machine
+    start port(s) redirection to a Virtual Machine
 
     Args:
         name (str): Virtual Machine instance name

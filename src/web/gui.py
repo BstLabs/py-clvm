@@ -1,8 +1,7 @@
 from PyQt5.QtCore import QUrl
-from redirect import redirect_port
+from ..redirect.start import redirect_port
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-#import webbrowser
 import psutil
 
 # creating main window class
@@ -66,9 +65,7 @@ def browser(name: str, **kwargs: str) -> None:
     # setting name to the application
     app.setApplicationName(name)
     proc, port = redirect_port(name, **kwargs, wait=False)
-#   controller = webbrowser.get()
     _wait(int(port))
-#   controller.open_new(f'http:localhost:{port}')
  
     # creating a main window object
     window = MainWindow(name, port)
@@ -78,6 +75,5 @@ def browser(name: str, **kwargs: str) -> None:
     parent = psutil.Process(proc.pid)
     for child in parent.children(recursive=True):
         child.kill()
-    parent.kill() 
+    parent.kill()
     
-
