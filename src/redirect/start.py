@@ -1,5 +1,5 @@
 import subprocess
-from .._ssm import start_session
+from _ssm import start_session
 from typing import Tuple
 
 def _get_port_mapping(kwargs: dict) -> tuple:
