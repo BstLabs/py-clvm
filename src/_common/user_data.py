@@ -21,11 +21,17 @@ set_json_decoder(json)
 
 _SYSTEM_CLVM_PATH.mkdir(parents=True, exist_ok=True)
 
+def _get_path(name: str) -> pathlib.Path:
+    return _SYSTEM_CLVM_PATH / f'{name}.json' 
+
 def fetch(name: str) -> jdict:
-    with (_SYSTEM_CLVM_PATH / f'{name}.json').open('r') as f:
+    with _get_path(name).open('r') as f:
         return json.load(f)
 
 def store(name: str, data: jdict) -> None:
-    with (_SYSTEM_CLVM_PATH / f'{name}.json').open('w') as f:
+    with _get_path(name).open('w') as f:
         json.dump(data, f)
 
+def remove(name: str) -> None:
+    _get_path(name).unlink(missing_ok=True)
+    

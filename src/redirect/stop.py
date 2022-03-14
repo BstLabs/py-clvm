@@ -1,7 +1,7 @@
 import psutil
 from jdict import jdict
 from typing import Tuple
-from _common.user_data import fetch
+from _common.user_data import fetch, remove
 from . import _make_file_name, _get_port_mapping
 
 def stop(instance_name: str, **kwargs: str) -> None:
@@ -29,4 +29,6 @@ def stop(instance_name: str, **kwargs: str) -> None:
     for child in parent.children(recursive=True):
         child.kill()
     parent.kill()
+    remove(file_name)
+    
 
