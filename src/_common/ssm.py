@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess
 from typing import Type
-from _session import get_session
+from .session import get_session
 from boto3.session import Session
 
 Instance = Type['Instance']  # impossible to import statically from boto3
@@ -70,7 +70,7 @@ def start_session(name:str, *args: str, **kwargs: str) -> subprocess.Popen:
         None
 
     """
-    session = get_session()
+    session = get_session(kwargs.get('profile', 'default'))
     instance = _get_instance(session, name)
     _start_instance(instance)
     return _start_ssm_session(

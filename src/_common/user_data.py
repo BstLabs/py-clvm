@@ -18,14 +18,12 @@ _SYSTEM_USER_DIR: Final[Dict[str, str]] = dict(
 _SYSTEM_CLVM_PATH: Final[pathlib.Path] = _HOME / _SYSTEM_USER_DIR[sys.platform] / 'clvm'
 
 set_json_decoder(json)
+
 _SYSTEM_CLVM_PATH.mkdir(parents=True, exist_ok=True)
 
 def fetch(name: str) -> jdict:
-    try:
-        with (_SYSTEM_CLVM_PATH / f'{name}.json').open('r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return jdict()
+    with (_SYSTEM_CLVM_PATH / f'{name}.json').open('r') as f:
+        return json.load(f)
 
 def store(name: str, data: jdict) -> None:
     with (_SYSTEM_CLVM_PATH / f'{name}.json').open('w') as f:

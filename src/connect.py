@@ -1,4 +1,4 @@
-from _ssm import start_session
+from _common.ssm import start_session
 
 def connect(name: str, **kwargs: str) -> None:
     """
