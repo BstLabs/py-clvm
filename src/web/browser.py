@@ -1,16 +1,6 @@
 import webbrowser
-from ..redirect.start import redirect_port
-import socket
-from time import sleep
+import redirect
 
-def _wait(port: int) -> None:
-    while True:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex(('localhost', port))
-        sock.close()
-        if result == 0:
-            break
-        sleep(10)
 
 def browser(name: str, **kwargs: str) -> None:
     """
@@ -24,8 +14,7 @@ def browser(name: str, **kwargs: str) -> None:
         None
 
     """
-    proc, port = redirect_port(name, **kwargs, wait=False)
+    local_port = redirect.start(name, **kwargs)
     controller = webbrowser.get()
-    _wait(int(port))
-    controller.open_new(f'http:localhost:{port}')
+    controller.open_new(f'http:localhost:{local_port}')
  

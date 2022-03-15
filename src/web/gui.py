@@ -1,8 +1,7 @@
+import redirect
 from PyQt5.QtCore import QUrl
-from ..redirect.start import redirect_port
-from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-import psutil
+from PyQt5.QtWidgets import QMainWindow, QApplication
 
 # creating main window class
 class MainWindow(QMainWindow):
@@ -35,19 +34,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(self._name)
 
 
-import socket
-from time import sleep
-
-def _wait(port: int) -> None:
-    while True:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex(('localhost', port))
-        sock.close()
-        if result == 0:
-            break
-        sleep(10)
-
-def browser(name: str, **kwargs: str) -> None:
+def gui(name: str, **kwargs: str) -> None:
     """
     redirect ports to a Virtual Machine and launch browser
 
@@ -64,16 +51,15 @@ def browser(name: str, **kwargs: str) -> None:
      
     # setting name to the application
     app.setApplicationName(name)
-    proc, port = redirect_port(name, **kwargs, wait=False)
-    _wait(int(port))
+
+    # start port redirection
+    local_port = redirect.start(name, **kwargs)
  
     # creating a main window object
-    window = MainWindow(name, port)
+    window = MainWindow(name, local_port)
 
     # loop
     app.exec_()
-    parent = psutil.Process(proc.pid)
-    for child in parent.children(recursive=True):
-        child.kill()
-    parent.kill()
-    
+
+    # stop port redirection
+    redirect.stop(name, **kwargs)    
