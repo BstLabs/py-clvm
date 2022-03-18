@@ -1,29 +1,8 @@
 import os
 import sys
 import subprocess
-from typing import Type
-from .session import get_session
+import instance
 from boto3.session import Session
-
-Instance = Type['Instance']  # impossible to import statically from boto3
-
-def _get_instance(session: Session, name: str) -> Instance:
-    ec2_client = session.client('ec2')
-    ec2_resource = session.resource('ec2')
-    instances = ec2_client.describe_instances(
-        Filters=[
-            dict(Name='tag:Name', Values=[name]) 
-        ]
-    )
-    instance = ec2_resource.Instance(instances.Reservations[0].Instances[0].InstanceId)
-    return instance
-
-def _start_instance(instance: Instance) -> None:
-    if 'stopped' == instance.state.Name:
-        print('Starting instance ...')
-        instance.start()
-        instance.wait_until_running()
-    print('Instance running')
 
 def _make_env(session: Session) -> dict:
     credentials = session.get_credentials()
@@ -57,12 +36,12 @@ def _start_ssm_session(instance_id: str, env: dict, wait: bool, *args: str) -> s
     return proc
 
     
-def start_session(name:str, *args: str, **kwargs: str) -> subprocess.Popen:
+def start_session(instance_name: str, *args: str, **kwargs: str) -> subprocess.Popen:
     """
     Start ssm session
 
     Args:
-        name (str): Virtual Machine instance name
+        instance_name (str): Virtual Machine instance name
         *args (str): (optional) list of additional arguments to be passed to ssm
         **kwargs (str): (optional) classifiers, at the moment, profile name
 
@@ -70,11 +49,9 @@ def start_session(name:str, *args: str, **kwargs: str) -> subprocess.Popen:
         None
 
     """
-    session = get_session(kwargs.get('profile', 'default'))
-    instance = _get_instance(session, name)
-    _start_instance(instance)
+    session, instance_id = instance.start(instance_name, **kwargs)
     return _start_ssm_session(
-        instance.instance_id, 
+        instance_id, 
         _make_env(session), 
         kwargs.get('wait', True),
         *args

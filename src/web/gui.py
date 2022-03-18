@@ -34,12 +34,12 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(self._name)
 
 
-def gui(name: str, **kwargs: str) -> None:
+def gui(instance_name: str, **kwargs: str) -> None:
     """
     redirect ports to a Virtual Machine and launch browser
 
     Args:
-        name (str): Virtual Machine instance name
+        instance_name (str): Virtual Machine instance name
         **kwargs (str): (optional) classifiers, at the moment, profile name and port numbers (default 8080=8080)
 
     Returns:
@@ -50,16 +50,18 @@ def gui(name: str, **kwargs: str) -> None:
     app = QApplication([])
      
     # setting name to the application
-    app.setApplicationName(name)
+    app.setApplicationName(instance_name)
 
     # start port redirection
-    local_port = redirect.start(name, **kwargs)
+    local_port = redirect.start(instance_name, **kwargs)
  
     # creating a main window object
-    window = MainWindow(name, local_port)
+    window = MainWindow(instance_name, local_port)
 
     # loop
     app.exec_()
 
     # stop port redirection
-    redirect.stop(name, **kwargs)    
+    redirect.stop(instance_name, **kwargs) 
+
+        

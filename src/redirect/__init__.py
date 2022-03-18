@@ -1,4 +1,4 @@
-"""start/stop/refresh port redirection session"""
+"""start/stop port redirection session"""
 
 def _get_port_mapping(kwargs: dict) -> tuple:
     for port, local_port in kwargs.items():

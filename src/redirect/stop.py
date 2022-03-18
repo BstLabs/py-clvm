@@ -1,4 +1,5 @@
 import psutil
+import instance
 from jdict import jdict
 from typing import Tuple
 from _common.user_data import fetch, remove
@@ -38,6 +39,11 @@ def stop(instance_name: str, **kwargs: str) -> None:
         remove(file_name)
     except FileNotFoundError:
         pass
+
+    # stop instance unless required to keep
+    if not kwargs.get('keep_instance', False):
+        instance.stop(instance_name, **kwargs)
+
     
 
     
