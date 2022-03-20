@@ -35,7 +35,6 @@ def process_instances(
     instance_names: Tuple[str], 
     kwargs: Dict[str, str]
 ) -> Optional[Tuple[Session, str]]:
-    return _process_one(func, next(instance_names), kwargs) \
-           if 1 == len(instance_names) else \
-           _process_many(func, state, instance_names, kwargs)
+    return _process_one(func, instance_names[0], kwargs) if 1 == len(instance_names) \
+            else _process_many(func, state, instance_names, kwargs)
 

@@ -23,5 +23,5 @@ def start(*instance_names: str, **kwargs: str) -> Optional[Tuple[Session, str]]:
     Returns:
         Tuple[Session, instance_is (str)]
     """
-    process_instances(_start_instance, 'stopped', instance_names, kwargs)
+    return process_instances(_start_instance, 'stopped', instance_names, kwargs)
 
