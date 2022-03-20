@@ -1,0 +1,7 @@
+boto3
+dynacli
+pyjdict
+PyQt5
+PyQtWebEngine
+rich
+
