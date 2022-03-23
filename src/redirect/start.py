@@ -1,7 +1,8 @@
+import json
+import psutil
 import socket
 from time import sleep
 from jdict import jdict
-from typing import Tuple
 from _common.user_data import store
 from _common.ssm import start_session
 from . import _make_file_name, _get_port_mapping
@@ -14,6 +15,13 @@ def _wait_for_port(port: int) -> None:
         if result == 0:
             break
         sleep(10)
+
+def _get_session_id(pid: int) -> str:
+    parent = psutil.Process(pid)
+    for child in parent.children(recursive=True):
+        cmd, args, *_  = child.cmdline()
+        if 'session-manager-plugin' == cmd:
+            return json.loads(args).SessionId
 
 def start(instance_name: str, **kwargs: str) -> int:
     """
@@ -38,6 +46,7 @@ def start(instance_name: str, **kwargs: str) -> int:
         wait=False
     ).pid
     _wait_for_port(local_port)
+    session_id = _get_session_id(pid)
     file_name = _make_file_name(
         'aws',
         kwargs.get('profile', 'default'),
@@ -45,6 +54,6 @@ def start(instance_name: str, **kwargs: str) -> int:
         port,
         local_port
     )
-    store(file_name, jdict(pid=pid))
+    store(file_name, jdict(pid=pid, session_id=session_id))
     return local_port
     

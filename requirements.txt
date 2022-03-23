@@ -1,6 +1,7 @@
 boto3
 dynacli
 pyjdict
+psutil
 PyQt5
 PyQtWebEngine
 rich
