@@ -69,18 +69,7 @@ def terminate_session(session_id: str, **kwargs: str) -> None:
         None
 
     """
-    proc = subprocess.Popen(
-        args=[
-            'aws',
-            'ssm',
-            'terminate-session',
-            '--session-id',
-            session_id,
-        ],
-        env=_make_env(get_session(kwargs.get('profile', 'default')))
-    )
-    proc.wait()
-    if 0 != proc.returncode:
-        print(proc.stderr)
-        sys.exit(proc.returncode)
+    session = get_session(kwargs.get('profile', 'default')) 
+    client = session.client('ssm')
+    client.terminate_session(SessionId=session_id)
     
