@@ -1,6 +1,6 @@
-from sys import platform
 import redirect
 import subprocess
+from sys import platform
 from typing import Dict, Final, Tuple
 
 

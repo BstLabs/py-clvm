@@ -1,8 +1,8 @@
 from collections import ChainMap
 from _common.session import Session
+from ._mapping import InstanceMapping, Instance
 from concurrent.futures import ThreadPoolExecutor
 from typing import Tuple, Dict, Optional, Callable
-from ._mapping import InstanceMapping, Instance
 
 
 def _process_many(

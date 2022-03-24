@@ -4,7 +4,7 @@ import socket
 from time import sleep
 from jdict import jdict
 from _common.user_data import store
-from _common.ssm import start_session
+from ssm.session import start as start_session
 from . import _make_file_name, _get_port_mapping
 
 def _wait_for_port(port: int) -> None:

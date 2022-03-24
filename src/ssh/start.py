@@ -1,4 +1,5 @@
-from _common.ssm import start_session
+from ssm.session import start as start_session
+
 
 def start(instance_name: str, port: int, **kwargs: str) -> int:
     """

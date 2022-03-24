@@ -1,6 +1,6 @@
 import os
 import boto3
-from typing import Final
+from typing import Final, Dict
 from datetime import datetime
 from boto3.session import Session
 from jdict import jdict, patch_module
@@ -50,6 +50,7 @@ def _make_session(credentials) -> Session:
         aws_session_token=credentials.SessionToken
     )
 
-def get_session(profile: str) -> Session:
+def get_session(kwargs: Dict[str, str]) -> Session:
+    profile = kwargs.get('profile', 'default')
     return _make_session(_read_credentials(profile) or _get_credentials(profile))
 

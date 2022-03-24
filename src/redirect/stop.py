@@ -1,6 +1,6 @@
 import instance
 from _common.user_data import fetch, remove
-from _common.ssm import terminate_session
+from ssm.session import stop as terminate_session
 from . import _make_file_name, _get_port_mapping
 
 

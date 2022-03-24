@@ -11,7 +11,7 @@ _FILTERS: Final[Dict[str, str]] = dict(
 
 class InstanceMapping(Mapping):
     def __init__(self, **kwargs: str):
-        self._session = get_session(kwargs.get('profile', 'default'))
+        self._session = get_session(kwargs)
         self._client = self._session.client('ec2')
         self._resource = self._session.resource('ec2')
         self._filters = self._build_filters(kwargs)
