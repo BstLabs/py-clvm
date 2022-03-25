@@ -5,4 +5,7 @@ psutil
 PyQt5
 PyQtWebEngine
 rich
+sshconf
+crypto
+
 

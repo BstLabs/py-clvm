@@ -1,7 +1,8 @@
 """VM instance management"""
-from .start import start
-from .stop import stop
 from .ls import ls
+from .stop import stop
+from .start import start
+from .command import command
 
-__all__ = ["start", "stop", "ls"]
+__all__ = ["start", "stop", "ls", "command"]
 
