@@ -1,10 +1,10 @@
 import getpass
 import platform
-from typing import Final, Tuple
+from ssm import shell
 from os.path import expanduser
+from typing import Final, Tuple
 from Crypto.PublicKey import RSA
 from sshconf import read_ssh_config, empty_ssh_config_file
-from ssm import shell
 
 
 _SSH_DIR: Final[str] = expanduser("~/.ssh")
