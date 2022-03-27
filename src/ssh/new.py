@@ -1,3 +1,4 @@
+import os
 import getpass
 import platform
 from ssm import shell
@@ -28,6 +29,7 @@ def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
 
     with open(private_key_name, "w") as f:
         f.write(key)
+    os.chmod(private_key_name, 0o400)
 
     with open(public_key_name, "w") as f:
         f.write(pubkey)
@@ -40,7 +42,7 @@ def _update_ssh_config(instance_name: str, private_key_name: str) -> None:
         c = read_ssh_config(_SSH_CONFIG)
     except FileNotFoundError:
         c = empty_ssh_config_file()
-    params = dict(IdentityFile=private_key_name, ProxyCommand=f'{expanduser("~/clvm/clvm")} ssh start %h %p')
+    params = dict(IdentityFile=private_key_name, ProxyCommand=f'{expanduser("~/clvm/clvm")} ssh start %h %p', User='ssm-user')
     func = c.set if c.host(instance_name) else c.add
     func(instance_name, **params)
     c.write(_SSH_CONFIG)
