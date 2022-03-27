@@ -1,4 +1,4 @@
-"""VM instance management"""
+"""vm instance management"""
 from .ls import ls
 from .stop import stop
 from .start import start

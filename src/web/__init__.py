@@ -1,2 +1,2 @@
-"""Initiate HTTP port redirection session and start either browser or GUI app"""
+"""initiate HTTP port redirection session and start either browser or GUI app"""
 
