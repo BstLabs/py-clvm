@@ -53,7 +53,10 @@ class InstanceMapping(Mapping):
         return sum(1 for instance in self._get_instances())
 
     def _get_instance_name(self, instance: Instance) -> str:
-        return next(t for t in instance.tags if t.Key=='Name').Value
+        try:
+            return next(t for t in instance.tags if t.Key=='Name').Value
+        except StopIteration:
+            return ""
 
     def keys(self) -> Generator[str, None, None]:
         for instance in self._get_instances():

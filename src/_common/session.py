@@ -50,16 +50,35 @@ def _store_credentials(profile: str, credentials: Credentials) -> None:
     store(_make_file_name(profile), credentials)
     
 
-def _get_profile_credentials(profile: str) -> Credentials:
-    config = _get_config(profile)
+def _get_profile_credentials(profile: str, config: jdict) -> Credentials:
     token_code = input('Enter MFA Code: ')
     credentials = _STS_CLIENT.get_session_token(
         SerialNumber=_get_mfa_serial(config),
         TokenCode=token_code
     ).Credentials
-    credentials.Region = config.Region
+    print(config)
+    credentials.Region = config.region
     _store_credentials(profile, credentials)
     return credentials
+
+
+def _get_role_credentials(profile: str, config: jdict) -> Credentials:
+    source_profile = config.source_profile
+    source_config = _get_config(source_profile)
+    source_credentials = _read_credentials(source_profile) or _get_profile_credentials(source_profile, source_config)
+    credentials = _make_session(source_credentials).client('sts').assume_role(
+        RoleArn=config.role_arn,
+        RoleSessionName=f'{getpass.getuser()}@{platform.node()}-session'
+    ).Credentials
+    print(config)
+    credentials.Region = source_config.region
+    _store_credentials(profile, credentials)
+    return credentials
+
+
+def _get_credentials(profile: str) -> dict:
+    config = _get_config(profile)
+    return _get_role_credentials(profile, config) if 'role_arn' in config else _get_profile_credentials(profile, config)
 
 
 def _make_session(credentials) -> Session:
@@ -69,22 +88,6 @@ def _make_session(credentials) -> Session:
         aws_session_token=credentials.SessionToken,
         region_name=credentials.Region
     )
-
-
-def _get_role_credentials(profile: str, config: jdict):
-    source_credentials = _read_credentials(config.source_profile) or _get_profile_credentials(config.source_profile)
-    credentials = _make_session(source_credentials).client('sts').assume_role(
-        RoleArn=config.role_arn,
-        RoleSessionName=f'{getpass.getuser()}@{platform.node()}-session'
-    ).Credentials
-    credentials.Region = config.Region
-    _store_credentials(profile, credentials)
-    return credentials
-
-
-def _get_credentials(profile: str) -> dict:
-    config = _get_config(profile)
-    return _get_role_credentials(profile, config) if 'role_arn' in config else _get_profile_credentials(config)
 
 
 def get_session(kwargs: Dict[str, str]) -> Session:
