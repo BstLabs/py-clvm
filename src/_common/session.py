@@ -56,7 +56,6 @@ def _get_profile_credentials(profile: str, config: jdict) -> Credentials:
         SerialNumber=_get_mfa_serial(config),
         TokenCode=token_code
     ).Credentials
-    print(config)
     credentials.Region = config.region
     _store_credentials(profile, credentials)
     return credentials
@@ -70,7 +69,6 @@ def _get_role_credentials(profile: str, config: jdict) -> Credentials:
         RoleArn=config.role_arn,
         RoleSessionName=f'{getpass.getuser()}@{platform.node()}-session'
     ).Credentials
-    print(config)
     credentials.Region = source_config.region
     _store_credentials(profile, credentials)
     return credentials
