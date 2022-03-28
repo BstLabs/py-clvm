@@ -41,6 +41,7 @@ def install() -> None:
         ['sudo', 'apt', 'install', '-y', 'code'],
         ['code', '--install-extension', 'ms-vscode.makefile-tools'],
         ['code', '--install-extension', 'ms-python.python'],
-        ['code', '--install-extension', 'ms-vscode-remote.remote-ssh']
+        ['code', '--install-extension', 'ms-vscode-remote.remote-ssh'],
+        ['code', '--install-extension', 'valentjn.vscode-ltex']
     )
     
