@@ -1,10 +1,10 @@
 from collections.abc import Mapping
 from typing import Dict, Final, Generator, List, Optional, Tuple, Type
 
-from _common.session import Session, get_session
+from pyclvm._common.session import Session, get_session
 
 Instance = Type["Instance"]  # cannot import from boto3
-_FILTERS: Final[Dict[str, str]] = dict(states="instance-state-name", names="tag:Name")
+_FILTERS: Final[Dict[str, str]] = {"states": "instance-state-name", "names": "tag:Name"}
 
 
 class InstanceMapping(Mapping):
@@ -23,18 +23,18 @@ class InstanceMapping(Mapping):
         for name, values in kwargs.items():
             if name in _FILTERS:
                 filters.append(
-                    dict(
-                        Name=_FILTERS[name],
-                        Values=values.split(",") if str == type(values) else values,
-                    )
+                    {
+                        "Name": _FILTERS[name],
+                        "Values": values.split(",") if str == type(values) else values,
+                    }
                 )
-        return dict(Filters=filters) if filters else dict()
+        return {"Filters": filters} if filters else {}
 
     def _get_instances(
         self, filters: Optional[List[Dict[str, List[str]]]] = None
     ) -> Generator[Instance, None, None]:
         instances = self._client.describe_instances(
-            **(filters if filters else self._filters)
+            **(filters if filters else self._filters),
         )
         for reservation in instances.Reservations:
             for instance in reservation.Instances:
@@ -43,7 +43,7 @@ class InstanceMapping(Mapping):
     def __getitem__(self, instance_name: str) -> Instance:
         try:
             return next(
-                self._get_instances(self._build_filters(dict(names=instance_name)))
+                self._get_instances(self._build_filters({"names": instance_name}))
             )
         except StopIteration:
             raise KeyError(instance_name)

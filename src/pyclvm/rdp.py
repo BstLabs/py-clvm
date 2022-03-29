@@ -4,16 +4,16 @@ from typing import Dict, Final, Tuple
 
 import redirect
 
-_SYSTEM_RDP_CLIENT: Final[Dict[str, Tuple[str, ...]]] = dict(
-    win32=tuple(),
-    linux=(
+_SYSTEM_RDP_CLIENT: Final[Dict[str, Tuple[str, ...]]] = {
+    "win32": (),
+    "linux": (
         "xfreerdp",
         "/dynamic-resolution",
         "+toggle-fullscreen",
         "/v:localhost:{local_port}",
     ),
-    darwin=tuple(),
-)
+    "darwin": (),
+}
 _RDP_PORT: Final[str] = "3389"
 
 

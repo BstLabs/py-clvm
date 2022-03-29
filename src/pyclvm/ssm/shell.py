@@ -1,9 +1,12 @@
 import time
+from typing import Any, Tuple, Union
+
 from pyclvm import instance
-from typing import Tuple, Union, Any
 
 
-def shell(instance_name: str, *commands: str, **kwargs: str) -> Union[Tuple[str, str], Tuple[Any, str, str]]:
+def shell(
+    instance_name: str, *commands: str, **kwargs: str
+) -> Union[Tuple[str, str], Tuple[Any, str, str]]:
     """
     Execure shell script over ssm channel
 
@@ -17,36 +20,31 @@ def shell(instance_name: str, *commands: str, **kwargs: str) -> Union[Tuple[str,
 
     """
     session, instance_id = instance.start(instance_name, **kwargs)
-    ssm_client = session.client('ssm')
+    ssm_client = session.client("ssm")
     result = ssm_client.send_command(
         InstanceIds=[instance_id],
-        DocumentName='AWS-RunShellScript',
-        Parameters={
-            'commands': [
-                'source /etc/bashrc',
-                *commands
-            ]
-        }
+        DocumentName="AWS-RunShellScript",
+        Parameters={"commands": ["source /etc/bashrc", *commands]},
     )
     command_id = result.Command.CommandId
     # see https://stackoverflow.com/questions/50067035/retrieving-command-invocation-in-aws-ssm
     time.sleep(2)
-    if kwargs.get('wait', True):
-        waiter = ssm_client.get_waiter('command_executed')
+    if kwargs.get("wait", True):
+        waiter = ssm_client.get_waiter("command_executed")
         try:
             waiter.wait(
                 CommandId=command_id,
                 InstanceId=instance_id,
                 WaiterConfig={
-                    'Delay': kwargs.get('delay', 5),
-                    'MaxAttempts': kwargs.get('attempts', 20)
-                }
+                    "Delay": kwargs.get("delay", 5),
+                    "MaxAttempts": kwargs.get("attempts", 20),
+                },
             )
         finally:
             result = ssm_client.get_command_invocation(
                 CommandId=command_id,
                 InstanceId=instance_id,
-                PluginName='aws:RunShellScript'
+                PluginName="aws:RunShellScript",
             )
             print(result.StandardOutputContent)
             print(result.StandardErrorContent)

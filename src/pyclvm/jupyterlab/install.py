@@ -12,5 +12,4 @@ def install(instance_name: str, **kwargs: str) -> None:
     Returns:
         None
     """
-    shell(instance_name, 'sudo pip3 install --upgrade jupyterlab', **kwargs)
-    
+    shell(instance_name, "sudo pip3 install --upgrade jupyterlab", **kwargs)
