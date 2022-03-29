@@ -56,10 +56,12 @@ def gui(instance_name: str, **kwargs: str) -> None:
     local_port = redirect.start(instance_name, **kwargs)
  
     # creating a main window object
-    window = MainWindow(instance_name, local_port)  # need to assign to a variable to prevent it from being stuck (stange)
+    window = MainWindow(instance_name, local_port)
 
     # loop
     app.exec_()
 
     # stop port redirection
     redirect.stop(instance_name, **kwargs) 
+
+        
