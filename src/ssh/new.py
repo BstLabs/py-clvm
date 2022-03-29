@@ -53,7 +53,6 @@ def new(instance_name: str, **kwargs: str) -> None:
 
     Args:
         instance_name (str): Virtual Machine instance name
-        port (int): port number
         **kwargs (str): (optional) classifiers, at the moment, profile name, also look at shell
 
     Returns:
