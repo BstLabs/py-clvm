@@ -1,6 +1,6 @@
 from typing import Optional, Tuple
 
-from _common.session import Session
+from pyclvm._common.session import Session
 
 from ._mapping import Instance
 from ._process import process_instances
