@@ -1,4 +1,0 @@
-"""
-Common clvm utilities
-"""
-
