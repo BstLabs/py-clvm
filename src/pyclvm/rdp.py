@@ -2,7 +2,7 @@ import subprocess
 from sys import platform
 from typing import Dict, Final, Tuple
 
-import redirect
+from pyclvm import redirect
 
 _SYSTEM_RDP_CLIENT: Final[Dict[str, Tuple[str, ...]]] = {
     "win32": (),

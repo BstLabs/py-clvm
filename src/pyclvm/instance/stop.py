@@ -3,7 +3,7 @@ from ._process import process_instances
 
 
 def _stop_instance(instance_name: str, instance: Instance) -> None:
-    if "running" == instance.state.Name:
+    if instance.state.Name == "running":
         print(f"Stopping {instance_name} ...")
         instance.stop()
         instance.wait_until_stopped()

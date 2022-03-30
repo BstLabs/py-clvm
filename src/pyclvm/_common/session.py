@@ -1,7 +1,7 @@
 import getpass
 import platform
 from datetime import datetime
-from typing import Dict, Final
+from typing import Dict, Final, Optional
 
 import boto3
 from boto3.session import Session
@@ -28,7 +28,7 @@ def _make_file_name(profile: str) -> str:
     return f"aws-{profile}-credentials"
 
 
-def _read_credentials(profile: str) -> Credentials:
+def _read_credentials(profile: str) -> Optional[Credentials]:
     try:
         credentials = fetch(_make_file_name(profile))
         expiration = datetime.fromisoformat(credentials.Expiration)
@@ -82,7 +82,7 @@ def _get_role_credentials(profile: str, config: jdict) -> Credentials:
     return credentials
 
 
-def _get_credentials(profile: str) -> dict:
+def _get_credentials(profile: str) -> Dict:
     config = _get_config(profile)
     return (
         _get_role_credentials(profile, config)

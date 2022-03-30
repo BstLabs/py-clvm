@@ -1,6 +1,6 @@
 import webbrowser
 
-import redirect
+from pyclvm import redirect
 
 
 def browser(name: str, **kwargs: str) -> None:

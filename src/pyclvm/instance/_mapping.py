@@ -1,10 +1,13 @@
 from collections.abc import Mapping
 from typing import Dict, Final, Generator, List, Optional, Tuple, Type
 
-from pyclvm._common.session import Session, get_session
+from boto3.session import Session
 
-Instance = Type["Instance"]  # cannot import from boto3
+from pyclvm._common.session import get_session
+
 _FILTERS: Final[Dict[str, str]] = {"states": "instance-state-name", "names": "tag:Name"}
+
+Instance = Type["Instance"]  # can not import from boto3
 
 
 class InstanceMapping(Mapping):
@@ -19,23 +22,20 @@ class InstanceMapping(Mapping):
         return self._session
 
     def _build_filters(self, kwargs: dict) -> dict:
-        filters = []
-        for name, values in kwargs.items():
-            if name in _FILTERS:
-                filters.append(
-                    {
-                        "Name": _FILTERS[name],
-                        "Values": values.split(",") if str == type(values) else values,
-                    }
-                )
+        filters = [
+            {
+                "Name": _FILTERS[name],
+                "Values": values.split(",") if str == type(values) else values,
+            }
+            for name, values in kwargs.items()
+            if name in _FILTERS
+        ]
         return {"Filters": filters} if filters else {}
 
     def _get_instances(
-        self, filters: Optional[List[Dict[str, List[str]]]] = None
+        self, filters: Optional[Dict[str, List[str]]] = None
     ) -> Generator[Instance, None, None]:
-        instances = self._client.describe_instances(
-            **(filters if filters else self._filters),
-        )
+        instances = self._client.describe_instances(**filters or self._filters)
         for reservation in instances.Reservations:
             for instance in reservation.Instances:
                 yield self._resource.Instance(instance.InstanceId)
@@ -52,7 +52,7 @@ class InstanceMapping(Mapping):
         return self.keys()
 
     def __len__(self) -> int:
-        return sum(1 for instance in self._get_instances())
+        return sum(1 for _ in self._get_instances())
 
     def _get_instance_name(self, instance: Instance) -> str:
         try:
