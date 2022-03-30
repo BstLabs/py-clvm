@@ -3,19 +3,20 @@ import subprocess
 import sys
 
 import instance
-from _common.session import Session
+
+from pyclvm._common.session import Session
 
 
 def _make_env(session: Session) -> dict:
     credentials = session.get_credentials()
     return {
         **os.environ,
-        **dict(
-            AWS_ACCESS_KEY_ID=credentials.access_key,
-            AWS_SECRET_ACCESS_KEY=credentials.secret_key,
-            AWS_SESSION_TOKEN=credentials.token,
-            AWS_DEFAULT_REGION=session.region_name,
-        ),
+        **{
+            "AWS_ACCESS_KEY_ID": credentials.access_key,
+            "AWS_SECRET_ACCESS_KEY": credentials.secret_key,
+            "AWS_SESSION_TOKEN": credentials.token,
+            "AWS_DEFAULT_REGION": session.region_name,
+        },
     }
 
 

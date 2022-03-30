@@ -12,8 +12,8 @@ def _process_many(
 ) -> None:
     instances = InstanceMapping(
         **ChainMap(
-            kwargs, dict(names=instance_names) if instance_names else dict(states=state)
-        )
+            kwargs, {"names": instance_names} if instance_names else {"states": state}
+        ),
     )
 
     items = list(instances.items())
