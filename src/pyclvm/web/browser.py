@@ -1,6 +1,6 @@
 import webbrowser
 
-import redirect
+from pyclvm.redirect import start
 
 
 def browser(name: str, **kwargs: str) -> None:
@@ -15,6 +15,6 @@ def browser(name: str, **kwargs: str) -> None:
         None
 
     """
-    local_port = redirect.start(name, **kwargs)
+    local_port = start(name, **kwargs)
     controller = webbrowser.get()
     controller.open_new(f"http:localhost:{local_port}")

@@ -1,12 +1,12 @@
 """start/stop port redirection session"""
 
+import contextlib
+
 
 def _get_port_mapping(kwargs: dict) -> tuple:
     for port, local_port in kwargs.items():
-        try:
+        with contextlib.suppress(ValueError):
             return int(port), int(local_port)
-        except ValueError:
-            pass  # not port numbers, mb something else
     return 8080, 8080
 
 

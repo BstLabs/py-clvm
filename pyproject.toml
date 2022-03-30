@@ -40,7 +40,7 @@ dev = [
     ]
 
 [project.scripts]
-clvm = "pyclvm.clvm:main"
+clvm = "pyclvm._clvm:main"
 
 [tool.isort]
 profile = "black"

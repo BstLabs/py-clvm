@@ -1,4 +1,4 @@
-from ssm import shell
+from pyclvm.ssm import shell
 
 
 def install(instance_name: str, **kwargs: str) -> None:

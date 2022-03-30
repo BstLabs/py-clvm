@@ -1,13 +1,13 @@
 from typing import Optional, Tuple
 
-from pyclvm._common.session import Session
+from boto3.session import Session
 
 from ._mapping import Instance
 from ._process import process_instances
 
 
 def _start_instance(instance_name: str, instance: Instance) -> None:
-    if "stopped" == instance.state.Name:
+    if instance.state.Name == "stopped":
         print(f"Starting {instance_name} ...")
         instance.start()
         instance.wait_until_running()

@@ -3,9 +3,10 @@ import socket
 from time import sleep
 
 import psutil
-from _common.user_data import store
 from jdict import jdict
-from ssm.session import start as start_session
+
+from pyclvm._common.user_data import store
+from pyclvm.ssm.session import start as start_session
 
 from . import _get_port_mapping, _make_file_name
 
@@ -24,7 +25,7 @@ def _get_session_id(pid: int) -> str:
     parent = psutil.Process(pid)
     for child in parent.children(recursive=True):
         cmd, args, *_ = child.cmdline()
-        if "session-manager-plugin" == cmd:
+        if cmd == "session-manager-plugin":
             return json.loads(args).SessionId
 
 

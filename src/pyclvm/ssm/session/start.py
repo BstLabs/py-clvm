@@ -1,10 +1,10 @@
 import os
 import subprocess
 import sys
-
-import instance
+from typing import Union
 
 from pyclvm._common.session import Session
+from pyclvm.instance import start as instance_start
 
 
 def _make_env(session: Session) -> dict:
@@ -21,14 +21,14 @@ def _make_env(session: Session) -> dict:
 
 
 def _start_ssm_session(
-    instance_id: str, env: dict, wait: bool, *args: str
+    instance_id: str, env: dict, wait: Union[str, bool], *args: str
 ) -> subprocess.Popen:
     proc = subprocess.Popen(
         args=["aws", "ssm", "start-session", "--target", instance_id, *args], env=env
     )
     if wait:
         proc.wait()
-        if 0 != proc.returncode:
+        if proc.returncode != 0:
             print(proc.stderr)
             sys.exit(proc.returncode)
     return proc
@@ -47,7 +47,7 @@ def start(instance_name: str, *args: str, **kwargs: str) -> subprocess.Popen:
         None
 
     """
-    session, instance_id = instance.start(instance_name, **kwargs)
+    session, instance_id = instance_start(instance_name, **kwargs)
     return _start_ssm_session(
         instance_id, _make_env(session), kwargs.get("wait", True), *args
     )

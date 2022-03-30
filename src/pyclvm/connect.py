@@ -1,4 +1,4 @@
-from ssm.session import start as start_session
+from pyclvm.ssm.session import start as start_session
 
 
 def connect(instance_name: str, **kwargs: str) -> None:

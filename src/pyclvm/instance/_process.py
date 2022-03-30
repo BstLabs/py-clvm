@@ -2,7 +2,7 @@ from collections import ChainMap
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Dict, Optional, Tuple
 
-from _common.session import Session
+from pyclvm._common.session import Session
 
 from ._mapping import InstanceMapping
 
@@ -36,6 +36,6 @@ def process_instances(
 ) -> Optional[Tuple[Session, str]]:
     return (
         _process_one(func, instance_names[0], kwargs)
-        if 1 == len(instance_names)
+        if len(instance_names) == 1
         else _process_many(func, state, instance_names, kwargs)
     )
