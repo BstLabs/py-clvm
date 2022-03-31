@@ -66,6 +66,5 @@ def new(instance_name: str, **kwargs: str) -> None:
     """
     profile = kwargs.get("profile", "default")
     private_key_name, pubkey = _save_keys(profile, instance_name)
-    print(pubkey)
     _update_ssh_config(instance_name, private_key_name, profile)
     shell(instance_name, f'authk add "{pubkey}"', **kwargs)
