@@ -38,14 +38,14 @@ def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
     return private_key_name, pubkey
 
 
-def _update_ssh_config(instance_name: str, private_key_name: str) -> None:
+def _update_ssh_config(instance_name: str, private_key_name: str, profile: str) -> None:
     try:
         c = read_ssh_config(_SSH_CONFIG)
     except FileNotFoundError:
         c = empty_ssh_config_file()
     params = {
         "IdentityFile": private_key_name,
-        "ProxyCommand": f'{expanduser("~/clvm/clvm")} ssh start %h %p',
+        "ProxyCommand": f"clvm ssh start %h %p profile={profile}",
         "User": "ssm-user",
     }
     func = c.set if c.host(instance_name) else c.add
@@ -66,6 +66,6 @@ def new(instance_name: str, **kwargs: str) -> None:
     """
     profile = kwargs.get("profile", "default")
     private_key_name, pubkey = _save_keys(profile, instance_name)
-
-    _update_ssh_config(instance_name, private_key_name)
-    shell(instance_name, f'/home/ssm-user/authk/authk add "{pubkey}"', **kwargs)
+    print(pubkey)
+    _update_ssh_config(instance_name, private_key_name, profile)
+    shell(instance_name, f'authk add "{pubkey}"', **kwargs)
