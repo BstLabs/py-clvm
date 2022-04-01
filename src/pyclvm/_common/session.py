@@ -45,8 +45,8 @@ def _get_mfa_serial(profile: str) -> str:
     """
     --- Gets MFA's ARN via client STS request ---
     """
-    sts = jdict(Session(profile_name=profile).client('sts').get_caller_identity())
-    return sts.Arn.replace('user', 'mfa')
+    sts = jdict(Session(profile_name=profile).client("sts").get_caller_identity())
+    return sts.Arn.replace("user", "mfa")
 
 
 def _store_credentials(profile: str, credentials: Credentials) -> None:
@@ -59,7 +59,7 @@ def _store_credentials(profile: str, credentials: Credentials) -> None:
 def _get_profile_credentials(profile: str, config: jdict) -> Credentials:
     token_code = input("Enter MFA Code: ")
     credentials = _STS_CLIENT.get_session_token(
-        SerialNumber=_get_mfa_serial(config), TokenCode=token_code
+        SerialNumber=_get_mfa_serial(profile), TokenCode=token_code
     ).Credentials
     credentials.Region = config.region
     _store_credentials(profile, credentials)
