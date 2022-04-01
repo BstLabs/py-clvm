@@ -46,7 +46,7 @@ def _get_mfa_serial(profile: str) -> str:
     --- Gets MFA's ARN via client STS request ---
     """
     sts = jdict(Session(profile_name=profile).client("sts").get_caller_identity())
-    return sts.Arn.replace("user", "mfa")
+    return sts.Arn.replace("user", "mfa", 1)
 
 
 def _store_credentials(profile: str, credentials: Credentials) -> None:
