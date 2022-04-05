@@ -132,8 +132,5 @@ dmypy.json
 # Python virtual environvent
 .venv*
 
-# VSCode settings
-.vscode
-
 # MacOS artifacts
 .DS_Store

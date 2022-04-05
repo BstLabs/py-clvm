@@ -43,7 +43,7 @@ def _get_config(profile: str) -> jdict:
 
 def _get_mfa_serial(profile: str) -> str:
     """
-    --- Gets MFA's ARN via client STS request ---
+    Gets MFA serial ARN via client STS request
     """
     sts = jdict(Session(profile_name=profile).client("sts").get_caller_identity())
     return sts.Arn.replace("user", "mfa", 1)
