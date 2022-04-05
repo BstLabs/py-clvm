@@ -20,4 +20,5 @@ def start(instance_name: str, port: int, **kwargs: str) -> None:
         "--parameter",
         f"portNumber={port}",
         wait=True,
+        **kwargs,
     )
