@@ -19,7 +19,7 @@ dependencies = [
     "PyQtWebEngine >= 5.15.5",
     "rich >= 12.0.1",
     "sshconf >= 0.2.3",
-    "crypto >= 1.4.1",
+    "pycryptodome >= 3.14.1"
 ]
 
 

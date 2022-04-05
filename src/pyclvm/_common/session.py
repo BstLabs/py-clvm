@@ -58,9 +58,19 @@ def _store_credentials(profile: str, credentials: Credentials) -> None:
 
 def _get_profile_credentials(profile: str, config: jdict) -> Credentials:
     token_code = input("Enter MFA Code: ")
-    credentials = _STS_CLIENT.get_session_token(
-        SerialNumber=_get_mfa_serial(profile), TokenCode=token_code
-    ).Credentials
+
+    credentials = (
+        Session(
+            aws_access_key_id=config.aws_access_key_id,
+            aws_secret_access_key=config.aws_secret_access_key,
+            profile_name=profile,
+            region_name=config.region,
+        )
+        .client("sts")
+        .get_session_token(SerialNumber=_get_mfa_serial(config), TokenCode=token_code)
+        .Credentials
+    )
+
     credentials.Region = config.region
     _store_credentials(profile, credentials)
     return credentials
