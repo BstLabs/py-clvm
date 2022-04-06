@@ -67,7 +67,7 @@ def _get_profile_credentials(profile: str, config: jdict) -> Credentials:
             region_name=config.region,
         )
         .client("sts")
-        .get_session_token(SerialNumber=_get_mfa_serial(config), TokenCode=token_code)
+        .get_session_token(SerialNumber=_get_mfa_serial(profile), TokenCode=token_code)
         .Credentials
     )
 
