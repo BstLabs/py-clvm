@@ -1,8 +1,13 @@
-from typing import Dict, Final
+from typing import Dict, Final, Tuple
 
-from rich import print
+from rich.console import Console
+from rich.table import Table
+
+from pyclvm._common.session import get_session
 
 from ._mapping import InstanceMapping
+
+_COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
 
 _STATE_COLOR: Final[Dict[int, str]] = {
     0: "bright_yellow",
@@ -26,5 +31,22 @@ def ls(**kwargs: str) -> None:
 
     """
     instances = InstanceMapping(**kwargs)
+    session = get_session(kwargs)
+    sts_client = session.client("sts")
+
+    account = sts_client.get_caller_identity().Account
+    table = Table(title=f"{account} Account EC2 Instances")
+    for column in _COLUMNS:
+        table.add_column(column, justify="left", no_wrap=True)
+
     for name, instance in instances.items():
-        print(f"{name} - [{_STATE_COLOR[instance.state.Code]}]{instance.state.Name}")
+        table.add_row(
+            *(
+                instance.id,
+                name,
+                f"[{_STATE_COLOR[instance.state.Code]}]{instance.state.Name}",
+            )
+        )
+
+    console = Console()
+    console.print(table)
