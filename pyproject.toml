@@ -15,6 +15,7 @@ dependencies = [
     "dynacli >= 1.0.7",
     "pyjdict >= 1.0.5",
     "psutil >= 5.9.0",
+# Qt5 components could be installed separately, e.g. via brew
     "PyQt5 >= 5.15.6",
     "PyQtWebEngine >= 5.15.5",
     "rich >= 12.0.1",
