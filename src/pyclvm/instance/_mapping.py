@@ -57,7 +57,7 @@ class InstanceMapping(Mapping):
     def _get_instance_name(self, instance: Instance) -> str:
         try:
             return next(t for t in instance.tags if t.Key == "Name").Value
-        except StopIteration:
+        except (StopIteration, TypeError):
             return ""
 
     def keys(self) -> Generator[str, None, None]:
