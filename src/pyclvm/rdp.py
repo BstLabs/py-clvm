@@ -55,4 +55,3 @@ def rdp(instance_name: str, **kwargs: str) -> None:
 
     # stop port redirection
     redirect.stop(instance_name, **kwargs)
-
