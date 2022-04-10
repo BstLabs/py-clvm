@@ -111,4 +111,3 @@ def install() -> None:
                 ["code", "--install-extension", "ms-vscode-remote.remote-ssh"],
                 ["code", "--install-extension", "valentjn.vscode-ltex"],
             )
-
