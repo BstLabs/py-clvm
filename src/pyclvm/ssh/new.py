@@ -71,8 +71,8 @@ def new(instance_name: str, **kwargs: str) -> None:
     _update_ssh_config(instance_name, private_key_name, profile)
     shell(
         instance_name, 
-        'sudo pip3 install --upgrade authk',
-        f'authk add "{pubkey}"', 
+        'pip3 install --upgrade authk',
+        f'runuser -u ssm-user -- authk add "{pubkey}"', 
         **kwargs
     )
 
