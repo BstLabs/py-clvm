@@ -28,6 +28,8 @@ def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
     public_key_name = f"{private_key_name}.pub"
     key, pubkey = _generate_keys()
 
+    if os.path.exists(private_key_name):
+        os.chmod(private_key_name, 0o600)
     with open(private_key_name, "w") as f:
         f.write(key)
     os.chmod(private_key_name, 0o400)
@@ -67,4 +69,10 @@ def new(instance_name: str, **kwargs: str) -> None:
     profile = kwargs.get("profile", "default")
     private_key_name, pubkey = _save_keys(profile, instance_name)
     _update_ssh_config(instance_name, private_key_name, profile)
-    shell(instance_name, f'authk add "{pubkey}"', **kwargs)
+    shell(
+        instance_name, 
+        'sudo pip3 install --upgrade authk',
+        f'authk add "{pubkey}"', 
+        **kwargs
+    )
+

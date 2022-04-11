@@ -24,7 +24,7 @@ def shell(
     result = ssm_client.send_command(
         InstanceIds=[instance_id],
         DocumentName="AWS-RunShellScript",
-        Parameters={"commands": ["source /etc/bashrc", *commands]},
+        Parameters={"commands": ["source /etc/bashrc", *[f'runuser -u ssm-user -- {c}' for c in commands]]},
     )
     command_id = result.Command.CommandId
     # see https://stackoverflow.com/questions/50067035/retrieving-command-invocation-in-aws-ssm
