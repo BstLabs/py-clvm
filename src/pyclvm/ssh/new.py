@@ -28,19 +28,17 @@ def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
     public_key_name = f"{private_key_name}.pub"
     key, pubkey = _generate_keys()
 
-<<<<<<< HEAD
-    if os.path.exists(private_key_name):
+    if exists(private_key_name):
         os.chmod(private_key_name, 0o600)
-=======
+
     if not exists(_SSH_DIR):
         os.mkdir(_SSH_DIR)
 
->>>>>>> 1a2a08a (added portable path handling)
-    with open(private_key_name, "w") as f:
+    with open(private_key_name, "w", encoding="utf-8") as f:
         f.write(key)
     os.chmod(private_key_name, 0o400)
 
-    with open(public_key_name, "w") as f:
+    with open(public_key_name, "w", encoding="utf-8") as f:
         f.write(pubkey)
 
     return private_key_name, pubkey
@@ -76,9 +74,8 @@ def new(instance_name: str, **kwargs: str) -> None:
     private_key_name, pubkey = _save_keys(profile, instance_name)
     _update_ssh_config(instance_name, private_key_name, profile)
     shell(
-        instance_name, 
-        'pip3 install --upgrade authk',
-        f'runuser -u ssm-user -- authk add "{pubkey}"', 
-        **kwargs
+        instance_name,
+        "pip3 install --upgrade authk",
+        f'runuser -u ssm-user -- authk add "{pubkey}"',
+        **kwargs,
     )
-
