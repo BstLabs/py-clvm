@@ -1,7 +1,7 @@
 import getpass
 import os
 import platform
-from os.path import expanduser
+from os.path import exists, expanduser, join
 from typing import Final, Tuple
 
 from Crypto.PublicKey import RSA
@@ -9,8 +9,8 @@ from sshconf import empty_ssh_config_file, read_ssh_config
 
 from pyclvm.ssm import shell
 
-_SSH_DIR: Final[str] = expanduser("~/.ssh")
-_SSH_CONFIG: Final[str] = f"{_SSH_DIR}/config"
+_SSH_DIR: Final[str] = expanduser(join("~", ".ssh"))
+_SSH_CONFIG: Final[str] = join(_SSH_DIR, "config")
 
 
 def _format_public_key(pubkey) -> str:
@@ -24,15 +24,21 @@ def _generate_keys() -> Tuple[str, str]:
 
 
 def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
-    private_key_name = f"{_SSH_DIR}/aws-{profile}-{instance_name}"
+    private_key_name = f"{join(_SSH_DIR,'aws')}-{profile}-{instance_name}"
     public_key_name = f"{private_key_name}.pub"
     key, pubkey = _generate_keys()
 
-    with open(private_key_name, "w") as f:
+    if exists(private_key_name):
+        os.chmod(private_key_name, 0o600)
+
+    if not exists(_SSH_DIR):
+        os.mkdir(_SSH_DIR)
+
+    with open(private_key_name, "w", encoding="utf-8") as f:
         f.write(key)
     os.chmod(private_key_name, 0o400)
 
-    with open(public_key_name, "w") as f:
+    with open(public_key_name, "w", encoding="utf-8") as f:
         f.write(pubkey)
 
     return private_key_name, pubkey
@@ -67,4 +73,9 @@ def new(instance_name: str, **kwargs: str) -> None:
     profile = kwargs.get("profile", "default")
     private_key_name, pubkey = _save_keys(profile, instance_name)
     _update_ssh_config(instance_name, private_key_name, profile)
-    shell(instance_name, f'authk add "{pubkey}"', **kwargs)
+    shell(
+        instance_name,
+        "pip3 install --upgrade authk",
+        f'runuser -u ssm-user -- authk add "{pubkey}"',
+        **kwargs,
+    )
