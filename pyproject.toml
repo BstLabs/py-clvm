@@ -39,6 +39,10 @@ dev = [
     "flake8 >=4.0.1",
     "pre-commit >=2.17.0"
     ]
+test = [
+    "pytest",
+    "moto"
+]
 
 [project.scripts]
 clvm = "pyclvm._clvm:main"

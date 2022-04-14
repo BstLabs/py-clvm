@@ -26,7 +26,11 @@ def _process_one(
     func: Callable, instance_name: str, kwargs: Dict[str, str]
 ) -> Tuple[Session, str]:
     instances = InstanceMapping(**kwargs)
-    instance = instances[instance_name]
+    instance = instances.get(instance_name)
+    if not instance:
+        raise RuntimeError(
+            "[ERROR] No such instance registered: wrong instance name provided"
+        )
     func(instance_name, instance)
     return instances.session, instance.instance_id
 
