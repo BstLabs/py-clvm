@@ -14,7 +14,7 @@ def _run_script(*commands: List[str]) -> None:
     for command in commands:
         try:
             print(" ".join(command))
-            subprocess.run(command, check=True)
+            subprocess.run(command, check=True, shell=True)
         except subprocess.CalledProcessError as e:
             print(e.output)
             sys.exit(1)
@@ -111,3 +111,15 @@ def install() -> None:
                 ["code", "--install-extension", "ms-vscode-remote.remote-ssh"],
                 ["code", "--install-extension", "valentjn.vscode-ltex"],
             )
+    elif env.system == "Windows":
+        code = os.path.join(
+            os.path.expanduser("~"),
+            "AppData\\Local\\Programs\\Microsoft VS Code\\bin\\code",
+        )
+        _run_script(
+            ["winget", "install", "vscode"],  # Windows 10+ compatible package manager
+            [code, "--install-extension", "ms-vscode.makefile-tools"],
+            [code, "--install-extension", "ms-python.python"],
+            [code, "--install-extension", "ms-vscode-remote.remote-ssh"],
+            [code, "--install-extension", "valentjn.vscode-ltex"],
+        )
