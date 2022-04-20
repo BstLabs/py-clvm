@@ -1,5 +1,5 @@
+from pyclvm._web import gui
 from pyclvm.ssm import shell
-from pyclvm.web import gui
 
 
 def run(instance_name: str, **kwargs: str) -> None:
