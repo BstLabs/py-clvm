@@ -15,9 +15,6 @@ dependencies = [
     "dynacli >= 1.0.7",
     "pyjdict >= 1.0.5",
     "psutil >= 5.9.0",
-# Qt5 components could be installed separately, e.g. via brew
-    "PyQt5 >= 5.15.6",
-    "PyQtWebEngine >= 5.15.5",
     "rich >= 12.0.1",
     "sshconf >= 0.2.3",
     "pycryptodome >= 3.14.1"
@@ -39,6 +36,14 @@ dev = [
     "flake8 >=4.0.1",
     "pre-commit >=2.17.0"
     ]
+test = [
+    "pytest >=5.4.3",
+]
+gui = [
+# Qt5 components could be installed separately, e.g. via brew
+    "PyQt5 >= 5.15.6",
+    "PyQtWebEngine >= 5.15.5",
+]
 
 [project.scripts]
 clvm = "pyclvm._clvm:main"

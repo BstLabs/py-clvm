@@ -47,7 +47,10 @@ def start(instance_name: str, *args: str, **kwargs: str) -> subprocess.Popen:
         None
 
     """
-    session, instance_id = instance_start(instance_name, **kwargs)
-    return _start_ssm_session(
-        instance_id, _make_env(session), kwargs.get("wait", True), *args
-    )
+    try:
+        session, instance_id = instance_start(instance_name, **kwargs)
+        return _start_ssm_session(
+            instance_id, _make_env(session), kwargs.get("wait", True), *args
+        )
+    except RuntimeError as err:
+        print(err)
