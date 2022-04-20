@@ -45,8 +45,8 @@ class InstanceMapping(Mapping):
             return next(
                 self._get_instances(self._build_filters({"names": instance_name}))
             )
-        except StopIteration:
-            raise KeyError(instance_name)
+        except StopIteration as err:
+            raise KeyError(instance_name) from err
 
     def __iter__(self) -> Generator[str, None, None]:
         return self.keys()
