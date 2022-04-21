@@ -10,6 +10,10 @@ Cloud VM command line tool
 [aws-mfa](https://github.com/broamski/aws-mfa)
 
 
+## Installation
+
+`$ pip3 install pyclvm`
+
 ## How to install for local development
 
 `$ flit install --symlink`
