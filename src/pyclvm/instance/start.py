@@ -7,11 +7,14 @@ from ._process import process_instances
 
 
 def _start_instance(instance_name: str, instance: Instance) -> None:
-    if instance.state.Name == "stopped":
+    _state = instance.state.Name
+    if _state == "running":
+        print(f"{instance_name} is already running. Try to connect.")
+    elif _state in ["stopped", "terminated"]:
         print(f"Starting {instance_name} ...")
         instance.start()
         instance.wait_until_running()
-    print(f"{instance_name} is running")
+        print(f"{instance_name} is running")
 
 
 def start(*instance_names: str, **kwargs: str) -> Optional[Tuple[Session, str]]:

@@ -3,11 +3,16 @@ from ._process import process_instances
 
 
 def _stop_instance(instance_name: str, instance: Instance) -> None:
-    if instance.state.Name == "running":
+    _state = instance.state.Name
+    if _state == "stopped":
+        print(f"{instance_name} is already stopped.")
+    elif _state == "terminated":
+        print(f"{instance_name} is terminated.")
+    elif _state == "running":
         print(f"Stopping {instance_name} ...")
         instance.stop()
         instance.wait_until_stopped()
-    print(f"{instance_name} stopped")
+        print(f"{instance_name} stopped.")
 
 
 def stop(*instance_names: str, **kwargs: str) -> None:
