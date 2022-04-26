@@ -1,8 +1,12 @@
+from typing import Any, Callable, Optional
+
 from ._mapping import Instance
 from ._process import process_instances
 
 
-def _stop_instance(instance_name: str, instance: Instance) -> None:
+def _stop_instance(
+    instance_name: str, instance: Instance
+) -> Optional[Callable[[], Any]]:
     _state = instance.state.Name
     _state_map = {
         "stopped": print(f"{instance_name} is already stopped."),
