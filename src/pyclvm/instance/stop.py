@@ -4,15 +4,17 @@ from ._process import process_instances
 
 def _stop_instance(instance_name: str, instance: Instance) -> None:
     _state = instance.state.Name
-    if _state == "stopped":
-        print(f"{instance_name} is already stopped.")
-    elif _state == "terminated":
-        print(f"{instance_name} is terminated.")
-    elif _state == "running":
-        print(f"Stopping {instance_name} ...")
-        instance.stop()
-        instance.wait_until_stopped()
-        print(f"{instance_name} stopped.")
+    _state_map = {
+        "stopped": print(f"{instance_name} is already stopped."),
+        "terminated": print(f"{instance_name} is terminated."),
+        "running": lambda: [
+            print(f"Stopping {instance_name} ..."),
+            instance.stop(),
+            instance.wait_until_stopped(),
+            print(f"{instance_name} stopped."),
+        ],
+    }
+    return _state_map[_state]
 
 
 def stop(*instance_names: str, **kwargs: str) -> None:

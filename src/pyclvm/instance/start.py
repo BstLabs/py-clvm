@@ -10,7 +10,7 @@ def _start_instance(instance_name: str, instance: Instance) -> None:
     _state = instance.state.Name
     if _state == "running":
         print(f"{instance_name} is already running. Try to connect.")
-    elif _state in ["stopped", "terminated"]:
+    elif _state in {"stopped", "terminated"}:
         print(f"Starting {instance_name} ...")
         instance.start()
         instance.wait_until_running()
