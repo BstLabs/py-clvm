@@ -6,7 +6,7 @@ def stop(identifier: str, **kwargs: str) -> None:
     Terminate ssm session
 
     Args:
-        session_id (str): SSM session ID
+        identifier (str): SSM session ID
         **kwargs (str): (optional) classifiers, at the moment, profile name
 
     Returns:
@@ -15,7 +15,7 @@ def stop(identifier: str, **kwargs: str) -> None:
     """
     session = get_session(kwargs)
     client = session.client("ssm")
-    if identifier[0:3] == "i-0":  # close all sessions with a certain vm
+    if identifier.startswith("i-0"):  # close all sessions with a certain vm
         active_sessions = client.describe_sessions(
             State="Active", Filters=[{"key": "Target", "value": identifier}]
         )
