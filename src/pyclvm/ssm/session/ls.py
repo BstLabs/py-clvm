@@ -10,7 +10,7 @@ _COLUMNS: Final[Tuple[str, ...]] = ("SessionId", "Target", "DocumentName", "Owne
 
 def ls(**kwargs: str) -> None:
     """
-    Terminate ssm session
+    List all SSM sessions
 
     Args:
         **kwargs (str): (optional) classifiers, at the moment, profile name

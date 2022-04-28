@@ -3,9 +3,8 @@ import subprocess
 import sys
 from typing import Union
 
-import psutil
-
 from pyclvm._common.session import Session
+from pyclvm._common.signal_handler import interrupt_handler
 from pyclvm.instance import start as instance_start
 
 
@@ -35,20 +34,11 @@ def _call_subprocess(instance_id: str, env: dict, wait: Union[str, bool], *args:
     return proc
 
 
-def _terminator():
-    for to_be_terminated in psutil.process_iter():
-        if to_be_terminated.name() == "session-manager-plugin":
-            to_be_terminated.terminate()
-            print("Terminated")
-
-
 def _start_ssm_session(
     instance_id: str, env: dict, wait: Union[str, bool], *args: str
 ) -> subprocess.Popen:
-    try:
+    with interrupt_handler():
         return _call_subprocess(instance_id, env, wait, *args)
-    except KeyboardInterrupt:
-        _terminator()
 
 
 def start(instance_name: str, *args: str, **kwargs: str) -> subprocess.Popen:
