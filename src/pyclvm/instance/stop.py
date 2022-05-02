@@ -1,38 +1,43 @@
 from functools import partial
-from typing import Any, Callable, Optional
+from typing import Any
 
 from ._mapping import Instance
 from ._process import process_instances
 
 
-def _stop_instance(
-    instance_name: str, instance: Instance
-) -> Optional[Callable[..., Any]]:
-    _state = instance.state.Name
-    _state_map = {
+def _stop_instance(instance_name: str, instance: Instance) -> Any:
+    return {
         "stopped": partial(_is_already_stopped, instance_name),
         "terminated": partial(_is_terminated, instance_name),
-        "running": partial(_is_stopping, instance_name, instance),
-    }
-    return _state_map[_state]
+        "running": partial(_stopping_instance, instance_name, instance),
+        "stopping": partial(_in_transition, instance_name, instance),
+        "pending": partial(_in_transition, instance_name, instance),
+        "shutting-down": partial(_in_transition, instance_name, instance),
+        "rebooting": partial(_in_transition, instance_name, instance),
+    }[instance.state.Name]()
 
 
-def _is_already_stopped(instance_name: str) -> str:
+def _is_already_stopped(instance_name: str) -> None:
     print(f"{instance_name} is already stopped.")
-    return "stopped"
 
 
-def _is_terminated(instance_name: str) -> str:
+def _is_terminated(instance_name: str) -> None:
     print(f"{instance_name} is terminated.")
-    return "terminated"
 
 
-def _is_stopping(instance_name: str, instance: Instance) -> str:
+def _stopping_instance(instance_name: str, instance: Instance) -> None:
     print(f"Stopping {instance_name} ...")
     instance.stop()
     instance.wait_until_stopped()
     print(f"{instance_name} stopped.")
-    return "in transition"
+
+
+def _in_transition(instance_name: str, instance: Instance) -> None:
+    print(
+        f"{instance_name} is now in transition state. Wait untill current state is determined."
+    )
+    instance.wait_until_exists()
+    print(f"{instance_name} is {instance.state.Name}")
 
 
 def stop(*instance_names: str, **kwargs: str) -> None:
