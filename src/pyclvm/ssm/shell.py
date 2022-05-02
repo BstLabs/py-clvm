@@ -8,7 +8,7 @@ def shell(
     instance_name: str, *commands: str, **kwargs: str
 ) -> Union[Tuple[str, str], Tuple[Any, str, str]]:
     """
-    Execure shell script over ssm channel
+    Execute shell script over ssm channel
 
     Args:
         instance_name (str): Virtual Machine instance name
