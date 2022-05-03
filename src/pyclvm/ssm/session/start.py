@@ -4,6 +4,7 @@ import sys
 from typing import Union
 
 from pyclvm._common.session import Session
+from pyclvm._common.signal_handler import interrupt_handler
 from pyclvm.instance import start as instance_start
 
 
@@ -20,11 +21,10 @@ def _make_env(session: Session) -> dict:
     }
 
 
-def _start_ssm_session(
-    instance_id: str, env: dict, wait: Union[str, bool], *args: str
-) -> subprocess.Popen:
+def _call_subprocess(instance_id: str, env: dict, wait: Union[str, bool], *args: str):
     proc = subprocess.Popen(
-        args=["aws", "ssm", "start-session", "--target", instance_id, *args], env=env
+        args=["aws", "ssm", "start-session", "--target", instance_id, *args],
+        env=env,
     )
     if wait:
         proc.wait()
@@ -32,6 +32,13 @@ def _start_ssm_session(
             print(proc.stderr)
             sys.exit(proc.returncode)
     return proc
+
+
+def _start_ssm_session(
+    instance_id: str, env: dict, wait: Union[str, bool], *args: str
+) -> subprocess.Popen:
+    with interrupt_handler():
+        return _call_subprocess(instance_id, env, wait, *args)
 
 
 def start(instance_name: str, *args: str, **kwargs: str) -> subprocess.Popen:
