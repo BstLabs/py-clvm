@@ -1,1 +1,1 @@
-"""Microsoft vscode utilities"""
+"""vscode utilities"""

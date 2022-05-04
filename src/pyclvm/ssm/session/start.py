@@ -43,7 +43,7 @@ def _start_ssm_session(
 
 def start(instance_name: str, *args: str, **kwargs: str) -> subprocess.Popen:
     """
-    Start ssm session
+    start ssm session
 
     Args:
         instance_name (str): Virtual Machine instance name
