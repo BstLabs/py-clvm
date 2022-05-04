@@ -1,4 +1,4 @@
-"""Session manager utilities"""
+"""session manager utilities"""
 
 from . import session
 from .shell import shell
