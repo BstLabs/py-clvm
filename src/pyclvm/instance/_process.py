@@ -1,38 +1,36 @@
-from collections import ChainMap
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Dict, Optional, Tuple
 
-from pyclvm._common.session import Session
-
-from ._mapping import InstanceMapping
+from ec2instances.common.session import Session
+from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 
 
 def _process_many(
     func: Callable, state: str, instance_names: Tuple[str], kwargs: Dict[str, str]
 ) -> None:
-    instances = InstanceMapping(
-        **ChainMap(
-            kwargs, {"names": instance_names} if instance_names else {"states": state}
-        ),
-    )
 
-    items = list(instances.items())
-    with ThreadPoolExecutor() as pool:
-        pool.map(lambda t: func(*t), items, chunksize=10)
+    instances = list(
+        (name, instance)
+        for name, instance in Ec2RemoteShellMapping(**kwargs).items()
+        if instance.name in instance_names
+    )
+    with ThreadPoolExecutor() as executor:
+        res = executor.map(lambda t: func(*t), instances)
+        print(list(res))
     return None
 
 
 def _process_one(
     func: Callable, instance_name: str, kwargs: Dict[str, str]
 ) -> Tuple[Session, str]:
-    instances = InstanceMapping(**kwargs)
+    instances = Ec2RemoteShellMapping(**kwargs)
     instance = instances.get(instance_name)
     if not instance:
         raise RuntimeError(
             "[ERROR] No such instance registered: wrong instance name provided"
         )
     func(instance_name, instance)
-    return instances.session, instance.instance_id
+    return instance.session, instance.id
 
 
 def process_instances(
