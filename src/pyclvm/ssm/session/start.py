@@ -26,11 +26,18 @@ def _call_subprocess(instance_id: str, env: dict, wait: Union[str, bool], *args:
     proc = subprocess.Popen(
         args=["aws", "ssm", "start-session", "--target", instance_id, *args],
         env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
     )
     if wait:
         proc.wait()
         if proc.returncode != 0:
-            print(proc.stderr)
+            try:
+                outs, errs = proc.communicate(timeout=15)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                outs, errs = proc.communicate()
+            print(errs, outs, sep="\n")
             sys.exit(proc.returncode)
     return proc
 
