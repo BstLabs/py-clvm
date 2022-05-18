@@ -1,11 +1,9 @@
 from typing import Dict, Final, Tuple
 
+import boto3
+from ec2instances.ec2_instance_mapping import Ec2InstanceMapping
 from rich.console import Console
 from rich.table import Table
-
-from pyclvm._common.session import get_session
-
-from ._mapping import InstanceMapping
 
 _COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
 
@@ -30,9 +28,8 @@ def ls(**kwargs: str) -> None:
         None
 
     """
-    instances = InstanceMapping(**kwargs)
-    session = get_session(kwargs)
-    sts_client = session.client("sts")
+    instances = Ec2InstanceMapping(**kwargs)
+    sts_client = boto3.client("sts")
 
     account = sts_client.get_caller_identity().Account
     table = Table(title=f"{account} Account EC2 Instances")
@@ -44,7 +41,7 @@ def ls(**kwargs: str) -> None:
             *(
                 instance.id,
                 name,
-                f"[{_STATE_COLOR[instance.state.Code]}]{instance.state.Name}",
+                f"[{_STATE_COLOR[instance.state.value]}]{instance.state.name}",
             )
         )
 

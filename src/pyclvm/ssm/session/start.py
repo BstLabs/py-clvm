@@ -3,8 +3,9 @@ import subprocess
 import sys
 from typing import Union
 
-from pyclvm._common.session import Session
-from pyclvm._common.signal_handler import interrupt_handler
+from ec2instances.common.session import Session
+from ec2instances.common.signal_handler import interrupt_handler
+
 from pyclvm.instance import start as instance_start
 
 

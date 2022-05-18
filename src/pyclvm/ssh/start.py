@@ -1,4 +1,4 @@
-from pyclvm.ssm.session import start as start_session
+from pyclvm.ssm.session.start import start as start_session
 
 
 def start(instance_name: str, port: int, **kwargs: str) -> None:
