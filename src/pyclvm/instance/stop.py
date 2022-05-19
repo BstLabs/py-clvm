@@ -14,7 +14,7 @@ def _stop_instance(instance_name: str, instance: Instance) -> Any:
         "pending": partial(_in_transition, instance_name, instance),
         "shutting-down": partial(_in_transition, instance_name, instance),
         "rebooting": partial(_in_transition, instance_name, instance),
-    }[instance.state.Name]()
+    }[instance.state.name]()
 
 
 def _is_already_stopped(instance_name: str) -> None:
@@ -28,7 +28,6 @@ def _is_terminated(instance_name: str) -> None:
 def _stopping_instance(instance_name: str, instance: Instance) -> None:
     print(f"Stopping {instance_name} ...")
     instance.stop()
-    instance.wait_until_stopped()
     print(f"{instance_name} stopped.")
 
 
@@ -37,7 +36,7 @@ def _in_transition(instance_name: str, instance: Instance) -> None:
         f"{instance_name} is now in transition state. Wait untill current state is determined."
     )
     instance.wait_until_exists()
-    print(f"{instance_name} is {instance.state.Name}")
+    print(f"{instance_name} is {instance.state.name}")
 
 
 def stop(*instance_names: str, **kwargs: str) -> None:

@@ -5,7 +5,7 @@ from pyclvm import redirect
 
 def browser(name: str, **kwargs: str) -> None:
     """
-    redirect ports to a Virtual Machine and launch browser
+    redirect ports to a virtual machine and launch browser
 
     Args:
         name (str): Virtual Machine instance name

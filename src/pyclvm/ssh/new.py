@@ -5,9 +5,8 @@ from os.path import exists, expanduser, join
 from typing import Final, Tuple
 
 from Crypto.PublicKey import RSA
+from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 from sshconf import empty_ssh_config_file, read_ssh_config
-
-from pyclvm.ssm import shell
 
 _SSH_DIR: Final[str] = expanduser(join("~", ".ssh"))
 _SSH_CONFIG: Final[str] = join(_SSH_DIR, "config")
@@ -71,11 +70,11 @@ def new(instance_name: str, **kwargs: str) -> None:
     Returns:
         None
     """
+    instance = Ec2RemoteShellMapping(**kwargs)[instance_name]
     profile = kwargs.get("profile", "default")
     private_key_name, pubkey = _save_keys(profile, instance_name)
     _update_ssh_config(instance_name, private_key_name, profile)
-    shell(
-        instance_name,
+    instance.execute(
         "pip3 install --upgrade authk",
         f'runuser -u ssm-user -- authk add "{pubkey}"',
         **kwargs,

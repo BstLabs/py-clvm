@@ -1,4 +1,4 @@
-"""initiate HTTP port redirection session and start either browser or GUI app"""
+"""initiate http port redirection session and start either browser or gui app"""
 
 from .browser import browser
 from .gui import gui

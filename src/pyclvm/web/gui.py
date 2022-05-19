@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
 
 def gui(instance_name: str, **kwargs: str) -> None:
     """
-    redirect ports to a Virtual Machine and launch embedded browser
+    redirect ports to a virtual machine and launch embedded browser
 
     Args:
         instance_name (str): Virtual Machine instance name

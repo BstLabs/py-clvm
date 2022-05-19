@@ -1,6 +1,6 @@
 import subprocess
 
-from _common.session import get_session
+from ec2instances.common.session import get_session
 
 
 def start(**kwargs: str) -> None:
@@ -15,4 +15,4 @@ def start(**kwargs: str) -> None:
 
     """
     get_session(kwargs)
-    subprocess.Popen(args=["code"])
+    subprocess.Popen(args=["code"], shell=True)
