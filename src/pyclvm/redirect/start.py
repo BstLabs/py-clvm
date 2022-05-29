@@ -3,9 +3,9 @@ import socket
 from time import sleep
 
 import psutil
-from ec2instances.common.user_data import store
 from jdict import jdict
 
+from pyclvm._common.user_data import store
 from pyclvm.ssm.session import start as start_session
 
 from . import _get_port_mapping, _make_file_name

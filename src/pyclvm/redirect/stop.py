@@ -1,7 +1,6 @@
 import contextlib
 
-from ec2instances.common.user_data import fetch, remove
-
+from pyclvm._common.user_data import fetch, remove
 from pyclvm.instance import stop as stop_instance
 from pyclvm.ssm.session import stop as terminate_session
 

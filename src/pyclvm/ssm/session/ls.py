@@ -1,8 +1,9 @@
 from typing import Final, Tuple
 
-from ec2instances.common.session import get_session
 from rich.console import Console
 from rich.table import Table
+
+from pyclvm._common.session import get_session
 
 _COLUMNS: Final[Tuple[str, ...]] = ("SessionId", "Target", "DocumentName", "Owner")
 
