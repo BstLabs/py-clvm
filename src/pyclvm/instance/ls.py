@@ -1,7 +1,7 @@
 from typing import Dict, Final, Tuple
 
 import boto3
-from ec2instances.ec2_instance_mapping import Ec2AllInstancesMapping
+from ec2instances.ec2_instance_mapping import Ec2AllInstancesData
 from rich.console import Console
 from rich.table import Table
 
@@ -28,7 +28,7 @@ def ls(**kwargs: str) -> None:
         None
 
     """
-    instances = Ec2AllInstancesMapping(**kwargs)
+    instances = Ec2AllInstancesData(**kwargs)
     sts_client = boto3.client("sts")
 
     account = sts_client.get_caller_identity().Account
