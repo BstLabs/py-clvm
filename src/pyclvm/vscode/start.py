@@ -1,6 +1,6 @@
 import subprocess
 
-from ec2instances.common.session import get_session
+from pyclvm._common.session import get_session
 
 
 def start(**kwargs: str) -> None:
