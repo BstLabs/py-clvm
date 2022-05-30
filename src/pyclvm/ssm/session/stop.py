@@ -1,4 +1,4 @@
-from _common.session import get_session
+from pyclvm._common.session import get_session
 
 
 def stop(identifier: str, **kwargs: str) -> None:
