@@ -5,6 +5,8 @@ from ec2instances.ec2_instance_mapping import Ec2InstanceMapping
 from rich.console import Console
 from rich.table import Table
 
+from pyclvm._common.session import get_session
+
 _COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
 
 _STATE_COLOR: Final[Dict[int, str]] = {
@@ -28,7 +30,7 @@ def ls(**kwargs: str) -> None:
         None
 
     """
-    instances = Ec2InstanceMapping(**kwargs)
+    instances = Ec2InstanceMapping(get_session(kwargs))
     sts_client = boto3.client("sts")
 
     account = sts_client.get_caller_identity().Account
