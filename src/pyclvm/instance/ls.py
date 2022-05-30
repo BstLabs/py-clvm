@@ -5,6 +5,8 @@ from ec2instances.ec2_instance_mapping import Ec2AllInstancesData
 from rich.console import Console
 from rich.table import Table
 
+from pyclvm._common.session import get_session
+
 _COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
 
 _STATE_COLOR: Final[Dict[int, str]] = {
