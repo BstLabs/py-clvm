@@ -1,8 +1,9 @@
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Dict, Optional, Tuple
 
-from ec2instances.common.session import Session
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
+
+from pyclvm._common.session import Session, get_session
 
 
 def _process_many(
@@ -11,7 +12,7 @@ def _process_many(
 
     instances = list(
         (name, instance)
-        for name, instance in Ec2RemoteShellMapping(**kwargs).items()
+        for name, instance in Ec2RemoteShellMapping(get_session(kwargs)).items()
         if instance.name in instance_names
     )
     with ThreadPoolExecutor() as executor:
@@ -23,7 +24,7 @@ def _process_many(
 def _process_one(
     func: Callable, instance_name: str, kwargs: Dict[str, str]
 ) -> Tuple[Session, str]:
-    instances = Ec2RemoteShellMapping(**kwargs)
+    instances = Ec2RemoteShellMapping(get_session(kwargs))
     instance = instances.get(instance_name)
     if not instance:
         raise RuntimeError(
