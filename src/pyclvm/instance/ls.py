@@ -17,7 +17,7 @@ _STATE_COLOR: Final[Dict[int, str]] = {
 }
 
 
-def ls(**kwargs: str) -> None:
+def ls() -> None:
     """
     list vm instances
 
@@ -28,7 +28,7 @@ def ls(**kwargs: str) -> None:
         None
 
     """
-    instances = Ec2AllInstancesData(**kwargs)
+    instances = Ec2AllInstancesData()
     sts_client = boto3.client("sts")
 
     account = sts_client.get_caller_identity().Account
@@ -36,12 +36,12 @@ def ls(**kwargs: str) -> None:
     for column in _COLUMNS:
         table.add_column(column, justify="left", no_wrap=True)
 
-    for instance_ in instances:
+    for instance_id, instance_name, state_value, state_name in instances:
         table.add_row(
             *(
-                instance_[0],
-                instance_[1],
-                f"[{_STATE_COLOR[instance_[2]]}]{instance_[3]}",
+                instance_id,
+                instance_name,
+                f"[{_STATE_COLOR[state_value]}]{state_name}",
             )
         )
 
