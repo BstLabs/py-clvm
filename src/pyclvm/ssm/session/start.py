@@ -25,8 +25,6 @@ def _call_subprocess(instance_id: str, env: dict, wait: Union[str, bool], *args:
     proc = subprocess.Popen(
         args=["aws", "ssm", "start-session", "--target", instance_id, *args],
         env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
     )
     if wait:
         proc.wait()
