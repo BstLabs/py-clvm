@@ -1,6 +1,6 @@
 import os
-import subprocess
 import sys
+from subprocess import Popen, TimeoutExpired
 from typing import Union
 
 from pyclvm._common.session import Session
@@ -22,7 +22,7 @@ def _make_env(session: Session) -> dict:
 
 
 def _call_subprocess(instance_id: str, env: dict, wait: Union[str, bool], *args: str):
-    proc = subprocess.Popen(
+    proc = Popen(
         args=["aws", "ssm", "start-session", "--target", instance_id, *args],
         env=env,
     )
@@ -31,7 +31,7 @@ def _call_subprocess(instance_id: str, env: dict, wait: Union[str, bool], *args:
         if proc.returncode != 0:
             try:
                 outs, errs = proc.communicate(timeout=15)
-            except subprocess.TimeoutExpired:
+            except TimeoutExpired:
                 proc.kill()
                 outs, errs = proc.communicate()
             print(errs, outs, sep="\n")
@@ -41,12 +41,12 @@ def _call_subprocess(instance_id: str, env: dict, wait: Union[str, bool], *args:
 
 def _start_ssm_session(
     instance_id: str, env: dict, wait: Union[str, bool], *args: str
-) -> subprocess.Popen:
+) -> Popen:
     with interrupt_handler():
         return _call_subprocess(instance_id, env, wait, *args)
 
 
-def start(instance_name: str, *args: str, **kwargs: str) -> subprocess.Popen:
+def start(instance_name: str, *args: str, **kwargs: str) -> Popen:
     """
     start ssm session
 
