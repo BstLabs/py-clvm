@@ -1,7 +1,7 @@
 from typing import Dict, Final, Tuple
 
 import boto3
-from ec2instances.ec2_instance_mapping import Ec2InstanceMapping
+from ec2instances.ec2_instance_mapping import Ec2AllInstancesData
 from rich.console import Console
 from rich.table import Table
 
@@ -17,7 +17,7 @@ _STATE_COLOR: Final[Dict[int, str]] = {
 }
 
 
-def ls(**kwargs: str) -> None:
+def ls() -> None:
     """
     list vm instances
 
@@ -28,7 +28,7 @@ def ls(**kwargs: str) -> None:
         None
 
     """
-    instances = Ec2InstanceMapping(**kwargs)
+    instances = Ec2AllInstancesData()
     sts_client = boto3.client("sts")
 
     account = sts_client.get_caller_identity().Account
@@ -36,12 +36,12 @@ def ls(**kwargs: str) -> None:
     for column in _COLUMNS:
         table.add_column(column, justify="left", no_wrap=True)
 
-    for name, instance in instances.items():
+    for instance_id, instance_name, state_value, state_name in instances:
         table.add_row(
             *(
-                instance.id,
-                name,
-                f"[{_STATE_COLOR[instance.state.value]}]{instance.state.name}",
+                instance_id,
+                instance_name,
+                f"[{_STATE_COLOR[state_value]}]{state_name}",
             )
         )
 
