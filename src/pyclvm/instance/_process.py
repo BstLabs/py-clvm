@@ -6,7 +6,6 @@ from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 from pyclvm._common.session import Session, get_session
 
 
-
 def _process_many(
     func: Callable, state: str, instance_names: Tuple[str], kwargs: Dict[str, str]
 ) -> None:
