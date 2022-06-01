@@ -3,8 +3,9 @@ import sys
 from subprocess import Popen, TimeoutExpired
 from typing import Union
 
-from pyclvm._common.session import Session
-from pyclvm._common.signal_handler import interrupt_handler
+from ec2instances.common.session import Session
+from ec2instances.common.signal_handler import interrupt_handler
+
 from pyclvm.instance import start as instance_start
 
 
@@ -25,6 +26,8 @@ def _call_subprocess(instance_id: str, env: dict, wait: Union[str, bool], *args:
     proc = Popen(
         args=["aws", "ssm", "start-session", "--target", instance_id, *args],
         env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
     )
     if wait:
         proc.wait()

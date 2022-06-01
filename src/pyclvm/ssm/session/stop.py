@@ -1,4 +1,4 @@
-from pyclvm._common.session import get_session
+from ec2instances.common.session import get_session
 
 
 def stop(identifier: str, **kwargs: str) -> None:
