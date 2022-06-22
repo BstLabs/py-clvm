@@ -17,7 +17,7 @@ _STATE_COLOR: Final[Dict[int, str]] = {
 }
 
 
-def ls() -> None:
+def ls(**kwargs: str) -> None:
     """
     list vm instances
 
@@ -28,6 +28,10 @@ def ls() -> None:
         None
 
     """
+    current_profile = kwargs.get("profile", "")
+    if current_profile:
+        boto3.setup_default_session(profile_name=current_profile)
+
     instances = Ec2AllInstancesData()
     sts_client = boto3.client("sts")
 

@@ -83,7 +83,7 @@ def _get_role_credentials(profile: str, config: jdict) -> Credentials:
         source_profile, source_config
     )
     credentials = (
-        _make_session(source_credentials)
+        _make_session(source_credentials, profile)
         .client("sts")
         .assume_role(
             RoleArn=config.role_arn,
@@ -105,15 +105,18 @@ def _get_credentials(profile: str) -> Dict:
     )
 
 
-def _make_session(credentials) -> Session:
+def _make_session(credentials, profile) -> Session:
     return Session(
         aws_access_key_id=credentials.AccessKeyId,
         aws_secret_access_key=credentials.SecretAccessKey,
         aws_session_token=credentials.SessionToken,
         region_name=credentials.Region,
+        profile_name=profile,
     )
 
 
 def get_session(kwargs: Dict[str, str]) -> Session:
     profile = kwargs.get("profile", "default")
-    return _make_session(_read_credentials(profile) or _get_credentials(profile))
+    return _make_session(
+        (_read_credentials(profile) or _get_credentials(profile)), profile
+    )
