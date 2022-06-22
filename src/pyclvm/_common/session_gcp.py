@@ -64,22 +64,17 @@ class GcpInstance(Instance):
     GCP instance class
     """
     def __init__(self):
-        creds = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
         scopes = ["https://www.googleapis.com/auth/cloud-platform"]
-        if creds is not None:
-            self._credentials = service_account.Credentials.from_service_account_file(
-                filename=creds,
-                scopes=scopes,
-            )
-            _creds = json.load(open(creds, "rb"))
-            self.project = _creds["project_id"]
-            self.account_id = _creds["client_id"]
-        else:
-            self._credentials, self.project = google.auth.default(scopes=scopes)
-            self.authed_session = google.auth.transport.requests.AuthorizedSession(self._credentials)
-            self.account_id = self._credentials.client_id
-        self.zone = "europe-west2-b"
+        self._credentials, _ = google.auth.default(scopes=scopes)
+        self.authed_session = google.auth.transport.requests.AuthorizedSession(self._credentials)
+
+        self.project_id = self.authed_session.credentials.project_id
+        self.account_email = self.authed_session.credentials.service_account_email
+        self.session_expired = self.authed_session.credentials.expired
+        self.session_verify = self.authed_session.verify
+
         self.client = compute_v1.InstancesClient(credentials=self._credentials)
+        self.zone = os.getenv("CLOUDSDK_COMPUTE_ZONE", "europe-west2-b")
 
 # ---
     def _get_client(self) -> compute_v1.InstancesClient:
@@ -99,7 +94,7 @@ class GcpInstance(Instance):
             An iterable collections of Instance objects as values.
         """
         request = compute_v1.AggregatedListInstancesRequest()
-        request.project = self.project
+        request.project = self.project_id
         # Use the `max_results` parameter to limit the number of results that the API returns per response page.
         request.max_results = 50
         # --- gcloud auth login --update-adc
@@ -193,7 +188,7 @@ class GcpInstance(Instance):
         Returns:
             (str) Status of operation
         """
-        operation = self.client.stop(project=self.project, zone=self.zone, instance=instance)
+        operation = self.client.stop(project=self.project_id, zone=self.zone, instance=instance)
         return self._wait_for_extended_operation(operation, "instance stopping")
 
     # ---
@@ -205,7 +200,7 @@ class GcpInstance(Instance):
         Returns:
             (str) Status of operation
         """
-        operation = self.client.start(project=self.project, zone=self.zone, instance=instance)
+        operation = self.client.start(project=self.project_id, zone=self.zone, instance=instance)
         return self._wait_for_extended_operation(operation, "instance starting")
 
     # ---
@@ -217,7 +212,7 @@ class GcpInstance(Instance):
         Returns:
             (str) Status of operation
         """
-        operation = self.client.reset(project=self.project, zone=self.zone, instance=instance)
+        operation = self.client.reset(project=self.project_id, zone=self.zone, instance=instance)
         return self._wait_for_extended_operation(operation, "instance resetting")
 
     # ---
@@ -240,7 +235,7 @@ class GcpInstance(Instance):
         Returns:
             (str) Status of operation
         """
-        operation = self.client.suspend(project=self.project, zone=self.zone, instance=instance)
+        operation = self.client.suspend(project=self.project_id, zone=self.zone, instance=instance)
         return self._wait_for_extended_operation(operation, "instance suspending")
 
     # ---
@@ -252,7 +247,7 @@ class GcpInstance(Instance):
         Returns:
             (str) Status of operation
         """
-        operation = self.client.resume(project=self.project, zone=self.zone, instance=instance)
+        operation = self.client.resume(project=self.project_id, zone=self.zone, instance=instance)
         return self._wait_for_extended_operation(operation, "instance resuming")
 
 
@@ -261,6 +256,8 @@ def main():
     vmi = GcpInstance()
     ls = vmi.list_all_instances()
     print(ls)
+    # print(vmi.stop_instance("caios-dev-dmitro-desktop"))
+
 
 
 
