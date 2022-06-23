@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 
-from typing import Dict, Optional
+from typing import Optional
 
 from google.auth import default
 from google.auth.credentials import Credentials

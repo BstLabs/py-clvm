@@ -1,17 +1,25 @@
 # -*- coding: utf-8 -*- #
 
 import os
-from typing import Iterator, Iterable, AnyStr
+from typing import AnyStr, Iterable, Iterator, Union
+
+from google.cloud import compute_v1
 
 from .session_gcp import get_session
-from google.cloud import compute_v1
 
 
 class GcpComputeAllInstancesData:
+    """
+    Derives all the instance data for further use.
+    """
     def __init__(self, **kwargs) -> None:
         self.session = get_session(**kwargs)
-        self._client = compute_v1.InstancesClient(credentials=self.session.get_credentials())
-        self._zone = kwargs.get("zone", os.getenv("CLOUDSDK_COMPUTE_ZONE", "europe-west2-b"))
+        self._client = compute_v1.InstancesClient(
+            credentials=self.session.get_credentials()
+        )
+        self._zone = kwargs.get(
+            "zone", os.getenv("CLOUDSDK_COMPUTE_ZONE", "europe-west2-b")
+        )
         self._instances_data = self._instances()
 
     # ---
@@ -27,11 +35,14 @@ class GcpComputeAllInstancesData:
             if f"zones/{self._zone}" == zone:
                 _instances = instances_in_zone.instances
 
-        return [(
-            _instance.id,
-            self._get_instance_name(_instance.tags) or _instance.name,
-            _instance.status,
-        ) for _instance in _instances]
+        return [
+            (
+                _instance.id,
+                self._get_instance_name(_instance.tags) or _instance.name,
+                _instance.status,
+            )
+            for _instance in _instances
+        ]
 
     # ---
     def __iter__(self) -> Iterator:
@@ -39,7 +50,7 @@ class GcpComputeAllInstancesData:
 
     # ---
     @staticmethod
-    def _get_instance_name(_tags: compute_v1.types.compute.Tags) -> AnyStr:
+    def _get_instance_name(_tags: compute_v1.types.compute.Tags) -> Union[AnyStr , None]:
         """
         Returns VM name from a tag
         :params _tags: GCP compute VM tags object
