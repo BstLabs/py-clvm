@@ -4,6 +4,7 @@ import time
 from typing import Any, Iterable, Optional, Tuple, Union
 
 from instances_map_abc.vm_instance_proxy import VmState
+from .session_gcp import GcpSession
 
 
 class _GcpStateProxy(VmState):
@@ -17,20 +18,15 @@ class _GcpStateProxy(VmState):
 
 
 class GcpInstanceProxy:
-    ...
-    # def __init__(
-    #     self,
-    #     instance_id: str,
-    #     session,
-    #     ec2_client: Optional[botocore.client.BaseClient] = None,
-    #     **kwargs: str,
-    # ) -> None:
-    #     self._instance_id = instance_id
-    #     self._ec2_client = ec2_client or session.client("ec2")
-    #     # ---
-    #     setup_default_session(profile_name=session.profile_name)
-    #     self._instance = resource("ec2").Instance(instance_id)
-    #
+    def __init__(
+        self,
+        instance_id: str,
+        session: GcpSession,
+        **kwargs: str,
+    ) -> None:
+        self._instance_id = instance_id
+        self._client = session.get_client()
+
     # def start(self, wait: bool = True) -> None:
     #     """
     #     Start the vm

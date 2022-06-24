@@ -9,6 +9,9 @@ from pyclvm._common.gcp_instance_mapping import GcpComputeAllInstancesData
 
 _COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
 
+# --- The list of colours of "rich"
+# https://rich.readthedocs.io/en/stable/appendix/colors.html
+
 _STATE_COLOR: Final[Dict[int, str]] = {
     0: "bright_yellow",
     16: "bright_green",
@@ -104,7 +107,7 @@ def _ls_gcp(**kwargs: str) -> None:
 
     """
     instances = GcpComputeAllInstancesData(**kwargs)
-    table = Table(title=f"{instances.session.account_email} Account GCP Instances")
+    table = Table(title=f"{instances.get_session().account_email} Account GCP Instances")
     for column in _COLUMNS:
         table.add_column(column, justify="left", no_wrap=True)
 

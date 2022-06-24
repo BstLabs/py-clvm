@@ -3,7 +3,7 @@
 import os
 from typing import Iterator, Iterable, AnyStr, Generator, Tuple, Union
 
-from .session_gcp import get_session
+from .session_gcp import get_session, GcpSession
 from google.cloud import compute_v1
 
 from instances_map_abc.vm_instance_mapping import VmInstanceMappingBase
@@ -16,17 +16,21 @@ class GcpComputeAllInstancesData:
     Derives all the instance data for further use.
     """
     def __init__(self, **kwargs) -> None:
-        self.session = get_session(**kwargs)
-        self._client = self.session.get_client()
+        self._session = get_session(**kwargs)
+        self._client = self._session.get_client()
         self._zone = kwargs.get(
             "zone", os.getenv("CLOUDSDK_COMPUTE_ZONE", "europe-west2-b")
         )
         self._instances_data = self._instances()
 
     # ---
+    def get_session(self) -> GcpSession:
+        return self._session
+
+    # ---
     def _instances(self) -> Iterable:
         request = compute_v1.AggregatedListInstancesRequest()
-        request.project = self.session.project_id
+        request.project = self._session.project_id
         # Use the `max_results` parameter to limit the number of results that the API returns per response page.
         # request.max_results = 50
         # _instances = filter(lambda x: (x[0] == f"zones/{self._zone}"),
@@ -65,9 +69,9 @@ class GcpComputeAllInstancesData:
 
 # ---
 class GcpInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
-    def __init__(self, session) -> None:
+    def __init__(self, session: GcpSession) -> None:
         self._session = session
-        self._client = compute_v1.InstancesClient(credentials=self.session.get_credentials())
+        self._client = self._session.get_client()
 
     def __getitem__(self, name: str) -> VmInstanceProxy:
         instance_id = self._get_instance_id(name)
