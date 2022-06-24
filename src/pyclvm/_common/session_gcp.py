@@ -5,8 +5,12 @@ from typing import Optional
 from google.auth import default
 from google.auth.credentials import Credentials
 from google.auth.transport.requests import AuthorizedSession
+from google.cloud.compute_v1 import InstancesClient
+
+from singleton_decorator import singleton
 
 
+@singleton
 class GcpSession:
     """
     GCP instance class
@@ -22,10 +26,15 @@ class GcpSession:
         self.account_email = self._authed_session.credentials.service_account_email
         self._expired = self._authed_session.credentials.expired
         self._verify = self._authed_session.verify
+        self._client = InstancesClient(credentials=self._credentials)
 
     # ---
     def get_credentials(self) -> Credentials:
         return self._credentials
+
+    # ---
+    def get_client(self) -> InstancesClient:
+        return self._client
 
     # ---
     def is_expired(self) -> bool:

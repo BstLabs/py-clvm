@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*- #
 
 import os
-from typing import AnyStr, Iterable, Iterator, Union
-
-from google.cloud import compute_v1
+from typing import Iterator, Iterable, AnyStr, Generator, Tuple, Union
 
 from .session_gcp import get_session
+from google.cloud import compute_v1
+
+from instances_map_abc.vm_instance_mapping import VmInstanceMappingBase
+from instances_map_abc.vm_instance_proxy import VmInstanceProxy
+from .gcp_instance_proxy import GcpInstanceProxy, GcpRemoteShellProxy
 
 
 class GcpComputeAllInstancesData:
@@ -14,9 +17,7 @@ class GcpComputeAllInstancesData:
     """
     def __init__(self, **kwargs) -> None:
         self.session = get_session(**kwargs)
-        self._client = compute_v1.InstancesClient(
-            credentials=self.session.get_credentials()
-        )
+        self._client = self.session.get_client()
         self._zone = kwargs.get(
             "zone", os.getenv("CLOUDSDK_COMPUTE_ZONE", "europe-west2-b")
         )
@@ -50,7 +51,7 @@ class GcpComputeAllInstancesData:
 
     # ---
     @staticmethod
-    def _get_instance_name(_tags: compute_v1.types.compute.Tags) -> Union[AnyStr , None]:
+    def _get_instance_name(_tags: compute_v1.types.compute.Tags) -> Union[AnyStr, None]:
         """
         Returns VM name from a tag
         :params _tags: GCP compute VM tags object
@@ -60,3 +61,55 @@ class GcpComputeAllInstancesData:
             return _tags.name
         except AttributeError:
             pass
+
+
+# ---
+class GcpInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
+    def __init__(self, session) -> None:
+        self._session = session
+        self._client = compute_v1.InstancesClient(credentials=self.session.get_credentials())
+
+    def __getitem__(self, name: str) -> VmInstanceProxy:
+        instance_id = self._get_instance_id(name)
+        return self._get_instance(instance_id)
+
+    def __iter__(self) -> Iterator:
+        instances = (
+            r["Instances"][0] for r in self._client.describe_instances()["Reservations"]
+        )
+        for instance in instances:
+            yield self._get_instance(instance["InstanceId"])
+
+    def __len__(self) -> int:
+        return sum(1 for _ in self)
+
+    def keys(self) -> Generator[str, None, None]:
+        for instance in self:
+            yield instance.name
+
+    def values(self) -> Generator[str, None, None]:
+        yield from self
+
+    def items(self) -> Generator[Tuple[str, str], None, None]:
+        yield from zip(self.keys(), self.values())
+
+    def _get_instance(self, instance_id: str) -> GcpInstanceProxy:
+        return GcpInstanceProxy()
+
+    def _get_instance_id(self, instance_name: str) -> str:
+        instance_details = self._client.describe_instances(
+            Filters=[
+                {
+                    "Name": "tag:Name",  # as long as you are following the convention of putting Name in tags
+                    "Values": [
+                        instance_name,
+                    ],
+                },
+            ],
+        )
+        return instance_details["Reservations"][0]["Instances"][0]["InstanceId"]
+
+
+class GcpRemoteShellMapping(GcpInstanceMapping, VmInstanceMappingBase):
+    def _get_instance(self, instance_id: str) -> GcpRemoteShellProxy:
+        return GcpRemoteShellProxy()
