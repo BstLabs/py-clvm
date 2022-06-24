@@ -18,9 +18,7 @@ class GcpComputeAllInstancesData:
     def __init__(self, **kwargs) -> None:
         self._session = get_session(**kwargs)
         self._client = self._session.get_client()
-        self._zone = kwargs.get(
-            "zone", os.getenv("CLOUDSDK_COMPUTE_ZONE", "europe-west2-b")
-        )
+        self._zone = self._session.get_zone()
         self._instances_data = self._instances()
 
     # ---
@@ -69,13 +67,13 @@ class GcpComputeAllInstancesData:
 
 # ---
 class GcpInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
-    def __init__(self, session: GcpSession) -> None:
+    def __init__(self, session: GcpSession, **kwargs) -> None:
         self._session = session
         self._client = self._session.get_client()
+        self._kwargs = kwargs
 
-    def __getitem__(self, name: str) -> VmInstanceProxy:
-        instance_id = self._get_instance_id(name)
-        return self._get_instance(instance_id)
+    def __getitem__(self, instance_name: str) -> GcpInstanceProxy:
+        return self._get_instance(instance_name=instance_name)
 
     def __iter__(self) -> Iterator:
         instances = (
@@ -97,21 +95,25 @@ class GcpInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
     def items(self) -> Generator[Tuple[str, str], None, None]:
         yield from zip(self.keys(), self.values())
 
-    def _get_instance(self, instance_id: str) -> GcpInstanceProxy:
-        return GcpInstanceProxy()
-
-    def _get_instance_id(self, instance_name: str) -> str:
-        instance_details = self._client.describe_instances(
-            Filters=[
-                {
-                    "Name": "tag:Name",  # as long as you are following the convention of putting Name in tags
-                    "Values": [
-                        instance_name,
-                    ],
-                },
-            ],
+    def _get_instance(self, instance_name: str) -> GcpInstanceProxy:
+        return GcpInstanceProxy(
+            instance_name=instance_name,
+            session=self._session,
+            **self._kwargs,
         )
-        return instance_details["Reservations"][0]["Instances"][0]["InstanceId"]
+
+    # def _get_instance_id(self, instance_name: str) -> str:
+    #     instance_details = self._client.describe_instances(
+    #         Filters=[
+    #             {
+    #                 "Name": "tag:Name",  # as long as you are following the convention of putting Name in tags
+    #                 "Values": [
+    #                     instance_name,
+    #                 ],
+    #             },
+    #         ],
+    #     )
+    #     return instance_details["Reservations"][0]["Instances"][0]["InstanceId"]
 
 
 class GcpRemoteShellMapping(GcpInstanceMapping, VmInstanceMappingBase):

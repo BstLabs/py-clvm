@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*- #
 
 from typing import Optional
+import os
 
 from google.auth import default
 from google.auth.credentials import Credentials
@@ -16,9 +17,9 @@ class GcpSession:
     GCP instance class
     """
 
-    def __init__(self, profile: Optional[str] = None):
+    def __init__(self, **kwargs):
         scopes = ["https://www.googleapis.com/auth/cloud-platform"]
-        self._profile = profile  # TODO handle profiles
+        self._profile = self._zone = kwargs.get("profile", None)  # TODO handle profiles
         self._credentials, _ = default(scopes=scopes)
         self._authed_session = AuthorizedSession(self._credentials)
 
@@ -27,6 +28,9 @@ class GcpSession:
         self._expired = self._authed_session.credentials.expired
         self._verify = self._authed_session.verify
         self._client = InstancesClient(credentials=self._credentials)
+        self._zone = kwargs.get(
+            "zone", os.getenv("CLOUDSDK_COMPUTE_ZONE", "europe-west2-b")
+        )
 
     # ---
     def get_credentials(self) -> Credentials:
@@ -44,7 +48,20 @@ class GcpSession:
     def is_verified(self) -> bool:
         return self._verify
 
+    # ---
+    def get_zone(self) -> str:
+        return self._zone
+
+    # ---
+    @property
+    def zone(self) -> str:
+        return self._zone
+
+    # ---
+    def set_zone(self, zone: str) -> None:
+        self._zone = zone
+
 
 def get_session(**kwargs) -> GcpSession:
-    profile = kwargs.get("profile", None)
-    return GcpSession(profile=profile)
+    # profile = kwargs.get("profile", None)
+    return GcpSession(**kwargs)
