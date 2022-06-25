@@ -6,8 +6,6 @@ from boto3.session import Session
 from ._mapping import Instance
 from ._process import process_instances
 
-from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
-
 # TODO move the getting platform out of here
 platform = None
 
@@ -36,7 +34,7 @@ def _start_instance(instance_name: str, instance: Instance) -> Any:
             "STAGING": partial(_in_transition, instance_name, instance),
             "SUSPENDING": partial(_in_transition, instance_name, instance),
         }[instance.state]()
-    elif platform == "gcp":
+    elif platform == "azure":
         pass
     else:
         raise RuntimeError("Unsupported platform")
@@ -73,6 +71,7 @@ def start(*instance_names: str, **kwargs: str) -> Optional[Tuple[Session, str]]:
     """
     global platform
     platform = kwargs.get("platform", "aws")
+
     if platform == "aws":
         return _start_aws(*instance_names, **kwargs)
     elif platform == "gcp":
