@@ -6,17 +6,40 @@ from boto3.session import Session
 from ._mapping import Instance
 from ._process import process_instances
 
+from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
+
+# TODO move the getting platform out of here
+platform = None
+
 
 def _start_instance(instance_name: str, instance: Instance) -> Any:
-    return {
-        "running": partial(_is_running, instance_name),
-        "stopped": partial(_is_stopped_or_terminated, instance_name, instance),
-        "terminated": partial(_is_stopped_or_terminated, instance_name, instance),
-        "stopping": partial(_in_transition, instance_name, instance),
-        "pending": partial(_in_transition, instance_name, instance),
-        "shutting-down": partial(_in_transition, instance_name, instance),
-        "rebooting": partial(_in_transition, instance_name, instance),
-    }[instance.state.name]()
+    if platform == "aws":
+        return {
+            "running": partial(_is_running, instance_name),
+            "stopped": partial(_is_stopped_or_terminated, instance_name, instance),
+            "terminated": partial(_is_stopped_or_terminated, instance_name, instance),
+            "stopping": partial(_in_transition, instance_name, instance),
+            "pending": partial(_in_transition, instance_name, instance),
+            "shutting-down": partial(_in_transition, instance_name, instance),
+            "rebooting": partial(_in_transition, instance_name, instance),
+        }[instance.state.name]()
+    elif platform == "gcp":
+        return {
+            "RUNNING": partial(_is_running, instance_name),
+            "STOPPED": partial(_is_stopped_or_terminated, instance_name, instance),
+            "TERMINATED": partial(_is_stopped_or_terminated, instance_name, instance),
+            "SUSPENDED": partial(_is_stopped_or_terminated, instance_name, instance),
+            "STOPPING": partial(_in_transition, instance_name, instance),
+            "PROVISIONING": partial(_in_transition, instance_name, instance),
+            "DEPROVISIONING": partial(_in_transition, instance_name, instance),
+            "REPAIRING": partial(_in_transition, instance_name, instance),
+            "STAGING": partial(_in_transition, instance_name, instance),
+            "SUSPENDING": partial(_in_transition, instance_name, instance),
+        }[instance.state]()
+    elif platform == "gcp":
+        pass
+    else:
+        raise RuntimeError("Unsupported platform")
 
 
 def _is_running(instance_name: str) -> None:
@@ -48,4 +71,28 @@ def start(*instance_names: str, **kwargs: str) -> Optional[Tuple[Session, str]]:
     Returns:
         Tuple[Session, instance_is (str)]
     """
+    global platform
+    platform = kwargs.get("platform", "aws")
+    if platform == "aws":
+        return _start_aws(*instance_names, **kwargs)
+    elif platform == "gcp":
+        return _start_gcp(*instance_names, **kwargs)
+    elif platform == "azure":
+        return _start_azure(*instance_names, **kwargs)
+    else:
+        raise RuntimeError("Unsupported platform")
+
+
+# ---
+def _start_aws(*instance_names: str, **kwargs: str):
     return process_instances(_start_instance, "stopped", instance_names, kwargs)
+
+
+# ---
+def _start_gcp(*instance_names: str, **kwargs: str):
+    return process_instances(_start_instance, "TERMINATED", instance_names, kwargs)
+
+
+# ---
+def _start_azure(*instance_names: str, **kwargs: str):
+    pass

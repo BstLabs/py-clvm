@@ -24,15 +24,15 @@ class GcpInstanceProxy:
         self._instance = self._client.get(
             project=self._session.project_id,
             zone=self._session.zone,
-            instance=self._instance_name
+            instance=self._instance_name,
         )
 
     # ---
     @staticmethod
     def _wait_for_extended_operation(
-            operation: ExtendedOperation,
-            verbose_name: str = "operation",
-            timeout: int = 300
+        operation: ExtendedOperation,
+        verbose_name: str = "operation",
+        timeout: int = 300,
     ) -> Any:
         """
         This method will wait for the extended (long-running) operation to
@@ -86,9 +86,13 @@ class GcpInstanceProxy:
         operation = self._client.start(
             project=self._session.project_id,
             zone=self._session.zone,
-            instance=self._instance_name
+            instance=self._instance_name,
         )
-        return self._wait_for_extended_operation(operation, "instance stopping") if wait else None
+        return (
+            self._wait_for_extended_operation(operation, "instance stopping")
+            if wait
+            else None
+        )
 
     # ---
     def stop(self, wait: bool = True) -> Union[Any, None]:
@@ -100,9 +104,13 @@ class GcpInstanceProxy:
         operation = self._client.stop(
             project=self._session.project_id,
             zone=self._session.zone,
-            instance=self._instance_name
+            instance=self._instance_name,
         )
-        return self._wait_for_extended_operation(operation, "instance stopping") if wait else None
+        return (
+            self._wait_for_extended_operation(operation, "instance stopping")
+            if wait
+            else None
+        )
 
     @property
     def state(self) -> str:
@@ -121,46 +129,18 @@ class GcpInstanceProxy:
 
 
 class GcpRemoteShellProxy(GcpInstanceProxy):
-    ...
-    # def __init__(self, instance_id: str, session) -> None:
-    #     super().__init__(instance_id, session)
-    #     self._session = session
-    #     self._ssm_client = self._session.client("ssm")
-    #
-    # def execute(
-    #     self, *commands: Union[str, Iterable], **kwargs: str
-    # ) -> Union[Tuple[Any, ...], Tuple[str, str]]:
-    #     result = self._ssm_client.send_command(
-    #         InstanceIds=[self._instance_id],
-    #         DocumentName="AWS-RunShellScript",
-    #         Parameters={"commands": ["source /etc/bashrc", *commands]},
-    #     )
-    #
-    #     command_id = result["Command"]["CommandId"]
-    #     # see https://stackoverflow.com/questions/50067035/retrieving-command-invocation-in-aws-ssm
-    #     time.sleep(2)
-    #     if not kwargs.get("wait", True):
-    #         return self._ssm_client, command_id, self._instance_id
-    #     waiter = self._ssm_client.get_waiter("command_executed")
-    #     try:
-    #         waiter.wait(
-    #             CommandId=command_id,
-    #             InstanceId=self._instance_id,
-    #             WaiterConfig={
-    #                 "Delay": kwargs.get("delay", 5),
-    #                 "MaxAttempts": kwargs.get("attempts", 20),
-    #             },
-    #         )
-    #     finally:
-    #         result = self._ssm_client.get_command_invocation(
-    #             CommandId=command_id,
-    #             InstanceId=self._instance_id,
-    #             PluginName="aws:RunShellScript",
-    #         )
-    #         print(result.StandardOutputContent)
-    #         print(result.StandardErrorContent)
-    #     return result.StandardOutputContent, result.StandardErrorContent
-    #
-    # @property
-    # def session(self):
-    #     return self._session
+    def __init__(self, instance_name: str, session: GcpSession, **kwargs) -> None:
+        super().__init__(instance_name, session, **kwargs)
+        self._session = session
+        self._proxy_client = (
+            None  # TODO realise proxy client (SSH or any other remote call)
+        )
+
+    # ---
+    def execute(self, *commands: Union[str, Iterable], **kwargs) -> Any:
+        pass
+
+    # ---
+    @property
+    def session(self):
+        return self._session

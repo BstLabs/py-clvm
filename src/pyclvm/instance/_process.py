@@ -4,7 +4,7 @@ from typing import Callable, Dict, Optional, Tuple
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 
 from pyclvm._common.session import Session, get_session
-
+from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
 
 def _process_many(
     func: Callable, state: str, instance_names: Tuple[str], kwargs: Dict[str, str]
@@ -24,7 +24,17 @@ def _process_many(
 def _process_one(
     func: Callable, instance_name: str, kwargs: Dict[str, str]
 ) -> Tuple[Session, str]:
-    instances = Ec2RemoteShellMapping(get_session(kwargs))
+    # TODO move the getting platform out of here
+    platform = kwargs.get("platform", "aws")
+    if platform == "aws":
+        instances = Ec2RemoteShellMapping(get_session(kwargs))
+    elif platform == "gcp":
+        instances = GcpRemoteShellMapping()
+    elif platform == "gcp":
+        pass
+    else:
+        raise RuntimeError("Unsupported platform")
+
     instance = instances.get(instance_name)
     if not instance:
         raise RuntimeError(

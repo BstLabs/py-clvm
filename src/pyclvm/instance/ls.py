@@ -7,6 +7,9 @@ from rich.table import Table
 
 from pyclvm._common.gcp_instance_mapping import GcpComputeAllInstancesData
 
+# TODO move the getting platform out of here
+platform = None
+
 _COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
 
 # --- The list of colours of "rich"
@@ -47,7 +50,9 @@ def ls(**kwargs: str) -> None:
         None
 
     """
+    global platform
     platform = kwargs.get("platform", "aws")
+
     if platform == "aws":
         _ls_aws(**kwargs)
     elif platform == "gcp":
@@ -107,7 +112,9 @@ def _ls_gcp(**kwargs: str) -> None:
 
     """
     instances = GcpComputeAllInstancesData(**kwargs)
-    table = Table(title=f"{instances.get_session().account_email} Account GCP Instances")
+    table = Table(
+        title=f"{instances.get_session().account_email} Account GCP Instances"
+    )
     for column in _COLUMNS:
         table.add_column(column, justify="left", no_wrap=True)
 

@@ -16,13 +16,18 @@ class GcpComputeAllInstancesData:
     Derives all the instance data for further use.
     """
     def __init__(self, **kwargs) -> None:
-        self._session = get_session(**kwargs)
+        self._session = get_session(**kwargs)  # TODO get session out of here
         self._client = self._session.get_client()
         self._zone = self._session.get_zone()
         self._instances_data = self._instances()
 
     # ---
     def get_session(self) -> GcpSession:
+        return self._session
+
+    # ---
+    @property
+    def session(self) -> GcpSession:
         return self._session
 
     # ---
@@ -67,8 +72,8 @@ class GcpComputeAllInstancesData:
 
 # ---
 class GcpInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
-    def __init__(self, session: GcpSession, **kwargs) -> None:
-        self._session = session
+    def __init__(self, **kwargs) -> None:
+        self._session = get_session(**kwargs)  # TODO get session out of here
         self._client = self._session.get_client()
         self._kwargs = kwargs
 
@@ -117,5 +122,5 @@ class GcpInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
 
 
 class GcpRemoteShellMapping(GcpInstanceMapping, VmInstanceMappingBase):
-    def _get_instance(self, instance_id: str) -> GcpRemoteShellProxy:
-        return GcpRemoteShellProxy()
+    def _get_instance(self, instance_name: str) -> GcpRemoteShellProxy:
+        return GcpRemoteShellProxy(instance_name, self._session)
