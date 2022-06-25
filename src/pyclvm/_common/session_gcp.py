@@ -63,5 +63,4 @@ class GcpSession:
 
 
 def get_session(**kwargs) -> GcpSession:
-    # profile = kwargs.get("profile", None)
     return GcpSession(**kwargs)

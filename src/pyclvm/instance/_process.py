@@ -6,10 +6,11 @@ from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 from pyclvm._common.session import Session, get_session
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
 
+
 def _process_many(
     func: Callable, state: str, instance_names: Tuple[str], kwargs: Dict[str, str]
 ) -> None:
-
+    # TODO realize platform selection
     instances = list(
         (name, instance)
         for name, instance in Ec2RemoteShellMapping(get_session(kwargs)).items()
@@ -40,7 +41,7 @@ def _process_one(
         raise RuntimeError(
             "[ERROR] No such instance registered: wrong instance name provided"
         )
-    func(instance_name, instance)
+    func(instance_name, instance, **kwargs)
     return instance.session, instance.id
 
 

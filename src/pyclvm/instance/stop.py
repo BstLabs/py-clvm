@@ -8,7 +8,7 @@ from ._process import process_instances
 platform = None
 
 
-def _stop_instance(instance_name: str, instance: Instance) -> Any:
+def _stop_instance(instance_name: str, instance: Instance, **kwargs) -> Any:
     if platform == "aws":
         return {
             "stopped": partial(_is_already_stopped, instance_name),

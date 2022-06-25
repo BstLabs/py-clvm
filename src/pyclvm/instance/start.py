@@ -10,7 +10,7 @@ from ._process import process_instances
 platform = None
 
 
-def _start_instance(instance_name: str, instance: Instance) -> Any:
+def _start_instance(instance_name: str, instance: Instance, **kwargs) -> Any:
     if platform == "aws":
         return {
             "running": partial(_is_running, instance_name),
