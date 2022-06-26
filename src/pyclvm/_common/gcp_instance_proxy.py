@@ -142,6 +142,7 @@ class GcpRemoteShellProxy(GcpInstanceProxy):
             f"--command={' '.join(commands[0])}" if len(commands) > 0 else ""
         )  # TODO check "commands" tuple
         tunnel_through_iap = strtobool(kwargs.get("iap", "yes"))
+        dry_run = strtobool(kwargs.get("dry_run", "no"))
         account = kwargs.get("account")
 
         cmd = [
@@ -158,8 +159,10 @@ class GcpRemoteShellProxy(GcpInstanceProxy):
             cmd.append("--tunnel-through-iap")
         if account:
             cmd.append(f"--account={account}")
+        if dry_run:
+            cmd.append(f"--dry-run")
 
-        subprocess.call(cmd)
+        return subprocess.run(cmd, capture_output=kwargs.get("capture_output", False))
 
     # ---
     @property

@@ -10,7 +10,7 @@ platform = None
 # ---
 def _connect_gcp(instance_name: str, instance: Instance, **kwargs) -> None:
     print(f"Connecting to {instance_name} ...")
-    instance.execute((), **kwargs)
+    instance.execute((), **kwargs)  # TODO change Instance type to GcpRemoteShellProxy
 
 
 def connect(instance_name: str, **kwargs: str) -> None:
@@ -31,10 +31,8 @@ def connect(instance_name: str, **kwargs: str) -> None:
     if platform == "aws":
         start_session(instance_name, **kwargs)
     elif platform == "gcp":
-        process_instances(_connect_gcp, "RUNNING", (instance_name, ), kwargs)
+        process_instances(_connect_gcp, "RUNNING", (instance_name,), kwargs)
     elif platform == "azure":
         pass
     else:
         raise RuntimeError("Unsupported platform")
-
-
