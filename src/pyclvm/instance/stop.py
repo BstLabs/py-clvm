@@ -1,14 +1,18 @@
 from functools import partial
-from typing import Any
+from typing import Union, Any
 
 from ._mapping import Instance
 from ._process import process_instances
+
+from pyclvm._common.gcp_instance_mapping import GcpInstanceProxy
+from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
+
 
 # TODO move the getting platform out of here
 platform = None
 
 
-def _stop_instance(instance_name: str, instance: Instance, **kwargs) -> Any:
+def _stop_instance(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy], **kwargs) -> Any:
     if platform == "aws":
         return {
             "stopped": partial(_is_already_stopped, instance_name),
@@ -46,17 +50,18 @@ def _is_terminated(instance_name: str) -> None:
     print(f"{instance_name} is terminated.")
 
 
-def _stopping_instance(instance_name: str, instance: Instance) -> None:
+def _stopping_instance(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]) -> None:
     print(f"Stopping {instance_name} ...")
     instance.stop()
     print(f"{instance_name} stopped.")
 
 
-def _in_transition(instance_name: str, instance: Instance) -> None:
+def _in_transition(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]) -> None:
     print(
         f"{instance_name} is now in transition state. Wait untill current state is determined."
     )
-    instance.wait_until_exists()
+    # TODO handle transition mode
+    # instance.wait_until_exists()
     print(f"{instance_name} is {instance.state.name}")
 
 

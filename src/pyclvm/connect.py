@@ -1,6 +1,9 @@
+# -*- coding: utf-8 -*- #
+
 from pyclvm.ssm.session import start as start_session
-from instance._mapping import Instance
+
 from instance._process import process_instances
+from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
 
 
 # TODO move the getting platform out of here
@@ -8,7 +11,7 @@ platform = None
 
 
 # ---
-def _connect_gcp(instance_name: str, instance: Instance, **kwargs) -> None:
+def _connect_gcp(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) -> None:
     print(f"Connecting to {instance_name} ...")
     instance.execute((), **kwargs)  # TODO change Instance type to GcpRemoteShellProxy
 

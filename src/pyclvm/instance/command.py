@@ -1,16 +1,19 @@
-from ._mapping import Instance
+# -*- coding: utf-8 -*- #
+
+# from ._mapping import Instance
+from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
 from ._process import process_instances
 
 # TODO move the getting platform out of here
 platform = None
 
 
-def _execute_aws(instance_name: str, instance: Instance, **kwargs) -> None:
+def _execute_aws(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) -> None:
     print(f"Working {instance_name} ...")
     instance.execute(kwargs.get("script"), **kwargs)
 
 
-def _execute_gcp(instance_name: str, instance: Instance, **kwargs) -> None:
+def _execute_gcp(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) -> None:
     print(f"Working {instance_name} ...")
     instance.execute((kwargs.get("script"), ), **kwargs)
 
