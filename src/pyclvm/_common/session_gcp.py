@@ -61,6 +61,11 @@ class GcpSession:
     def set_zone(self, zone: str) -> None:
         self._zone = zone
 
+    # ---
+    @property
+    def project(self) -> str:
+        return self.project_id
+
 
 def get_session(**kwargs) -> GcpSession:
     return GcpSession(**kwargs)

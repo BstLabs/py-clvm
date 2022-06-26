@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*- #
 
-import time
 import sys
-from typing import Any, Iterable, Optional, Tuple, Union
+import subprocess
+from typing import Any, Iterable, Union
 
-from instances_map_abc.vm_instance_proxy import VmState
+from distutils.util import strtobool
+
 from google.api_core.extended_operation import ExtendedOperation
-from google.cloud import compute_v1
 
 from .session_gcp import GcpSession
 
@@ -138,7 +138,28 @@ class GcpRemoteShellProxy(GcpInstanceProxy):
 
     # ---
     def execute(self, *commands: Union[str, Iterable], **kwargs) -> Any:
-        pass
+        command = (
+            f"--command={' '.join(commands[0])}" if len(commands) > 0 else ""
+        )  # TODO check "commands" tuple
+        tunnel_through_iap = strtobool(kwargs.get("iap", "yes"))
+        account = kwargs.get("account")
+
+        cmd = [
+            "gcloud",
+            "compute",
+            "ssh",
+            f"--project={self._session.project}",
+            f"--zone={self._session.zone}",
+            self._instance_name,
+        ]
+        if command:
+            cmd.append(command)
+        if tunnel_through_iap:
+            cmd.append("--tunnel-through-iap")
+        if account:
+            cmd.append(f"--account={account}")
+
+        subprocess.call(cmd)
 
     # ---
     @property
