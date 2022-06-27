@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*- #
 
-from typing import Optional
 import os
+from typing import Any, Union
 
 from google.auth import default
 from google.auth.credentials import Credentials
 from google.auth.transport.requests import AuthorizedSession
 from google.cloud.compute_v1 import InstancesClient
-
 from singleton_decorator import singleton
 
 
@@ -45,16 +44,16 @@ class GcpSession:
         return self._expired
 
     # ---
-    def is_verified(self) -> bool:
+    def is_verified(self) -> Union[bool, str, None]:
         return self._verify
 
     # ---
-    def get_zone(self) -> str:
+    def get_zone(self) -> Union[bool, str, None]:
         return self._zone
 
     # ---
     @property
-    def zone(self) -> str:
+    def zone(self) -> Union[Any, str, None]:
         return self._zone
 
     # ---
