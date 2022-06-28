@@ -6,6 +6,7 @@ from rich.console import Console
 from rich.table import Table
 
 from pyclvm._common.gcp_instance_mapping import GcpComputeAllInstancesData
+from pyclvm._common.azure_instance_mapping import AzureComputeAllInstancesData
 
 # TODO move the getting platform out of here
 platform = None
@@ -38,6 +39,16 @@ _STATE_COLOR_GCP: Final[Dict[str, str]] = {
     "UNDEFINED_STATUS": "bright_red",
 }
 
+_STATE_COLOR_AZURE: Final[Dict[str, str]] = {
+    "VM starting": "dark_orange",
+    "VM running": "bright_green",
+    "VM stopping": "yellow1",
+    "VM stopped": "gold3",
+    "VM deallocating": "bright_magenta",
+    "VM deallocated": "red",
+    "Provisioning succeeded": "bright_red",
+}
+
 
 def ls(**kwargs: str) -> None:
     """
@@ -58,7 +69,7 @@ def ls(**kwargs: str) -> None:
     elif platform == "gcp":
         _ls_gcp(**kwargs)
     elif platform == "azure":
-        pass
+        _ls_azure(**kwargs)
     else:
         raise RuntimeError("Unsupported platform")
 
@@ -124,6 +135,38 @@ def _ls_gcp(**kwargs: str) -> None:
                 str(instance_id),
                 instance_name,
                 f"[{_STATE_COLOR_GCP[state]}]{state}",
+            )
+        )
+
+    console = Console()
+    console.print(table)
+
+
+# ---
+def _ls_azure(**kwargs: str) -> None:
+    """
+    list vm instances of Azure Cloud Platform
+
+    Args:
+        **kwargs (str): (optional) classifiers, at the moment, profile name, instance state, name patterns
+
+    Returns:
+        None
+
+    """
+    instances = AzureComputeAllInstancesData(**kwargs)
+    table = Table(
+        title=f"{instances.get_session().subscription_name} Azure Instances"
+    )
+    for column in _COLUMNS:
+        table.add_column(column, justify="left", no_wrap=True)
+
+    for instance_id, instance_name, state in instances:
+        table.add_row(
+            *(
+                str(instance_id),
+                instance_name,
+                f"[{_STATE_COLOR_AZURE[state]}]{state}",
             )
         )
 
