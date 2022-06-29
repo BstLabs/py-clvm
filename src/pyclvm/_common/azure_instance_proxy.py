@@ -20,20 +20,22 @@ class AzureInstanceProxy:
         self._instance_name = instance_name
         self._client = session.get_client()
         self._instance = self._session.instances[instance_name]
-        # self._instance = self._client.virtual_machines.get(
-        #     resource_group_name="qq",
-        #     vm_name=instance_name,
-        #     expand="instanceView",
-        # )
 
     # ---
-    def start(self, wait: bool = True) -> Union[Any, None]:
+    def start(self) -> Union[Any, None]:
         """
         Starts the vm
-
-        :return: None
         """
         return self._client.virtual_machines.begin_start(
+            self._instance["resource_group"], self._instance["instance_name"]
+        )
+
+    # ---
+    def stop(self) -> Union[Any, None]:
+        """
+        Stops the vm
+        """
+        return self._client.virtual_machines.begin_deallocate(
             self._instance["resource_group"], self._instance["instance_name"]
         )
 
@@ -58,7 +60,7 @@ class AzureInstanceProxy:
             return self._instance["instance_name"]
 
 
-
+# ---
 class AzureRemoteShellProxy(AzureInstanceProxy):
     def __init__(self, instance_name: str, session: AzureSession, **kwargs) -> None:
         super().__init__(instance_name, session, **kwargs)

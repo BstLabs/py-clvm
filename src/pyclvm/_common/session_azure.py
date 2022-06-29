@@ -11,7 +11,7 @@ from singleton_decorator import singleton
 
 from collections import defaultdict
 
-import sqlite3
+# import sqlite3
 
 
 @singleton
@@ -30,9 +30,6 @@ class AzureSession:
         )
         self._location = kwargs.get(
             "location", os.getenv("AZURE_DEFAULT_LOCATION", "westeurope")
-        )
-        self._resource_group = kwargs.get(
-            "resource_group", os.getenv("AZURE_RESOURCE_GROUP", "")
         )
         # self._conn = self._init_db()
         self._instances = self._get_instances()

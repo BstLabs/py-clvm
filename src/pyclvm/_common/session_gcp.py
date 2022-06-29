@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*- #
 
 import os
-from typing import Any, Union
+from typing import Any, Union, Iterable
 
 from google.auth import default
 from google.auth.credentials import Credentials
 from google.auth.transport.requests import AuthorizedSession
-from google.cloud.compute_v1 import InstancesClient
+from google.cloud.compute_v1 import InstancesClient, AggregatedListInstancesRequest
 from singleton_decorator import singleton
 
 
@@ -30,6 +30,24 @@ class GcpSession:
         self._zone = kwargs.get(
             "zone", os.getenv("CLOUDSDK_COMPUTE_ZONE", "europe-west2-b")
         )
+        self._instances = self._get_instances()
+
+    # ---
+    def _get_instances(self) -> Iterable:
+        request = AggregatedListInstancesRequest()
+        request.project = self.project_id
+
+        for zone, instances_in_zone in self._client.aggregated_list(request=request):
+            if f"zones/{self._zone}" == zone:
+                return instances_in_zone.instances
+
+    # ---
+    @property
+    def instances(self) -> Iterable:
+        """
+        Returns Azure VM instances
+        """
+        return self._instances
 
     # ---
     def get_credentials(self) -> Credentials:

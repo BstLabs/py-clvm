@@ -78,11 +78,8 @@ class AzureInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
         return self._get_instance(instance_name=instance_name)
 
     def __iter__(self) -> Iterator:
-        instances = (
-            r["Instances"][0] for r in self._client.describe_instances()["Reservations"]
-        )
-        for instance in instances:
-            yield self._get_instance(instance["InstanceId"])
+        for instance_name, _ in self._session.instances.items():
+            yield self._get_instance(instance_name)
 
     def __len__(self) -> int:
         return sum(1 for _ in self)
@@ -104,18 +101,9 @@ class AzureInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
             **self._kwargs,
         )
 
-    # def _get_instance_id(self, instance_name: str) -> str:
-    #     instance_details = self._client.describe_instances(
-    #         Filters=[
-    #             {
-    #                 "Name": "tag:Name",  # as long as you are following the convention of putting Name in tags
-    #                 "Values": [
-    #                     instance_name,
-    #                 ],
-    #             },
-    #         ],
-    #     )
-    #     return instance_details["Reservations"][0]["Instances"][0]["InstanceId"]
+    @property
+    def session(self):
+        return self._session
 
 
 class AzureRemoteShellMapping(AzureInstanceMapping, VmInstanceMappingBase):
