@@ -41,7 +41,8 @@ class AzureComputeAllInstancesData:
             instances.append(
                 (
                     instance_data["instance_id"],
-                    self._get_instance_name(instance_details.tags) or instance_data["instance_name"],
+                    self._get_instance_name(instance_details.tags)
+                    or instance_data["instance_name"],
                     instance_details.instance_view.statuses[1].display_status,
                 )
             )

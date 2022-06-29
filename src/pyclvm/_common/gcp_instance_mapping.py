@@ -15,6 +15,7 @@ class GcpComputeAllInstancesData:
     """
     Derives all the instance data for further use.
     """
+
     def __init__(self, **kwargs) -> None:
         self._session = get_session(**kwargs)  # TODO get session out of here
         self._client = self._session.get_client()

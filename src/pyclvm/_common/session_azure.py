@@ -56,7 +56,6 @@ class AzureSession:
         """
         return self._instances
 
-
     # @staticmethod
     # # ---
     # def _init_db() -> sqlite3.Connection:

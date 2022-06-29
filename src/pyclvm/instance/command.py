@@ -15,7 +15,7 @@ def _execute_aws(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) ->
 
 def _execute_gcp(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) -> None:
     print(f"Working {instance_name} ...")
-    instance.execute((kwargs.get("script"), ), **kwargs)
+    instance.execute((kwargs.get("script"),), **kwargs)
 
 
 def command(instance_name: str, script: str, **kwargs: str) -> None:
@@ -28,9 +28,9 @@ def command(instance_name: str, script: str, **kwargs: str) -> None:
     platform = kwargs.get("platform", "aws")
 
     if platform == "aws":
-        process_instances(_execute_aws, "running", (instance_name, ), kwargs)
+        process_instances(_execute_aws, "running", (instance_name,), kwargs)
     elif platform == "gcp":
-        process_instances(_execute_gcp, "RUNNING", (instance_name, ), kwargs)
+        process_instances(_execute_gcp, "RUNNING", (instance_name,), kwargs)
     elif platform == "azure":
         pass
     else:

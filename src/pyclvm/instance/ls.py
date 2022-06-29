@@ -5,8 +5,14 @@ from ec2instances.ec2_instance_mapping import Ec2AllInstancesData
 from rich.console import Console
 from rich.table import Table
 
-from pyclvm._common.gcp_instance_mapping import GcpComputeAllInstancesData, GcpInstanceMapping
-from pyclvm._common.azure_instance_mapping import AzureComputeAllInstancesData, AzureInstanceMapping
+from pyclvm._common.gcp_instance_mapping import (
+    GcpComputeAllInstancesData,
+    GcpInstanceMapping,
+)
+from pyclvm._common.azure_instance_mapping import (
+    AzureComputeAllInstancesData,
+    AzureInstanceMapping,
+)
 
 # TODO move the getting platform out of here
 platform = None
@@ -123,9 +129,7 @@ def _ls_gcp(**kwargs: str) -> None:
 
     """
     instances = GcpComputeAllInstancesData(**kwargs)
-    table = Table(
-        title=f"{instances.session.account_email} Account GCP Instances"
-    )
+    table = Table(title=f"{instances.session.account_email} Account GCP Instances")
     for column in _COLUMNS:
         table.add_column(column, justify="left", no_wrap=True)
 

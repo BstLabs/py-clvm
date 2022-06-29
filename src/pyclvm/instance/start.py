@@ -13,7 +13,11 @@ from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
 platform = None
 
 
-def _start_instance(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy], **kwargs) -> Any:
+def _start_instance(
+    instance_name: str,
+    instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
+    **kwargs,
+) -> Any:
     if platform == "aws":
         return {
             "running": partial(_is_running, instance_name),
@@ -41,7 +45,9 @@ def _start_instance(instance_name: str, instance: Union[Ec2InstanceProxy, GcpIns
         return {
             "VM running": partial(_is_running, instance_name),
             "VM stopped": partial(_is_stopped_or_terminated, instance_name, instance),
-            "VM deallocated": partial(_is_stopped_or_terminated, instance_name, instance),
+            "VM deallocated": partial(
+                _is_stopped_or_terminated, instance_name, instance
+            ),
             "VM stopping": partial(_in_transition, instance_name, instance),
             "VM starting": partial(_in_transition, instance_name, instance),
             "VM deallocating": partial(_in_transition, instance_name, instance),
@@ -55,13 +61,17 @@ def _is_running(instance_name: str) -> None:
     print(f"{instance_name} is running.")
 
 
-def _is_stopped_or_terminated(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]) -> None:
+def _is_stopped_or_terminated(
+    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]
+) -> None:
     print(f"Starting {instance_name} ...")
     instance.start()
     print(f"{instance_name} is running")
 
 
-def _in_transition(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]) -> None:
+def _in_transition(
+    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]
+) -> None:
     print(
         f"{instance_name} is now in transition state. Wait untill current state is determined."
     )

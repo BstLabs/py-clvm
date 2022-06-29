@@ -13,7 +13,11 @@ from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
 platform = None
 
 
-def _stop_instance(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy], **kwargs) -> Any:
+def _stop_instance(
+    instance_name: str,
+    instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
+    **kwargs,
+) -> Any:
     if platform == "aws":
         return {
             "stopped": partial(_is_already_stopped, instance_name),
@@ -60,13 +64,19 @@ def _is_terminated(instance_name: str) -> None:
     print(f"{instance_name} is terminated.")
 
 
-def _stopping_instance(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy]) -> None:
+def _stopping_instance(
+    instance_name: str,
+    instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
+) -> None:
     print(f"Stopping {instance_name} ...")
     instance.stop()
     print(f"{instance_name} stopped.")
 
 
-def _in_transition(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy]) -> None:
+def _in_transition(
+    instance_name: str,
+    instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
+) -> None:
     print(
         f"{instance_name} is now in transition state. Wait until current state is determined."
     )
@@ -113,4 +123,3 @@ def _stop_gcp(*instance_names: str, **kwargs: str):
 # ---
 def _stop_azure(*instance_names: str, **kwargs: str):
     process_instances(_stop_instance, "VM running", instance_names, kwargs)
-

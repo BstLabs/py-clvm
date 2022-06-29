@@ -55,7 +55,9 @@ class AzureInstanceProxy:
     @property
     def name(self):
         try:
-            return self._instance.tags.name
+            for _key, _value in self._instance.tags.items():
+                if _key.upper() == "NAME":
+                    return _value
         except AttributeError:
             return self._instance["instance_name"]
 
