@@ -155,9 +155,7 @@ def _ls_azure(**kwargs: str) -> None:
 
     """
     instances = AzureComputeAllInstancesData(**kwargs)
-    table = Table(
-        title=f"{instances.get_session().subscription_name} Azure Instances"
-    )
+    table = Table(title=f"{instances.get_session().subscription_name} Azure Instances")
     for column in _COLUMNS:
         table.add_column(column, justify="left", no_wrap=True)
 

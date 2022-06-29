@@ -5,6 +5,7 @@ from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 
 from pyclvm._common.session import Session, get_session
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
+from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
 
 
 def _process_many(
@@ -31,8 +32,8 @@ def _process_one(
         instances = Ec2RemoteShellMapping(get_session(kwargs))
     elif platform == "gcp":
         instances = GcpRemoteShellMapping()
-    elif platform == "gcp":
-        pass
+    elif platform == "azure":
+        instances = AzureRemoteShellMapping()
     else:
         raise RuntimeError("Unsupported platform")
 

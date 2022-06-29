@@ -6,13 +6,14 @@ from boto3.session import Session
 from ._mapping import Instance
 from ._process import process_instances
 from pyclvm._common.gcp_instance_mapping import GcpInstanceProxy
+from pyclvm._common.azure_instance_mapping import AzureInstanceProxy
 from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
 
 # TODO move the getting platform out of here
 platform = None
 
 
-def _start_instance(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy], **kwargs) -> Any:
+def _start_instance(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy], **kwargs) -> Any:
     if platform == "aws":
         return {
             "running": partial(_is_running, instance_name),
@@ -37,7 +38,15 @@ def _start_instance(instance_name: str, instance: Union[Ec2InstanceProxy, GcpIns
             "SUSPENDING": partial(_in_transition, instance_name, instance),
         }[instance.state]()
     elif platform == "azure":
-        pass
+        return {
+            "VM running": partial(_is_running, instance_name),
+            "VM stopped": partial(_is_stopped_or_terminated, instance_name, instance),
+            "VM deallocated": partial(_is_stopped_or_terminated, instance_name, instance),
+            "VM stopping": partial(_in_transition, instance_name, instance),
+            "VM starting": partial(_in_transition, instance_name, instance),
+            "VM deallocating": partial(_in_transition, instance_name, instance),
+            "Provisioning succeeded": partial(_in_transition, instance_name, instance),
+        }[instance.state]()
     else:
         raise RuntimeError("Unsupported platform")
 
@@ -97,4 +106,4 @@ def _start_gcp(*instance_names: str, **kwargs: str):
 
 # ---
 def _start_azure(*instance_names: str, **kwargs: str):
-    pass
+    return process_instances(_start_instance, "VM deallocated", instance_names, kwargs)
