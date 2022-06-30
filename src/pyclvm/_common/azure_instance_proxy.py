@@ -74,12 +74,12 @@ class AzureRemoteShellProxy(AzureInstanceProxy):
     # ---
     def execute(self, *commands: Union[str, Iterable], **kwargs) -> Any:
         _connector = AzureRemoteConnector(self)
-        _socket = AzureRemoteSocket(self, _connector, *commands, **kwargs)
+        _executor = AzureRemoteExecutor(self, _connector, *commands, **kwargs) if len(*commands) > 0 else AzureRemoteSocket(self, _connector, **kwargs)
         _connector.start()
-        _socket.start()
+        _executor.start()
         print("Socket started")
         _connector.join()
-        _socket.join()
+        _executor.join()
 
     # ---
     @property
@@ -133,7 +133,7 @@ class AzureRemoteConnector(Process):
 
 
 # ---
-class AzureRemoteSocket(Process):
+class AzureRemoteExecutor(Process):
     """
     Azure remote socket class
     """
@@ -175,3 +175,33 @@ class AzureRemoteSocket(Process):
             self.close()
         except (ProcessError, RuntimeError):
             raise
+
+
+# ---
+class AzureRemoteSocket(Process):
+    """
+    Azure remote socket class
+    """
+
+    def __init__(
+        self,
+        instance: AzureRemoteShellProxy,
+        connector: AzureRemoteConnector,
+        **kwargs,
+    ):
+        super().__init__()
+        self._instance = instance
+        self._connector = connector
+
+    # ---
+    def run(self):
+        cmd = [
+            "nc",
+            "localhost",
+            "22026",
+        ]
+        sleep(5)
+        subprocess.run(cmd)
+        os.killpg(os.getpgid(self._connector.pid), signal.SIGTERM)
+        self.close()
+
