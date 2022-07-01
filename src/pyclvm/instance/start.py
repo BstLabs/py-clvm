@@ -1,58 +1,77 @@
+"""start vm instance"""
+
 from functools import partial
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Dict, Union
 
-from boto3.session import Session
-
-from ._mapping import Instance
-from ._process import process_instances
-from pyclvm._common.gcp_instance_mapping import GcpInstanceProxy
 from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
 
-# TODO move the getting platform out of here
-platform = None
+from pyclvm._common.gcp_instance_mapping import GcpInstanceProxy
+from pyclvm.plt import _default_platform, _unsupported_platform
+
+from ._process import process_instances
 
 
-def _start_instance(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy], **kwargs) -> Any:
-    if platform == "aws":
-        return {
-            "running": partial(_is_running, instance_name),
-            "stopped": partial(_is_stopped_or_terminated, instance_name, instance),
-            "terminated": partial(_is_stopped_or_terminated, instance_name, instance),
-            "stopping": partial(_in_transition, instance_name, instance),
-            "pending": partial(_in_transition, instance_name, instance),
-            "shutting-down": partial(_in_transition, instance_name, instance),
-            "rebooting": partial(_in_transition, instance_name, instance),
-        }[instance.state.name]()
-    elif platform == "gcp":
-        return {
-            "RUNNING": partial(_is_running, instance_name),
-            "STOPPED": partial(_is_stopped_or_terminated, instance_name, instance),
-            "TERMINATED": partial(_is_stopped_or_terminated, instance_name, instance),
-            "SUSPENDED": partial(_is_stopped_or_terminated, instance_name, instance),
-            "STOPPING": partial(_in_transition, instance_name, instance),
-            "PROVISIONING": partial(_in_transition, instance_name, instance),
-            "DEPROVISIONING": partial(_in_transition, instance_name, instance),
-            "REPAIRING": partial(_in_transition, instance_name, instance),
-            "STAGING": partial(_in_transition, instance_name, instance),
-            "SUSPENDING": partial(_in_transition, instance_name, instance),
-        }[instance.state]()
-    elif platform == "azure":
-        pass
-    else:
-        raise RuntimeError("Unsupported platform")
+def _start_instance(
+    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy], **kwargs
+) -> Any:
+    platform = _default_platform(**kwargs)
+    return {
+        "AWS": partial(_start_instance_aws, instance_name, instance, **kwargs),
+        "GCP": partial(_start_instance_gcp, instance_name, instance, **kwargs),
+        "AZURE": partial(_start_instance_azure, **kwargs),
+    }[platform.upper()]()
+
+
+def _start_instance_aws(
+    instance_name: str, instance: Ec2InstanceProxy, **kwargs
+) -> Any:
+    return {
+        "running": partial(_is_running, instance_name),
+        "stopped": partial(_is_stopped_or_terminated, instance_name, instance),
+        "terminated": partial(_is_stopped_or_terminated, instance_name, instance),
+        "stopping": partial(_in_transition, instance_name, instance),
+        "pending": partial(_in_transition, instance_name, instance),
+        "shutting-down": partial(_in_transition, instance_name, instance),
+        "rebooting": partial(_in_transition, instance_name, instance),
+    }[instance.state.name]()
+
+
+def _start_instance_gcp(
+    instance_name: str, instance: GcpInstanceProxy, **kwargs
+) -> Any:
+    return {
+        "RUNNING": partial(_is_running, instance_name),
+        "STOPPED": partial(_is_stopped_or_terminated, instance_name, instance),
+        "TERMINATED": partial(_is_stopped_or_terminated, instance_name, instance),
+        "SUSPENDED": partial(_is_stopped_or_terminated, instance_name, instance),
+        "STOPPING": partial(_in_transition, instance_name, instance),
+        "PROVISIONING": partial(_in_transition, instance_name, instance),
+        "DEPROVISIONING": partial(_in_transition, instance_name, instance),
+        "REPAIRING": partial(_in_transition, instance_name, instance),
+        "STAGING": partial(_in_transition, instance_name, instance),
+        "SUSPENDING": partial(_in_transition, instance_name, instance),
+    }[instance.state]()
+
+
+def _start_instance_azure():
+    ...
 
 
 def _is_running(instance_name: str) -> None:
     print(f"{instance_name} is running.")
 
 
-def _is_stopped_or_terminated(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]) -> None:
+def _is_stopped_or_terminated(
+    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]
+) -> None:
     print(f"Starting {instance_name} ...")
     instance.start()
     print(f"{instance_name} is running")
 
 
-def _in_transition(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]) -> None:
+def _in_transition(
+    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]
+) -> None:
     print(
         f"{instance_name} is now in transition state. Wait untill current state is determined."
     )
@@ -61,7 +80,7 @@ def _in_transition(instance_name: str, instance: Union[Ec2InstanceProxy, GcpInst
     print(f"{instance_name} is {instance.state.name}")
 
 
-def start(*instance_names: str, **kwargs: str) -> Optional[Tuple[Session, str]]:
+def start(*instance_names: str, **kwargs) -> Union[Dict, None]:
     """
     start vm instance
 
@@ -72,17 +91,17 @@ def start(*instance_names: str, **kwargs: str) -> Optional[Tuple[Session, str]]:
     Returns:
         Tuple[Session, instance_is (str)]
     """
-    global platform
-    platform = kwargs.get("platform", "aws")
+    supported_platforms = {"AWS", "GCP", "AZURE"}
+    platform = _default_platform(**kwargs)
 
-    if platform == "aws":
-        return _start_aws(*instance_names, **kwargs)
-    elif platform == "gcp":
-        return _start_gcp(*instance_names, **kwargs)
-    elif platform == "azure":
-        return _start_azure(*instance_names, **kwargs)
+    if platform in supported_platforms:
+        return {
+            "AWS": _start_aws(*instance_names, **kwargs),
+            "GCP": _start_gcp(*instance_names, **kwargs),
+            "AZURE": _start_azure(*instance_names, **kwargs),
+        }
     else:
-        raise RuntimeError("Unsupported platform")
+        _unsupported_platform(platform)
 
 
 # ---
@@ -97,4 +116,4 @@ def _start_gcp(*instance_names: str, **kwargs: str):
 
 # ---
 def _start_azure(*instance_names: str, **kwargs: str):
-    pass
+    ...

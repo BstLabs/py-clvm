@@ -1,37 +1,41 @@
 # -*- coding: utf-8 -*- #
 
-# from ._mapping import Instance
+from typing import Dict, Union
+
+from ec2instances.ec2_instance_proxy import Ec2InstanceProxy
+
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
-from ._process import process_instances
-
-# TODO move the getting platform out of here
-platform = None
+from pyclvm.plt import _default_platform, _unsupported_platform
 
 
-def _execute_aws(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) -> None:
+def _execute_aws(instance_name: str, instance: Ec2InstanceProxy, **kwargs) -> None:
     print(f"Working {instance_name} ...")
     instance.execute(kwargs.get("script"), **kwargs)
 
 
 def _execute_gcp(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) -> None:
     print(f"Working {instance_name} ...")
-    instance.execute((kwargs.get("script"), ), **kwargs)
+    instance.execute((kwargs.get("script"),), **kwargs)
 
 
-def command(instance_name: str, script: str, **kwargs: str) -> None:
+def _execute_azure(instance_name: str, **kwargs):
+    ...
+
+
+def command(instance_name: str, script: str, **kwargs) -> Union[Dict, None]:
     """
     not implemented
     """
     kwargs["script"] = script
 
-    global platform
-    platform = kwargs.get("platform", "aws")
+    supported_platforms = {"AWS", "GCP", "AZURE"}
+    platform = _default_platform(**kwargs)
 
-    if platform == "aws":
-        process_instances(_execute_aws, "running", (instance_name, ), kwargs)
-    elif platform == "gcp":
-        process_instances(_execute_gcp, "RUNNING", (instance_name, ), kwargs)
-    elif platform == "azure":
-        pass
+    if platform in supported_platforms:
+        return {
+            "AWS": _execute_aws(instance_name, **kwargs),
+            "GCP": _execute_gcp(instance_name, **kwargs),
+            "AZURE": _execute_azure(instance_name, **kwargs),
+        }
     else:
-        raise RuntimeError("Unsupported platform")
+        _unsupported_platform(platform)
