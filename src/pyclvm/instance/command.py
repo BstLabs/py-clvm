@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- #
-
+from functools import partial
 from typing import Dict, Union
 
 from ec2instances.ec2_instance_proxy import Ec2InstanceProxy
@@ -33,9 +33,9 @@ def command(instance_name: str, script: str, **kwargs) -> Union[Dict, None]:
 
     if platform in supported_platforms:
         return {
-            "AWS": _execute_aws(instance_name, **kwargs),
-            "GCP": _execute_gcp(instance_name, **kwargs),
-            "AZURE": _execute_azure(instance_name, **kwargs),
+            "AWS": partial(_execute_aws, instance_name, **kwargs),
+            "GCP": partial(_execute_gcp, instance_name, **kwargs),
+            "AZURE": partial(_execute_azure, instance_name, **kwargs),
         }
     else:
         _unsupported_platform(platform)
