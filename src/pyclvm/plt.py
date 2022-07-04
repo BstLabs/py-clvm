@@ -25,7 +25,7 @@ def _create_cache() -> None:
     with open(_get_cache_path(), "w") as cache:
         data = {"platform": "AWS"}
         json.dump(data, cache, indent=4)
-    print("Cache file created for")
+    print("Cache file created!")
 
 
 def _set_default_platform(platform: str) -> None:
@@ -42,6 +42,9 @@ def _set_default_platform(platform: str) -> None:
 def _default_platform(**kwargs) -> Union[str, Any]:
     """returns the default platform"""
     supported_platforms = {"AWS", "GCP", "AZURE"}
+    if not path.exists(_get_cache_path()):
+        _create_cache()
+
     if "platform" not in kwargs.keys():
         with open(_get_cache_path(), "r") as cache:
             platform_ = json.load(cache)

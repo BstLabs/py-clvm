@@ -5,7 +5,7 @@ from typing import Dict, Union
 from ec2instances.ec2_instance_proxy import Ec2InstanceProxy
 
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
-from pyclvm.plt import _create_cache, _default_platform, _unsupported_platform
+from pyclvm.plt import _default_platform, _unsupported_platform
 
 
 def _execute_aws(instance_name: str, instance: Ec2InstanceProxy, **kwargs) -> None:
@@ -29,16 +29,14 @@ def command(instance_name: str, script: str, **kwargs) -> Union[Dict, None]:
     kwargs["script"] = script
 
     supported_platforms = {"AWS", "GCP", "AZURE"}
-    try:
-        platform = _default_platform(**kwargs)
 
-        if platform in supported_platforms:
-            return {
-                "AWS": partial(_execute_aws, instance_name, **kwargs),
-                "GCP": partial(_execute_gcp, instance_name, **kwargs),
-                "AZURE": partial(_execute_azure, instance_name, **kwargs),
-            }
-        else:
-            _unsupported_platform(platform)
-    except FileNotFoundError:
-        _create_cache()
+    platform = _default_platform(**kwargs)
+
+    if platform in supported_platforms:
+        return {
+            "AWS": partial(_execute_aws, instance_name, **kwargs),
+            "GCP": partial(_execute_gcp, instance_name, **kwargs),
+            "AZURE": partial(_execute_azure, instance_name, **kwargs),
+        }
+    else:
+        _unsupported_platform(platform)

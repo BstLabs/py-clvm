@@ -7,7 +7,7 @@ from rich.console import Console
 from rich.table import Table
 
 from pyclvm._common.gcp_instance_mapping import GcpComputeAllInstancesData
-from pyclvm.plt import _create_cache, _default_platform, _unsupported_platform
+from pyclvm.plt import _default_platform, _unsupported_platform
 
 _COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
 
@@ -50,18 +50,16 @@ def ls(**kwargs: str) -> Union[Dict, None]:
 
     """
     supported_platforms = {"AWS", "GCP", "AZURE"}
-    try:
-        platform = _default_platform(**kwargs)
-        if platform in supported_platforms:
-            return {
-                "AWS": partial(_ls_aws, **kwargs),
-                "GCP": partial(_ls_gcp, **kwargs),
-                "AZURE": partial(_ls_azure, **kwargs),
-            }[platform.upper()]()
-        else:
-            _unsupported_platform(platform)
-    except FileNotFoundError:
-        _create_cache()
+
+    platform = _default_platform(**kwargs)
+    if platform in supported_platforms:
+        return {
+            "AWS": partial(_ls_aws, **kwargs),
+            "GCP": partial(_ls_gcp, **kwargs),
+            "AZURE": partial(_ls_azure, **kwargs),
+        }[platform.upper()]()
+    else:
+        _unsupported_platform(platform)
 
 
 def _ls_aws(**kwargs: str) -> None:

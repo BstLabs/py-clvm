@@ -6,7 +6,7 @@ from typing import Dict, Union
 from instance._process import process_instances
 
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
-from pyclvm.plt import _create_cache, _default_platform, _unsupported_platform
+from pyclvm.plt import _default_platform, _unsupported_platform
 from pyclvm.ssm.session import start as start_session
 
 
@@ -29,18 +29,16 @@ def connect(instance_name: str, **kwargs: str) -> Union[Dict, None]:
 
     """
     supported_platforms = {"AWS", "GCP", "AZURE"}
-    try:
-        platform = _default_platform(**kwargs)
 
-        if platform in supported_platforms:
-            return {
-                "AWS": partial(start_session, instance_name, **kwargs),
-                "GCP": partial(
-                    process_instances, _connect_gcp, "RUNNING", (instance_name,), kwargs
-                ),
-                "AZURE": ...,
-            }
-        else:
-            _unsupported_platform(platform)
-    except FileNotFoundError:
-        _create_cache()
+    platform = _default_platform(**kwargs)
+
+    if platform in supported_platforms:
+        return {
+            "AWS": partial(start_session, instance_name, **kwargs),
+            "GCP": partial(
+                process_instances, _connect_gcp, "RUNNING", (instance_name,), kwargs
+            ),
+            "AZURE": ...,
+        }
+    else:
+        _unsupported_platform(platform)

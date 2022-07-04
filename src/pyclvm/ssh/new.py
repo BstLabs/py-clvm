@@ -16,7 +16,7 @@ from pyclvm._common.gcp_instance_mapping import (
     GcpRemoteShellProxy,
 )
 from pyclvm._common.session import get_session
-from pyclvm.plt import _create_cache, _default_platform, _unsupported_platform
+from pyclvm.plt import _default_platform, _unsupported_platform
 
 _SSH_DIR: Final[str] = expanduser(join("~", ".ssh"))
 _SSH_CONFIG: Final[str] = join(_SSH_DIR, "config")
@@ -88,19 +88,17 @@ def new(instance_name: str, **kwargs: str) -> Union[Dict, None]:
         None
     """
     supported_platforms = {"AWS", "GCP", "AZURE"}
-    try:
-        platform = _default_platform(**kwargs)
 
-        if platform in supported_platforms:
-            return {
-                "AWS": partial(_new_aws, instance_name, **kwargs),
-                "GCP": partial(_new_gcp, instance_name, **kwargs),
-                "AZURE": partial(_new_azure, instance_name, **kwargs),
-            }
-        else:
-            _unsupported_platform(platform)
-    except FileNotFoundError:
-        _create_cache()
+    platform = _default_platform(**kwargs)
+
+    if platform in supported_platforms:
+        return {
+            "AWS": partial(_new_aws, instance_name, **kwargs),
+            "GCP": partial(_new_gcp, instance_name, **kwargs),
+            "AZURE": partial(_new_azure, instance_name, **kwargs),
+        }
+    else:
+        _unsupported_platform(platform)
 
 
 # ---

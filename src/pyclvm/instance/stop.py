@@ -6,7 +6,7 @@ from typing import Any, Dict, Union
 from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
 
 from pyclvm._common.gcp_instance_mapping import GcpInstanceProxy
-from pyclvm.plt import _create_cache, _default_platform, _unsupported_platform
+from pyclvm.plt import _default_platform, _unsupported_platform
 
 from ._process import process_instances
 
@@ -93,19 +93,17 @@ def stop(*instance_names: str, **kwargs) -> Union[Dict, None]:
         None
     """
     supported_platforms = {"AWS", "GCP", "AZURE"}
-    try:
-        platform = _default_platform(**kwargs)
 
-        if platform in supported_platforms:
-            return {
-                "AWS": _stop_aws(*instance_names, **kwargs),
-                "GCP": _stop_gcp(*instance_names, **kwargs),
-                "AZURE": _stop_azure(*instance_names, **kwargs),
-            }
-        else:
-            _unsupported_platform(platform)
-    except FileNotFoundError:
-        _create_cache()
+    platform = _default_platform(**kwargs)
+
+    if platform in supported_platforms:
+        return {
+            "AWS": _stop_aws(*instance_names, **kwargs),
+            "GCP": _stop_gcp(*instance_names, **kwargs),
+            "AZURE": _stop_azure(*instance_names, **kwargs),
+        }
+    else:
+        _unsupported_platform(platform)
 
 
 # ---
@@ -120,4 +118,4 @@ def _stop_gcp(*instance_names: str, **kwargs):
 
 # ---
 def _stop_azure(*instance_names: str, **kwargs):
-    pass
+    ...
