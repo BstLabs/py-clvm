@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*- #
 
-from pyclvm.ssm.session import start as start_session
+from functools import partial
+from typing import Dict, Union
 
 from instance._process import process_instances
+
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
-
-
-# TODO move the getting platform out of here
-platform = None
+from pyclvm.plt import _create_cache, _default_platform, _unsupported_platform
+from pyclvm.ssm.session import start as start_session
 
 
 # ---
@@ -16,7 +16,7 @@ def _connect_gcp(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) ->
     instance.execute((), **kwargs)  # TODO change Instance type to GcpRemoteShellProxy
 
 
-def connect(instance_name: str, **kwargs: str) -> None:
+def connect(instance_name: str, **kwargs: str) -> Union[Dict, None]:
     """
     connect to a virtual machine
 
@@ -28,14 +28,19 @@ def connect(instance_name: str, **kwargs: str) -> None:
         None
 
     """
-    global platform
-    platform = kwargs.get("platform", "aws")
+    supported_platforms = {"AWS", "GCP", "AZURE"}
+    try:
+        platform = _default_platform(**kwargs)
 
-    if platform == "aws":
-        start_session(instance_name, **kwargs)
-    elif platform == "gcp":
-        process_instances(_connect_gcp, "RUNNING", (instance_name,), kwargs)
-    elif platform == "azure":
-        pass
-    else:
-        raise RuntimeError("Unsupported platform")
+        if platform in supported_platforms:
+            return {
+                "AWS": partial(start_session, instance_name, **kwargs),
+                "GCP": partial(
+                    process_instances, _connect_gcp, "RUNNING", (instance_name,), kwargs
+                ),
+                "AZURE": ...,
+            }
+        else:
+            _unsupported_platform(platform)
+    except FileNotFoundError:
+        _create_cache()

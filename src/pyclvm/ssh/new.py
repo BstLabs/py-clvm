@@ -1,25 +1,22 @@
 import getpass
 import os
 import platform
+from functools import partial
 from os.path import exists, expanduser, join
-from typing import Final, Tuple, Dict, List
+from shutil import copyfile, copymode, move
+from tempfile import mkstemp
+from typing import Dict, Final, List, Tuple, Union
 
 from Crypto.PublicKey import RSA
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 from sshconf import empty_ssh_config_file, read_ssh_config
 
-from pyclvm._common.session import get_session
 from pyclvm._common.gcp_instance_mapping import (
     GcpRemoteShellMapping,
     GcpRemoteShellProxy,
 )
-
-from shutil import copyfile, move, copymode
-from tempfile import mkstemp
-
-# TODO move the getting platform out of here
-target_platform = None
-
+from pyclvm._common.session import get_session
+from pyclvm.plt import _create_cache, _default_platform, _unsupported_platform
 
 _SSH_DIR: Final[str] = expanduser(join("~", ".ssh"))
 _SSH_CONFIG: Final[str] = join(_SSH_DIR, "config")
@@ -78,7 +75,7 @@ def _update_ssh_config(instance_name: str, private_key_name: str, profile: str) 
     c.write(_SSH_CONFIG)
 
 
-def new(instance_name: str, **kwargs: str) -> None:
+def new(instance_name: str, **kwargs: str) -> Union[Dict, None]:
     """
     create new ssh key for particular Virtual Machine
 
@@ -90,17 +87,20 @@ def new(instance_name: str, **kwargs: str) -> None:
     Returns:
         None
     """
-    global target_platform
-    target_platform = kwargs.get("platform", "aws")
+    supported_platforms = {"AWS", "GCP", "AZURE"}
+    try:
+        platform = _default_platform(**kwargs)
 
-    if target_platform == "aws":
-        return _new_aws(instance_name, **kwargs)
-    elif target_platform == "gcp":
-        return _new_gcp(instance_name, **kwargs)
-    elif target_platform == "azure":
-        return _new_azure(instance_name, **kwargs)
-    else:
-        raise RuntimeError("Unsupported platform")
+        if platform in supported_platforms:
+            return {
+                "AWS": partial(_new_aws, instance_name, **kwargs),
+                "GCP": partial(_new_gcp, instance_name, **kwargs),
+                "AZURE": partial(_new_azure, instance_name, **kwargs),
+            }
+        else:
+            _unsupported_platform(platform)
+    except FileNotFoundError:
+        _create_cache()
 
 
 # ---
@@ -125,7 +125,7 @@ def _new_gcp(instance_name: str, **kwargs: str) -> None:
 
 # ---
 def _new_azure(instance_name: str, **kwargs: str) -> None:
-    pass
+    ...
 
 
 # ----------------------

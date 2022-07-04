@@ -16,13 +16,16 @@ def _get_cache_path():
 
 def _create_cache() -> None:
     """creates the cache directory and file if they doesn't exist"""
+
     makedirs(
         name=path.join(Path.home(), ".clvm"),
         mode=0o700,
         exist_ok=True,
     )
-    with open(_get_cache_path(), "w"):
-        ...
+    with open(_get_cache_path(), "w") as cache:
+        data = {"platform": "AWS"}
+        json.dump(data, cache, indent=4)
+    print("Cache file created for")
 
 
 def _set_default_platform(platform: str) -> None:
