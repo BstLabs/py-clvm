@@ -8,7 +8,7 @@ import sys
 
 # from multiprocessing import Process, ProcessError
 from select import select
-from threading import Thread, ThreadError
+from threading import Thread, ThreadError, Event
 from time import sleep
 from typing import Any, Iterable, Union
 
@@ -107,6 +107,13 @@ class AzureRemoteConnector(Thread):
         super().__init__()
         self._instance = instance
         self._proc = None
+        self._stop_event = Event()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
 
     # ---
     def run(self):
@@ -157,6 +164,13 @@ class AzureRemoteExecutor(Thread):
         self._instance = instance
         self._connector = connector
         self._commands = commands
+        self._stop_event = Event()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
 
     # ---
     def run(self):
@@ -178,8 +192,12 @@ class AzureRemoteExecutor(Thread):
             if command:
                 cmd.append(command)
             subprocess.run(cmd)
-            os.killpg(os.getpgid(self._connector.pid), signal.SIGTERM)
-            self.close()
+            # os.killpg(os.getpgid(self._connector.pid), signal.SIGTERM)
+            self._connector.stop()
+            if self._connector.stopped():
+                self.stop()
+
+            # self.close()
         except (ThreadError, RuntimeError):
             raise
 
@@ -199,6 +217,13 @@ class AzureRemoteSocket(Thread):
         super().__init__()
         self._instance = instance
         self._connector = connector
+        self._stop_event = Event()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
 
     # ---
     def run(self):
@@ -211,8 +236,10 @@ class AzureRemoteSocket(Thread):
         # subprocess.run(cmd)
         TcpProxy("127.0.0.1", 22026)()
         # os.killpg(os.getpgid(self._connector.pid), signal.SIGTERM)
-        self._connector.pid.join()
-        self.close()
+        self._connector.stop()
+        if self._connector.stopped():
+            self.stop()
+        # self.close()
 
 
 # ---
@@ -262,6 +289,7 @@ class TcpProxy:
     def _close(self, _channel):
         self._input_list.remove(_channel)
         self._target.close()
+        self._close()
 
     def _send(self, data):
         try:

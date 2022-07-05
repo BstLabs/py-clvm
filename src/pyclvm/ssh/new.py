@@ -13,6 +13,10 @@ from pyclvm._common.gcp_instance_mapping import (
     GcpRemoteShellMapping,
     GcpRemoteShellProxy,
 )
+from pyclvm._common.azure_instance_mapping import (
+    AzureRemoteShellMapping,
+    AzureRemoteShellProxy,
+)
 
 from shutil import copyfile, move, copymode
 from tempfile import mkstemp
@@ -122,10 +126,6 @@ def _new_gcp(instance_name: str, **kwargs: str) -> None:
     _create(instance_name=instance_name, instance=instance, **kwargs)
     # print(_get_proxy_data(instance, **kwargs))
 
-
-# ---
-def _new_azure(instance_name: str, **kwargs: str) -> None:
-    pass
 
 
 # ----------------------
@@ -306,3 +306,12 @@ def _create(instance_name: str, instance: GcpRemoteShellProxy, **kwargs: str) ->
                     instance_name=instance_name, proxy_data=proxy_data
                 )
             ]
+
+
+# --------------------
+# ---
+def _new_azure(instance_name: str, **kwargs: str) -> None:
+    instance = AzureRemoteShellMapping().get(instance_name)
+    print(instance)
+    pass
+
