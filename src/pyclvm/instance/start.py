@@ -1,7 +1,7 @@
 """start vm instance"""
 
 from functools import partial
-from typing import Any, Dict, Union
+from typing import Any, Dict, Tuple, Union
 
 from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
 
@@ -10,20 +10,21 @@ from pyclvm.plt import _default_platform, _unsupported_platform
 
 from ._process import process_instances
 
-
-def _start_instance(
-    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy], **kwargs
-) -> Any:
-    platform = _default_platform(**kwargs)
-    return {
-        "AWS": partial(_start_instance_aws, instance_name, instance, **kwargs),
-        "GCP": partial(_start_instance_gcp, instance_name, instance, **kwargs),
-        "AZURE": partial(_start_instance_azure, **kwargs),
-    }[platform.upper()]()
+# def _start_instance(
+#     instance_name: str,
+#     instance: Union[Ec2InstanceProxy, GcpInstanceProxy],
+#     **kwargs: str,
+# ) -> Any:
+#     platform = _default_platform(**kwargs)
+#     return {
+#         "AWS": partial(_start_instance_aws, instance_name, instance, **kwargs),
+#         "GCP": partial(_start_instance_gcp, instance_name, instance, **kwargs),
+#         "AZURE": partial(_start_instance_azure, **kwargs),
+#     }[platform.upper()]()
 
 
 def _start_instance_aws(
-    instance_name: str, instance: Ec2InstanceProxy, **kwargs
+    instance_name: str, instance: Ec2InstanceProxy, **kwargs: str
 ) -> Any:
     return {
         "running": partial(_is_running, instance_name),
@@ -37,7 +38,7 @@ def _start_instance_aws(
 
 
 def _start_instance_gcp(
-    instance_name: str, instance: GcpInstanceProxy, **kwargs
+    instance_name: str, instance: GcpInstanceProxy, **kwargs: str
 ) -> Any:
     return {
         "RUNNING": partial(_is_running, instance_name),
@@ -80,7 +81,7 @@ def _in_transition(
     print(f"{instance_name} is {instance.state.name}")
 
 
-def start(*instance_names: str, **kwargs) -> Union[Dict, None]:
+def start(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
     """
     start vm instance
 
@@ -97,24 +98,24 @@ def start(*instance_names: str, **kwargs) -> Union[Dict, None]:
 
     if platform in supported_platforms:
         return {
-            "AWS": partial(_start_aws, instance_names, **kwargs),
-            "GCP": partial(_start_gcp, instance_names, **kwargs),
-            "AZURE": partial(_start_azure, instance_names, **kwargs),
-        }
+            "AWS": partial(_start_aws, *instance_names, **kwargs),
+            "GCP": partial(_start_gcp, *instance_names, **kwargs),
+            "AZURE": partial(_start_azure, *instance_names, **kwargs),
+        }[platform.upper()]()
     else:
         _unsupported_platform(platform)
 
 
 # ---
-def _start_aws(*instance_names: str, **kwargs):
+def _start_aws(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
     return process_instances(_start_instance_aws, "stopped", instance_names, kwargs)
 
 
 # ---
-def _start_gcp(*instance_names: str, **kwargs):
+def _start_gcp(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
     return process_instances(_start_instance_gcp, "TERMINATED", instance_names, kwargs)
 
 
 # ---
-def _start_azure(*instance_names: str, **kwargs):
+def _start_azure(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
     ...

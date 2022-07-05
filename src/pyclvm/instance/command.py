@@ -37,6 +37,6 @@ def command(instance_name: str, script: str, **kwargs) -> Union[Dict, None]:
             "AWS": partial(_execute_aws, instance_name, **kwargs),
             "GCP": partial(_execute_gcp, instance_name, **kwargs),
             "AZURE": partial(_execute_azure, instance_name, **kwargs),
-        }
+        }[platform.upper()]()
     else:
         _unsupported_platform(platform)

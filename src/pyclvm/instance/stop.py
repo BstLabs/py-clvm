@@ -10,19 +10,22 @@ from pyclvm.plt import _default_platform, _unsupported_platform
 
 from ._process import process_instances
 
+# def _stop_instance(
+#     instance_name: str,
+#     instance: Union[Ec2InstanceProxy, GcpInstanceProxy],
+#     **kwargs: str,
+# ) -> Any:
+#     platform = _default_platform(**kwargs)
+#     return {
+#         "AWS": partial(_stop_instance_aws, instance_name, instance, **kwargs),
+#         "GCP": partial(_stop_instance_gcp, instance_name, instance, **kwargs),
+#         "AZURE": partial(_stop_instance_azure, **kwargs),
+#     }[platform.upper()]()
 
-def _stop_instance(
-    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy], **kwargs
+
+def _stop_instance_aws(
+    instance_name: str, instance: Ec2InstanceProxy, **kwargs: str
 ) -> Any:
-    platform = _default_platform(**kwargs)
-    return {
-        "AWS": partial(_stop_instance_aws, instance_name, instance, **kwargs),
-        "GCP": partial(_stop_instance_gcp, instance_name, instance, **kwargs),
-        "AZURE": partial(_stop_instance_azure, **kwargs),
-    }[platform.upper()]()
-
-
-def _stop_instance_aws(instance_name: str, instance: Ec2InstanceProxy, **kwargs) -> Any:
 
     return {
         "stopped": partial(_is_already_stopped, instance_name),
@@ -35,7 +38,9 @@ def _stop_instance_aws(instance_name: str, instance: Ec2InstanceProxy, **kwargs)
     }[instance.state.name]()
 
 
-def _stop_instance_gcp(instance_name: str, instance: GcpInstanceProxy, **kwargs) -> Any:
+def _stop_instance_gcp(
+    instance_name: str, instance: GcpInstanceProxy, **kwargs: str
+) -> Any:
     return {
         "STOPPED": partial(_is_already_stopped, instance_name),
         "SUSPENDED": partial(_is_already_stopped, instance_name),
@@ -81,7 +86,7 @@ def _in_transition(
     print(f"{instance_name} is {instance.state.name}")
 
 
-def stop(*instance_names: str, **kwargs) -> Union[Dict, None]:
+def stop(*instance_names: str, **kwargs: str) -> Union[Dict, None]:
     """
     stop vm instance
 
@@ -98,24 +103,24 @@ def stop(*instance_names: str, **kwargs) -> Union[Dict, None]:
 
     if platform in supported_platforms:
         return {
-            "AWS": _stop_aws(*instance_names, **kwargs),
-            "GCP": _stop_gcp(*instance_names, **kwargs),
-            "AZURE": _stop_azure(*instance_names, **kwargs),
-        }
+            "AWS": partial(_stop_aws, *instance_names, **kwargs),
+            "GCP": partial(_stop_gcp, *instance_names, **kwargs),
+            "AZURE": partial(_stop_azure, *instance_names, **kwargs),
+        }[platform.upper()]()
     else:
         _unsupported_platform(platform)
 
 
 # ---
-def _stop_aws(*instance_names: str, **kwargs):
-    process_instances(_stop_instance, "running", instance_names, kwargs)
+def _stop_aws(*instance_names: str, **kwargs: str):
+    process_instances(_stop_instance_aws, "running", instance_names, kwargs)
 
 
 # ---
-def _stop_gcp(*instance_names: str, **kwargs):
-    process_instances(_stop_instance, "TERMINATED", instance_names, kwargs)
+def _stop_gcp(*instance_names: str, **kwargs: str):
+    process_instances(_stop_instance_gcp, "TERMINATED", instance_names, kwargs)
 
 
 # ---
-def _stop_azure(*instance_names: str, **kwargs):
+def _stop_azure(*instance_names: str, **kwargs: str):
     ...

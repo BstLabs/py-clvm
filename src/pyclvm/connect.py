@@ -39,6 +39,6 @@ def connect(instance_name: str, **kwargs: str) -> Union[Dict, None]:
                 process_instances, _connect_gcp, "RUNNING", (instance_name,), kwargs
             ),
             "AZURE": ...,
-        }
+        }[platform.upper()]()
     else:
         _unsupported_platform(platform)

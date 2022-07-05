@@ -96,7 +96,7 @@ def new(instance_name: str, **kwargs: str) -> Union[Dict, None]:
             "AWS": partial(_new_aws, instance_name, **kwargs),
             "GCP": partial(_new_gcp, instance_name, **kwargs),
             "AZURE": partial(_new_azure, instance_name, **kwargs),
-        }
+        }[platform.upper()]()
     else:
         _unsupported_platform(platform)
 
