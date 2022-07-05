@@ -2,7 +2,7 @@ import getpass
 import os
 import platform
 from os.path import exists, expanduser, join
-from typing import Final, Tuple, Dict, List
+from typing import Final, Tuple, Dict, List, Union
 
 from Crypto.PublicKey import RSA
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
@@ -20,6 +20,8 @@ from pyclvm._common.azure_instance_mapping import (
 
 from shutil import copyfile, move, copymode
 from tempfile import mkstemp
+
+import socket
 
 # TODO move the getting platform out of here
 target_platform = None
@@ -124,14 +126,20 @@ def _new_aws(instance_name: str, **kwargs: str) -> None:
 def _new_gcp(instance_name: str, **kwargs: str) -> None:
     instance = GcpRemoteShellMapping().get(instance_name)
     _create(instance_name=instance_name, instance=instance, **kwargs)
-    # print(_get_proxy_data(instance, **kwargs))
+    # print(_get_gcp_proxy_data(instance, **kwargs))
 
+
+# ---
+def _new_azure(instance_name: str, **kwargs: str) -> None:
+    instance = AzureRemoteShellMapping().get(instance_name)
+    _create(instance_name=instance_name, instance=instance, **kwargs)
+    # print(_get_gcp_proxy_data(instance, **kwargs))
 
 
 # ----------------------
 # ----------------------
 # ----------------------
-def _get_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
+def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
     """
     Gets proxy string and real GCP instance's username
     Args:
@@ -158,8 +166,9 @@ def _get_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
             account = account.replace(c, "_")
 
         return {
-            "gcp_proxy_command": _stdout[ind_1:ind_2],
-            "gcp_user_name": account[:32].strip("_"),
+            "identity_file": _GOOGLE_SSH_PRIV_KEY,
+            "proxy_command": _stdout[ind_1:ind_2],
+            "user_name": account[:32].strip("_"),
         }
     except ValueError as e:
         raise RuntimeError(
@@ -168,13 +177,13 @@ def _get_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
 
 
 # ---
-def _analyze_config(instance_name: str) -> Tuple[int, int]:
+def _analyze_config(instance_name: str, _platform: str) -> Tuple[int, int]:
     previous_conf_pos = -1
     wildcard_conf_pos = -1
     with open(_SSH_CONFIG, "r", encoding="utf8") as config_file:
         lines = config_file.readlines()
         for line_number, line_text in enumerate(lines):
-            if f"Host {instance_name}-gcp" == line_text.strip():
+            if f"Host {instance_name}-{_platform}" == line_text.strip():
                 previous_conf_pos = line_number
             if "Host *" == line_text.strip():
                 wildcard_conf_pos = line_number
@@ -183,13 +192,16 @@ def _analyze_config(instance_name: str) -> Tuple[int, int]:
 
 
 # ---
-def _config_lines(instance_name: str, proxy_data: Dict) -> List:
-    return [
-        f"Host {instance_name}-gcp\n",
-        f"  IdentityFile {_GOOGLE_SSH_PRIV_KEY}\n",
-        f"  {proxy_data['gcp_proxy_command']}\n",
-        f"  User {proxy_data['gcp_user_name']}\n",
+def _config_lines(instance_name: str, proxy_data: Dict, _platform: str) -> List:
+    lines = [
+        f"Host {instance_name}-{_platform}\n",
+        f"  IdentityFile {proxy_data['identity_file']}\n",
+        f"  {proxy_data['proxy_command']}\n",
+        f"  User {proxy_data['user_name']}\n",
     ]
+    if "port" in proxy_data.keys():
+        lines.append(f"  Port {proxy_data['port']}\n")
+    return lines
 
 
 # ---
@@ -207,7 +219,7 @@ def _backup(file: str, perm: int) -> None:
 
 # ---
 def _write(
-    position: int, instance_name: str, proxy_data: Dict, skip_updated_text: bool
+    position: int, config_lines: List, skip_updated_text: bool
 ):
     tmp_file, tmp_file_path = mkstemp()
     skip_flag = True
@@ -222,12 +234,7 @@ def _write(
                     if "" == line_text.strip():
                         dst_file.write("\n")
 
-                    [
-                        dst_file.write(line)
-                        for line in _config_lines(
-                            instance_name=instance_name, proxy_data=proxy_data
-                        )
-                    ]
+                    [dst_file.write(line) for line in config_lines]
                     skip_flag = skip_updated_text
                     dst_file.write("\n")
 
@@ -249,37 +256,34 @@ def _write(
 
 
 # ---
-def _update_config(instance_name: str, proxy_data: Dict) -> None:
-    previous_conf_pos, wildcard_conf_pos = _analyze_config(instance_name)
+def _update_config(instance_name: str, config_lines: List, _platform: str) -> None:
+    previous_conf_pos, wildcard_conf_pos = _analyze_config(instance_name, _platform)
     if previous_conf_pos < 0:
         if wildcard_conf_pos < 0:
             # write to the end of file
             _write(
                 previous_conf_pos,
-                instance_name=instance_name,
-                proxy_data=proxy_data,
+                config_lines=config_lines,
                 skip_updated_text=True,
             )
         else:
             # write before wildcard line
             _write(
                 wildcard_conf_pos,
-                instance_name=instance_name,
-                proxy_data=proxy_data,
+                config_lines=config_lines,
                 skip_updated_text=True,
             )
     else:
         # update lines from the position
         _write(
             previous_conf_pos,
-            instance_name=instance_name,
-            proxy_data=proxy_data,
+            config_lines=config_lines,
             skip_updated_text=False,
         )
 
 
 # ---
-def _create(instance_name: str, instance: GcpRemoteShellProxy, **kwargs: str) -> None:
+def _create(instance_name: str, instance: Union[GcpRemoteShellProxy, AzureRemoteShellProxy], **kwargs: str) -> None:
     """
     Creates or updates SSH configuration file
 
@@ -290,28 +294,59 @@ def _create(instance_name: str, instance: GcpRemoteShellProxy, **kwargs: str) ->
     Returns:
         None
     """
-    proxy_data = _get_proxy_data(instance=instance, **kwargs)
+    _platform = ""
+    config_lines = []
+    if isinstance(instance, GcpRemoteShellProxy):
+        _platform = "gcp"
+        config_lines = _config_lines(instance_name, _get_gcp_proxy_data(instance=instance, **kwargs), _platform)
+    elif isinstance(instance, AzureRemoteShellProxy):
+        _platform = "azure"
+        config_lines = _azure_config_lines(instance_name, **kwargs)
+
     os.makedirs(name=_SSH_DIR, mode=0o700, exist_ok=True)
 
     if os.path.isfile(_SSH_CONFIG):
         _backup(_SSH_CONFIG, 0o600)
-        _update_config(instance_name=instance_name, proxy_data=proxy_data)
+        _update_config(instance_name=instance_name, config_lines=config_lines, _platform=_platform)
     else:
         with open(
             os.open(_SSH_CONFIG, os.O_CREAT | os.O_WRONLY, 0o600), "w", encoding="utf8"
         ) as config_file:
             [
                 config_file.write(line)
-                for line in _config_lines(
-                    instance_name=instance_name, proxy_data=proxy_data
-                )
+                for line in config_lines
             ]
 
 
 # --------------------
 # ---
-def _new_azure(instance_name: str, **kwargs: str) -> None:
+def _azure_config_lines(instance_name: str, **kwargs: str) -> List:
+    # ---
+    def next_free_port(port=22060, max_port=22160):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        while port <= max_port:
+            try:
+                sock.bind(('127.0.0.1', port))
+                sock.close()
+                return port
+            except OSError:
+                port += 1
+        raise IOError('no free ports')
+
     instance = AzureRemoteShellMapping().get(instance_name)
-    print(instance)
-    pass
+
+    _account = kwargs.get("account")
+    _key = kwargs.get("key")
+    if not _account or not _key:
+        raise RuntimeError("Specify account=account_name or/and key=/path/to/ssh/key/file")
+
+    _port = next_free_port()
+    instance_name = instance.name
+    proxy_data = {
+        "identity_file": _key,
+        "proxy_command": f"Hostname localhost",
+        "port": _port,
+        "user_name": _account,
+    }
+    return _config_lines(instance_name, proxy_data, "azure")
 
