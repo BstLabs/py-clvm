@@ -103,11 +103,12 @@ class AzureRemoteConnector(Thread):
     Azure remote connector class
     """
 
-    def __init__(self, instance: AzureRemoteShellProxy):
+    def __init__(self, instance: AzureRemoteShellProxy, port: int):
         super().__init__()
         self._instance = instance
         self._proc = None
         self._stop_event = Event()
+        self._port = port
 
     def stop(self):
         self._stop_event.set()
@@ -131,7 +132,7 @@ class AzureRemoteConnector(Thread):
                 "bastion",
                 "tunnel",
                 "--port",
-                "22026",
+                str(self._port),
                 "--resource-port",
                 "22",
                 "--name",

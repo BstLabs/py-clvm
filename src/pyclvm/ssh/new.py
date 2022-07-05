@@ -196,7 +196,7 @@ def _config_lines(instance_name: str, proxy_data: Dict, _platform: str) -> List:
     lines = [
         f"Host {instance_name}-{_platform}\n",
         f"  IdentityFile {proxy_data['identity_file']}\n",
-        f"  {proxy_data['proxy_command']}\n",
+        f"  ProxyCommand {proxy_data['proxy_command']}\n",
         f"  User {proxy_data['user_name']}\n",
     ]
     if "port" in proxy_data.keys():
@@ -344,8 +344,7 @@ def _azure_config_lines(instance_name: str, **kwargs: str) -> List:
     instance_name = instance.name
     proxy_data = {
         "identity_file": _key,
-        "proxy_command": f"Hostname localhost",
-        "port": _port,
+        "proxy_command": f"clvm ssh start {instance_name} {_port} platform=azure",
         "user_name": _account,
     }
     return _config_lines(instance_name, proxy_data, "azure")
