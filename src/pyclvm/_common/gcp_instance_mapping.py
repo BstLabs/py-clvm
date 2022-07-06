@@ -112,20 +112,8 @@ class GcpInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
     def session(self):
         return self._session
 
-    # def _get_instance_id(self, instance_name: str) -> str:
-    #     instance_details = self._client.describe_instances(
-    #         Filters=[
-    #             {
-    #                 "Name": "tag:Name",  # as long as you are following the convention of putting Name in tags
-    #                 "Values": [
-    #                     instance_name,
-    #                 ],
-    #             },
-    #         ],
-    #     )
-    #     return instance_details["Reservations"][0]["Instances"][0]["InstanceId"]
 
-
+# ---
 class GcpRemoteShellMapping(GcpInstanceMapping, VmInstanceMappingBase):
     def _get_instance(self, instance_name: str) -> GcpRemoteShellProxy:
         return GcpRemoteShellProxy(instance_name, self._session)

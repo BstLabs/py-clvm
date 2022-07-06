@@ -138,40 +138,6 @@ class AzureSession:
         """
         return self._client
 
-    # # ---
-    # def is_expired(self) -> bool:
-    #     return self._expired
-    #
-    # # ---
-    # def is_verified(self) -> Union[bool, str, None]:
-    #     return self._verify
-
-    # # ---
-    # def get_location(self) -> Union[bool, str, None]:
-    #     return self._location
-    #
-    # # ---
-    # @property
-    # def location(self) -> Union[Any, str, None]:
-    #     return self._location
-    #
-    # # ---
-    # def set_location(self, localtion: str) -> None:
-    #     self._location = localtion
-    #
-    # # ---
-    # def get_resource_group(self) -> Union[bool, str, None]:
-    #     return self._resource_group
-    #
-    # # ---
-    # @property
-    # def resource_group(self) -> Union[Any, str, None]:
-    #     return self._resource_group
-    #
-    # # ---
-    # def set_resource_group(self, resource_group: str) -> None:
-    #     self._resource_group = resource_group
-
 
 def get_session(**kwargs) -> AzureSession:
     return AzureSession(**kwargs)

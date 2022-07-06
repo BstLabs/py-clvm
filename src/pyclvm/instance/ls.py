@@ -1,4 +1,5 @@
-from typing import Dict, Final, Tuple
+from functools import partial
+from typing import Dict, Final, Tuple, Union
 
 import boto3
 from ec2instances.ec2_instance_mapping import Ec2AllInstancesData
@@ -13,9 +14,7 @@ from pyclvm._common.azure_instance_mapping import (
     AzureComputeAllInstancesData,
     AzureInstanceMapping,
 )
-
-# TODO move the getting platform out of here
-platform = None
+from pyclvm.plt import _default_platform, _unsupported_platform
 
 _COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
 
@@ -56,7 +55,7 @@ _STATE_COLOR_AZURE: Final[Dict[str, str]] = {
 }
 
 
-def ls(**kwargs: str) -> None:
+def ls(**kwargs: str) -> Union[Dict, None]:
     """
     list vm instances
 
@@ -67,17 +66,15 @@ def ls(**kwargs: str) -> None:
         None
 
     """
-    global platform
-    platform = kwargs.get("platform", "aws")
-
-    if platform == "aws":
-        _ls_aws(**kwargs)
-    elif platform == "gcp":
-        _ls_gcp(**kwargs)
-    elif platform == "azure":
-        _ls_azure(**kwargs)
+    platform, supported_platforms = _default_platform(**kwargs)
+    if platform in supported_platforms:
+        return {
+            "AWS": partial(_ls_aws, **kwargs),
+            "GCP": partial(_ls_gcp, **kwargs),
+            "AZURE": partial(_ls_azure, **kwargs),
+        }[platform.upper()]()
     else:
-        raise RuntimeError("Unsupported platform")
+        _unsupported_platform(platform)
 
 
 def _ls_aws(**kwargs: str) -> None:
@@ -129,7 +126,9 @@ def _ls_gcp(**kwargs: str) -> None:
 
     """
     instances = GcpComputeAllInstancesData(**kwargs)
-    table = Table(title=f"{instances.session.account_email} Account GCP Instances")
+    table = Table(
+        title=f"{instances.get_session().account_email} Account GCP Instances"
+    )
     for column in _COLUMNS:
         table.add_column(column, justify="left", no_wrap=True)
 
@@ -141,23 +140,6 @@ def _ls_gcp(**kwargs: str) -> None:
                 f"[{_STATE_COLOR_GCP[state]}]{state}",
             )
         )
-
-    # instances = GcpInstanceMapping(**kwargs)
-    #
-    # table = Table(
-    #     title=f"{instances.session.account_email} Account GCP Instances"
-    # )
-    # for column in _COLUMNS:
-    #     table.add_column(column, justify="left", no_wrap=True)
-    #
-    # for instance in instances:
-    #     table.add_row(
-    #         *(
-    #             str(instance.id),
-    #             instance.name,
-    #             f"[{_STATE_COLOR_GCP[instance.state]}]{instance.state}",
-    #         )
-    #     )
 
     console = Console()
     console.print(table)
@@ -188,21 +170,5 @@ def _ls_azure(**kwargs: str) -> None:
                 f"[{_STATE_COLOR_AZURE[state]}]{state}",
             )
         )
-
-    # instances = AzureInstanceMapping(**kwargs)
-    #
-    # table = Table(title=f"{instances.session.subscription_name} Azure Instances")
-    # for column in _COLUMNS:
-    #     table.add_column(column, justify="left", no_wrap=True)
-    #
-    # for instance in instances:
-    #     table.add_row(
-    #         *(
-    #             str(instance.id),
-    #             instance.name,
-    #             f"[{_STATE_COLOR_AZURE[instance.state]}]{instance.state}",
-    #         )
-    #     )
-
     console = Console()
     console.print(table)

@@ -164,7 +164,9 @@ class AzureRemoteExecutor(Thread):
         self._key = kwargs.get("key")
 
         if not self._account or not self._key:
-            raise RuntimeError("Specify account=account_name or/and key=/path/to/ssh/key/file")
+            raise RuntimeError(
+                "Specify account=account_name or/and key=/path/to/ssh/key/file"
+            )
 
     # ---
     def run(self):
@@ -288,9 +290,9 @@ def next_free_port(port=44500, max_port=45500):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     while port <= max_port:
         try:
-            sock.bind(('127.0.0.1', port))
+            sock.bind(("127.0.0.1", port))
             sock.close()
             return port
         except OSError:
             port += 1
-    raise IOError('no free ports')
+    raise IOError("no free ports")

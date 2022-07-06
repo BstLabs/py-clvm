@@ -1,24 +1,27 @@
 # -*- coding: utf-8 -*- #
 
-from pyclvm.ssm.session import start as start_session
-from typing import Union
+from functools import partial
+from typing import Dict, Union
 
 from instance._process import process_instances
+
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellProxy
-
-
-# TODO move the getting platform out of here
-platform = None
+from pyclvm.plt import _default_platform, _unsupported_platform
+from pyclvm.ssm.session import start as start_session
 
 
 # ---
-def _connect(instance_name: str, instance: Union[GcpRemoteShellProxy, AzureRemoteShellProxy], **kwargs) -> None:
+def _connect(
+    instance_name: str,
+    instance: Union[GcpRemoteShellProxy, AzureRemoteShellProxy],
+    **kwargs,
+) -> None:
     print(f"Connecting to {instance_name} ...")
     instance.execute((), **kwargs)
 
 
-def connect(instance_name: str, **kwargs: str) -> None:
+def connect(instance_name: str, **kwargs: str) -> Union[Dict, None]:
     """
     connect to a virtual machine
 
@@ -30,14 +33,17 @@ def connect(instance_name: str, **kwargs: str) -> None:
         None
 
     """
-    global platform
-    platform = kwargs.get("platform", "aws")
+    platform, supported_platforms = _default_platform(**kwargs)
 
-    if platform == "aws":
-        start_session(instance_name, **kwargs)
-    elif platform == "gcp":
-        process_instances(_connect, "RUNNING", (instance_name,), kwargs)
-    elif platform == "azure":
-        process_instances(_connect, "VM running", (instance_name,), kwargs)
+    if platform in supported_platforms:
+        return {
+            "AWS": partial(start_session, instance_name, **kwargs),
+            "GCP": partial(
+                process_instances, _connect, "RUNNING", (instance_name,), kwargs
+            ),
+            "AZURE": partial(
+                process_instances, _connect, "VM running", (instance_name,), kwargs
+            ),
+        }[platform.upper()]()
     else:
-        raise RuntimeError("Unsupported platform")
+        _unsupported_platform(platform)

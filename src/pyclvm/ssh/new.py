@@ -1,14 +1,16 @@
 import getpass
 import os
 import platform
+from functools import partial
 from os.path import exists, expanduser, join
-from typing import Final, Tuple, Dict, List, Union
+from shutil import copyfile, copymode, move
+from tempfile import mkstemp
+from typing import Dict, Final, List, Tuple, Union
 
 from Crypto.PublicKey import RSA
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 from sshconf import empty_ssh_config_file, read_ssh_config
 
-from pyclvm._common.session import get_session
 from pyclvm._common.gcp_instance_mapping import (
     GcpRemoteShellMapping,
     GcpRemoteShellProxy,
@@ -17,17 +19,9 @@ from pyclvm._common.azure_instance_mapping import (
     AzureRemoteShellMapping,
     AzureRemoteShellProxy,
 )
-
 from pyclvm._common.azure_instance_proxy import next_free_port
-
-from shutil import copyfile, move, copymode
-from tempfile import mkstemp
-
-import socket
-
-# TODO move the getting platform out of here
-target_platform = None
-
+from pyclvm._common.session import get_session
+from pyclvm.plt import _default_platform, _unsupported_platform
 
 _SSH_DIR: Final[str] = expanduser(join("~", ".ssh"))
 _SSH_CONFIG: Final[str] = join(_SSH_DIR, "config")
@@ -51,7 +45,7 @@ def _generate_keys() -> Tuple[str, str]:
 
 
 def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
-    private_key_name = f"{join(_SSH_DIR,'aws')}-{profile}-{instance_name}"
+    private_key_name = f"{join(_SSH_DIR, 'aws')}-{profile}-{instance_name}"
     public_key_name = f"{private_key_name}.pub"
     key, pubkey = _generate_keys()
 
@@ -86,7 +80,7 @@ def _update_ssh_config(instance_name: str, private_key_name: str, profile: str) 
     c.write(_SSH_CONFIG)
 
 
-def new(instance_name: str, **kwargs: str) -> None:
+def new(instance_name: str, **kwargs: str) -> Union[Dict, None]:
     """
     create new ssh key for particular Virtual Machine
 
@@ -98,17 +92,16 @@ def new(instance_name: str, **kwargs: str) -> None:
     Returns:
         None
     """
-    global target_platform
-    target_platform = kwargs.get("platform", "aws")
+    platform, supported_platforms = _default_platform(**kwargs)
 
-    if target_platform == "aws":
-        return _new_aws(instance_name, **kwargs)
-    elif target_platform == "gcp":
-        return _new_gcp(instance_name, **kwargs)
-    elif target_platform == "azure":
-        return _new_azure(instance_name, **kwargs)
+    if platform in supported_platforms:
+        return {
+            "AWS": partial(_new_aws, instance_name, **kwargs),
+            "GCP": partial(_new_gcp, instance_name, **kwargs),
+            "AZURE": partial(_new_azure, instance_name, **kwargs),
+        }[platform.upper()]()
     else:
-        raise RuntimeError("Unsupported platform")
+        _unsupported_platform(platform)
 
 
 # ---
@@ -128,14 +121,12 @@ def _new_aws(instance_name: str, **kwargs: str) -> None:
 def _new_gcp(instance_name: str, **kwargs: str) -> None:
     instance = GcpRemoteShellMapping().get(instance_name)
     _create(instance_name=instance_name, instance=instance, **kwargs)
-    # print(_get_gcp_proxy_data(instance, **kwargs))
 
 
 # ---
 def _new_azure(instance_name: str, **kwargs: str) -> None:
     instance = AzureRemoteShellMapping().get(instance_name)
     _create(instance_name=instance_name, instance=instance, **kwargs)
-    # print(_get_gcp_proxy_data(instance, **kwargs))
 
 
 # ----------------------
@@ -174,7 +165,8 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
         }
     except ValueError as e:
         raise RuntimeError(
-            "\n------------\nNo such VM name or/and username. Set the existing VM name and username.\n"
+            "\n------------\nNo such VM name or/and account. Set the existing VM name and account.\n"
+            'e.g "clvm ssh new vm-instance-name account=username@domain.com platform=gcp"\n'
         )
 
 
@@ -220,9 +212,7 @@ def _backup(file: str, perm: int) -> None:
 
 
 # ---
-def _write(
-    position: int, config_lines: List, skip_updated_text: bool
-):
+def _write(position: int, config_lines: List, skip_updated_text: bool):
     tmp_file, tmp_file_path = mkstemp()
     skip_flag = True
 
@@ -285,7 +275,11 @@ def _update_config(instance_name: str, config_lines: List, _platform: str) -> No
 
 
 # ---
-def _create(instance_name: str, instance: Union[GcpRemoteShellProxy, AzureRemoteShellProxy], **kwargs: str) -> None:
+def _create(
+    instance_name: str,
+    instance: Union[GcpRemoteShellProxy, AzureRemoteShellProxy],
+    **kwargs: str,
+) -> None:
     """
     Creates or updates SSH configuration file
 
@@ -300,7 +294,9 @@ def _create(instance_name: str, instance: Union[GcpRemoteShellProxy, AzureRemote
     config_lines = []
     if isinstance(instance, GcpRemoteShellProxy):
         _platform = "gcp"
-        config_lines = _config_lines(instance_name, _get_gcp_proxy_data(instance=instance, **kwargs), _platform)
+        config_lines = _config_lines(
+            instance_name, _get_gcp_proxy_data(instance=instance, **kwargs), _platform
+        )
     elif isinstance(instance, AzureRemoteShellProxy):
         _platform = "azure"
         config_lines = _azure_config_lines(instance_name, **kwargs)
@@ -309,15 +305,14 @@ def _create(instance_name: str, instance: Union[GcpRemoteShellProxy, AzureRemote
 
     if os.path.isfile(_SSH_CONFIG):
         _backup(_SSH_CONFIG, 0o600)
-        _update_config(instance_name=instance_name, config_lines=config_lines, _platform=_platform)
+        _update_config(
+            instance_name=instance_name, config_lines=config_lines, _platform=_platform
+        )
     else:
         with open(
             os.open(_SSH_CONFIG, os.O_CREAT | os.O_WRONLY, 0o600), "w", encoding="utf8"
         ) as config_file:
-            [
-                config_file.write(line)
-                for line in config_lines
-            ]
+            [config_file.write(line) for line in config_lines]
 
 
 # ---
@@ -327,7 +322,11 @@ def _azure_config_lines(instance_name: str, **kwargs: str) -> List:
     _account = kwargs.get("account")
     _key = kwargs.get("key")
     if not _account or not _key:
-        raise RuntimeError("Specify account=account_name or/and key=/path/to/ssh/key/file")
+        raise RuntimeError(
+            f"\n------------\nSpecify account=account_name or/and key=/path/to/ssh/key/file\n"
+            'e.g "clvm ssh new vm-instance-name account=username '
+            'key=/path/to/ssh/key/file platform=azure"\n'
+        )
 
     _port = next_free_port(port=22060, max_port=22160)
     instance_name = instance.name
@@ -337,4 +336,3 @@ def _azure_config_lines(instance_name: str, **kwargs: str) -> List:
         "user_name": _account,
     }
     return _config_lines(instance_name, proxy_data, "azure")
-

@@ -17,7 +17,6 @@ class AzureComputeAllInstancesData:
     def __init__(self, **kwargs) -> None:
         self._session = get_session(**kwargs)  # TODO get session out of here
         self._client = self._session.get_client()
-        self._location = self._session.get_location()
         self._instances_data = self._instances()
 
     # ---
@@ -107,6 +106,7 @@ class AzureInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
         return self._session
 
 
+# ---
 class AzureRemoteShellMapping(AzureInstanceMapping, VmInstanceMappingBase):
     def _get_instance(self, instance_name: str) -> AzureRemoteShellProxy:
         return AzureRemoteShellProxy(instance_name, self._session)
