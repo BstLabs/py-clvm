@@ -6,14 +6,15 @@ from typing import Dict, Union
 from instance._process import process_instances
 
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
+from pyclvm._common.azure_instance_mapping import AzureRemoteShellProxy
 from pyclvm.plt import _default_platform, _unsupported_platform
 from pyclvm.ssm.session import start as start_session
 
 
 # ---
-def _connect_gcp(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) -> None:
+def _connect(instance_name: str, instance: Union[GcpRemoteShellProxy, AzureRemoteShellProxy], **kwargs) -> None:
     print(f"Connecting to {instance_name} ...")
-    instance.execute((), **kwargs)  # TODO change Instance type to GcpRemoteShellProxy
+    instance.execute((), **kwargs)
 
 
 def connect(instance_name: str, **kwargs: str) -> Union[Dict, None]:
@@ -34,9 +35,11 @@ def connect(instance_name: str, **kwargs: str) -> Union[Dict, None]:
         return {
             "AWS": partial(start_session, instance_name, **kwargs),
             "GCP": partial(
-                process_instances, _connect_gcp, "RUNNING", (instance_name,), kwargs
+                process_instances, _connect, "RUNNING", (instance_name,), kwargs
             ),
-            "AZURE": ...,
+            "AZURE": partial(
+                process_instances, _connect, "VM running", (instance_name,), kwargs
+            ),
         }[platform.upper()]()
     else:
         _unsupported_platform(platform)
