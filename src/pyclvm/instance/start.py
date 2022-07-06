@@ -1,7 +1,7 @@
 """start vm instance"""
 
 from functools import partial
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Tuple, Union
 
 from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
 
@@ -9,18 +9,6 @@ from pyclvm._common.gcp_instance_mapping import GcpInstanceProxy
 from pyclvm.plt import _default_platform, _unsupported_platform
 
 from ._process import process_instances
-
-# def _start_instance(
-#     instance_name: str,
-#     instance: Union[Ec2InstanceProxy, GcpInstanceProxy],
-#     **kwargs: str,
-# ) -> Any:
-#     platform = _default_platform(**kwargs)
-#     return {
-#         "AWS": partial(_start_instance_aws, instance_name, instance, **kwargs),
-#         "GCP": partial(_start_instance_gcp, instance_name, instance, **kwargs),
-#         "AZURE": partial(_start_instance_azure, **kwargs),
-#     }[platform.upper()]()
 
 
 def _start_instance_aws(
@@ -92,9 +80,7 @@ def start(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
     Returns:
         Tuple[Session, instance_is (str)]
     """
-    supported_platforms = {"AWS", "GCP", "AZURE"}
-
-    platform = _default_platform(**kwargs)
+    platform, supported_platforms = _default_platform(**kwargs)
 
     if platform in supported_platforms:
         return {

@@ -87,9 +87,7 @@ def new(instance_name: str, **kwargs: str) -> Union[Dict, None]:
     Returns:
         None
     """
-    supported_platforms = {"AWS", "GCP", "AZURE"}
-
-    platform = _default_platform(**kwargs)
+    platform, supported_platforms = _default_platform(**kwargs)
 
     if platform in supported_platforms:
         return {
@@ -159,10 +157,10 @@ def _get_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
             "gcp_proxy_command": _stdout[ind_1:ind_2],
             "gcp_user_name": account[:32].strip("_"),
         }
-    except ValueError as e:
+    except ValueError as err:
         raise RuntimeError(
             "\n------------\nNo such VM name or/and username. Set the existing VM name and username.\n"
-        )
+        ) from err
 
 
 # ---
@@ -199,8 +197,8 @@ def _backup(file: str, perm: int) -> None:
         backup_file = f"{file}.{_BACKUP_SUFFIX}"
         copyfile(file, backup_file)
         os.chmod(backup_file, perm)
-    except FileNotFoundError as e:
-        pass
+    except FileNotFoundError:
+        print("No file found for backup.")
 
 
 # ---

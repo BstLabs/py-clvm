@@ -27,10 +27,7 @@ def command(instance_name: str, script: str, **kwargs) -> Union[Dict, None]:
     not implemented
     """
     kwargs["script"] = script
-
-    supported_platforms = {"AWS", "GCP", "AZURE"}
-
-    platform = _default_platform(**kwargs)
+    platform, supported_platforms = _default_platform(**kwargs)
 
     if platform in supported_platforms:
         return {

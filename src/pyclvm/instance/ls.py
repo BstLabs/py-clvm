@@ -49,9 +49,7 @@ def ls(**kwargs: str) -> Union[Dict, None]:
         None
 
     """
-    supported_platforms = {"AWS", "GCP", "AZURE"}
-
-    platform = _default_platform(**kwargs)
+    platform, supported_platforms = _default_platform(**kwargs)
     if platform in supported_platforms:
         return {
             "AWS": partial(_ls_aws, **kwargs),
