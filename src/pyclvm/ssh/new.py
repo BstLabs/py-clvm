@@ -18,6 +18,8 @@ from pyclvm._common.azure_instance_mapping import (
     AzureRemoteShellProxy,
 )
 
+from pyclvm._common.azure_instance_proxy import next_free_port
+
 from shutil import copyfile, move, copymode
 from tempfile import mkstemp
 
@@ -318,21 +320,8 @@ def _create(instance_name: str, instance: Union[GcpRemoteShellProxy, AzureRemote
             ]
 
 
-# --------------------
 # ---
 def _azure_config_lines(instance_name: str, **kwargs: str) -> List:
-    # ---
-    def next_free_port(port=22060, max_port=22160):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        while port <= max_port:
-            try:
-                sock.bind(('127.0.0.1', port))
-                sock.close()
-                return port
-            except OSError:
-                port += 1
-        raise IOError('no free ports')
-
     instance = AzureRemoteShellMapping().get(instance_name)
 
     _account = kwargs.get("account")
@@ -340,7 +329,7 @@ def _azure_config_lines(instance_name: str, **kwargs: str) -> List:
     if not _account or not _key:
         raise RuntimeError("Specify account=account_name or/and key=/path/to/ssh/key/file")
 
-    _port = next_free_port()
+    _port = next_free_port(port=22060, max_port=22160)
     instance_name = instance.name
     proxy_data = {
         "identity_file": _key,

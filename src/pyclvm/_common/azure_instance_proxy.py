@@ -33,7 +33,7 @@ class AzureInstanceProxy:
         Starts the vm
         """
         return self._client.virtual_machines.begin_start(
-            self._instance["resource_group"], self._instance["instance_name"]
+            self._instance["resource_group"].lower(), self._instance["instance_name"]
         )
 
     # ---
@@ -42,13 +42,13 @@ class AzureInstanceProxy:
         Stops the vm
         """
         return self._client.virtual_machines.begin_deallocate(
-            self._instance["resource_group"], self._instance["instance_name"]
+            self._instance["resource_group"].lower(), self._instance["instance_name"]
         )
 
     @property
     def state(self) -> str:
         instance_details = self._client.virtual_machines.get(
-            self._instance["resource_group"],
+            self._instance["resource_group"].lower(),
             self._instance["instance_name"],
             expand="instanceView",
         )
@@ -79,15 +79,11 @@ class AzureRemoteShellProxy(AzureInstanceProxy):
 
     # ---
     def execute(self, *commands: Union[str, Iterable], **kwargs) -> Any:
-        _connector = AzureRemoteConnector(self)
-        _executor = (
-            AzureRemoteExecutor(self, _connector, *commands, **kwargs)
-            if len(*commands) > 0
-            else AzureRemoteSocket(self, _connector, **kwargs)
-        )
+        _port = next_free_port()
+        _connector = AzureRemoteConnector(self, _port)
+        _executor = AzureRemoteExecutor(self, _connector, _port, *commands, **kwargs)
         _connector.start()
         _executor.start()
-        # print("Starting tunnel")
         _connector.join()
         _executor.join()
 
@@ -107,20 +103,13 @@ class AzureRemoteConnector(Thread):
         super().__init__()
         self._instance = instance
         self._proc = None
-        self._stop_event = Event()
         self._port = port
-
-    def stop(self):
-        self._stop_event.set()
-
-    def stopped(self):
-        return self._stop_event.is_set()
 
     # ---
     def run(self):
         resource_group = self._instance.session.instances[self._instance.name][
             "resource_group"
-        ]
+        ].lower()
         subscription = self._instance.session.subscription
         instance_name = self._instance.name
         self._proc = subprocess
@@ -143,9 +132,13 @@ class AzureRemoteConnector(Thread):
                 f"/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.Compute/virtualMachines/{instance_name}",
                 "--only-show-errors",
             ]
-            self._proc = subprocess.call(cmd, stdout=subprocess.DEVNULL)
+            self._proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL)
+            raise ThreadError
         except (ThreadError, RuntimeError):
-            raise
+            pass
+
+    def stop(self):
+        os.killpg(os.getpgid(self._proc.pid), signal.SIGTERM)
 
 
 # ---
@@ -158,6 +151,7 @@ class AzureRemoteExecutor(Thread):
         self,
         instance: AzureRemoteShellProxy,
         connector: AzureRemoteConnector,
+        port: int,
         *commands: Union[str, Iterable],
         **kwargs,
     ):
@@ -165,26 +159,25 @@ class AzureRemoteExecutor(Thread):
         self._instance = instance
         self._connector = connector
         self._commands = commands
-        self._stop_event = Event()
+        self._port = port
+        self._account = kwargs.get("account")
+        self._key = kwargs.get("key")
 
-    def stop(self):
-        self._stop_event.set()
-
-    def stopped(self):
-        return self._stop_event.is_set()
+        if not self._account or not self._key:
+            raise RuntimeError("Specify account=account_name or/and key=/path/to/ssh/key/file")
 
     # ---
     def run(self):
-        sleep(3)
+        sleep(5)
         command = " ".join(*self._commands) if len(self._commands) > 0 else ""
         try:
             cmd = [
                 "ssh",
                 "-p",
-                "22026",
+                str(self._port),
                 "-i",
-                os.path.normpath(f"{os.getenv('HOME')}/.ssh/git.key"),
-                "dmitro@localhost",
+                os.path.normpath(self._key),
+                f"{self._account}@localhost",
                 "-o",
                 "UserKnownHostsFile=/dev/null",
                 "-o",
@@ -193,14 +186,9 @@ class AzureRemoteExecutor(Thread):
             if command:
                 cmd.append(command)
             subprocess.run(cmd)
-            # os.killpg(os.getpgid(self._connector.pid), signal.SIGTERM)
             self._connector.stop()
-            if self._connector.stopped():
-                self.stop()
-
-            # self.close()
         except (ThreadError, RuntimeError):
-            raise
+            pass
 
 
 # ---
@@ -220,21 +208,12 @@ class AzureRemoteSocket(Thread):
         self._instance = instance
         self._connector = connector
         self._port = port
-        self._stop_event = Event()
-
-    def stop(self):
-        self._stop_event.set()
-
-    def stopped(self):
-        return self._stop_event.is_set()
 
     # ---
     def run(self):
         sleep(5)
         TcpProxy("127.0.0.1", self._port, self._connector)()
-        self._connector.stop()
-        if self._connector.stopped():
-            self.stop()
+        raise ThreadError()
 
 
 # ---
@@ -258,7 +237,8 @@ class TcpProxy:
             return target
         except ConnectionRefusedError as e:
             print(e)
-            sys.exit(1)
+            raise KeyboardInterrupt()
+            # sys.exit(-1)
 
     def _setup_proxy(self):
         proxy_in = sys.stdin
@@ -286,19 +266,31 @@ class TcpProxy:
     def _close(self, _channel):
         self._input_list.remove(_channel)
         self._target.close()
-        # self._close()
 
     def _send(self, data):
         try:
             self._target.send(data)
         except OSError as e:
             print(e)
-            sys.exit(1)
+            raise KeyboardInterrupt()
+            # sys.exit(-1)
 
     def _receive(self, data):
         self._proxy_out.buffer.write(data)
         self._proxy_out.buffer.flush()
 
     def __del__(self):
-        print("111")
         self._connector.stop()
+
+
+# ---
+def next_free_port(port=44500, max_port=45500):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    while port <= max_port:
+        try:
+            sock.bind(('127.0.0.1', port))
+            sock.close()
+            return port
+        except OSError:
+            port += 1
+    raise IOError('no free ports')
