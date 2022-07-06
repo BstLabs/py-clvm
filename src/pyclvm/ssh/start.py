@@ -1,4 +1,14 @@
+from typing import Optional
 from pyclvm.ssm.session.start import start as start_session
+from functools import partial
+from pyclvm._common.azure_instance_mapping import (
+    AzureRemoteShellMapping,
+)
+from pyclvm._common.azure_instance_proxy import (
+    AzureRemoteConnector,
+    AzureRemoteSocket,
+)
+from pyclvm.plt import _default_platform, _unsupported_platform
 
 
 def start(instance_name: str, port: int, **kwargs: str) -> None:
@@ -13,6 +23,19 @@ def start(instance_name: str, port: int, **kwargs: str) -> None:
     Returns:
         None
     """
+    platform, supported_platforms = _default_platform(**kwargs)
+
+    if platform in supported_platforms:
+        return {
+            "AWS": partial(_start_aws, instance_name, port, **kwargs),
+            "GCP": partial(_start_gcp, instance_name, port, **kwargs),
+            "AZURE": partial(_start_azure, instance_name, port, **kwargs),
+        }[platform.upper()]()
+    else:
+        _unsupported_platform(platform)
+
+
+def _start_aws(instance_name: str, port: int, **kwargs: str) -> None:
     start_session(
         instance_name,
         "--document-name",
@@ -22,3 +45,17 @@ def start(instance_name: str, port: int, **kwargs: str) -> None:
         wait=True,
         **kwargs,
     )
+
+
+def _start_gcp(instance_name: str, port: int, **kwargs: str) -> None:
+    print("Not implemented")
+
+
+def _start_azure(instance_name: str, port: int, **kwargs: str) -> None:
+    instance = AzureRemoteShellMapping().get(instance_name)
+    connector = AzureRemoteConnector(instance, port)
+    socket = AzureRemoteSocket(instance, connector, port)
+    connector.start()
+    socket.start()
+    connector.join()
+    socket.join()

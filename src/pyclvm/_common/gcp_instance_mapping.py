@@ -32,16 +32,16 @@ class GcpComputeAllInstancesData:
 
     # ---
     def _instances(self) -> Iterable:
-        request = compute_v1.AggregatedListInstancesRequest()
-        request.project = self._session.project_id
-        # Use the `max_results` parameter to limit the number of results that the API returns per response page.
-        # request.max_results = 50
-        # _instances = filter(lambda x: (x[0] == f"zones/{self._zone}"),
-        #              self._client.aggregated_list(request=request))
-        _instances = []
-        for zone, instances_in_zone in self._client.aggregated_list(request=request):
-            if f"zones/{self._zone}" == zone:
-                _instances = instances_in_zone.instances
+        # request = compute_v1.AggregatedListInstancesRequest()
+        # request.project = self._session.project_id
+        # # Use the `max_results` parameter to limit the number of results that the API returns per response page.
+        # # request.max_results = 50
+        # # _instances = filter(lambda x: (x[0] == f"zones/{self._zone}"),
+        # #              self._client.aggregated_list(request=request))
+        # _instances = []
+        # for zone, instances_in_zone in self._client.aggregated_list(request=request):
+        #     if f"zones/{self._zone}" == zone:
+        #         _instances = instances_in_zone.instances
 
         return [
             (
@@ -49,7 +49,7 @@ class GcpComputeAllInstancesData:
                 self._get_instance_name(_instance.tags) or _instance.name,
                 _instance.status,
             )
-            for _instance in _instances
+            for _instance in self._session.instances
         ]
 
     # ---
@@ -81,11 +81,11 @@ class GcpInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
         return self._get_instance(instance_name=instance_name)
 
     def __iter__(self) -> Iterator:
-        instances = (
-            r["Instances"][0] for r in self._client.describe_instances()["Reservations"]
-        )
-        for instance in instances:
-            yield self._get_instance(instance["InstanceId"])
+        # instances = (
+        #     r["Instances"][0] for r in self._client.describe_instances()["Reservations"]
+        # )
+        for instance in self._session.instances:
+            yield self._get_instance(instance.name)
 
     def __len__(self) -> int:
         return sum(1 for _ in self)
@@ -107,20 +107,12 @@ class GcpInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
             **self._kwargs,
         )
 
-    # def _get_instance_id(self, instance_name: str) -> str:
-    #     instance_details = self._client.describe_instances(
-    #         Filters=[
-    #             {
-    #                 "Name": "tag:Name",  # as long as you are following the convention of putting Name in tags
-    #                 "Values": [
-    #                     instance_name,
-    #                 ],
-    #             },
-    #         ],
-    #     )
-    #     return instance_details["Reservations"][0]["Instances"][0]["InstanceId"]
+    @property
+    def session(self):
+        return self._session
 
 
+# ---
 class GcpRemoteShellMapping(GcpInstanceMapping, VmInstanceMappingBase):
     def _get_instance(self, instance_name: str) -> GcpRemoteShellProxy:
         return GcpRemoteShellProxy(instance_name, self._session)
