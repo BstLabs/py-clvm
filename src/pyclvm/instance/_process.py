@@ -53,7 +53,7 @@ def _process_one(
     func: Callable, instance_name: str, kwargs: Dict[str, str]
 ) -> Tuple[Session, str]:
 
-    instance = _return_instances().get(instance_name)
+    instance = _return_instances(**kwargs).get(instance_name)
 
     if not instance:
         raise RuntimeError(

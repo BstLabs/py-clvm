@@ -104,7 +104,7 @@ def _stop_aws(*instance_names: str, **kwargs: str):
 
 # ---
 def _stop_gcp(*instance_names: str, **kwargs: str):
-    process_instances(_stop_instance_gcp, "TERMINATED", instance_names, kwargs)
+    process_instances(_stop_instance_gcp, "RUNNING", instance_names, kwargs)
 
 
 # ---
