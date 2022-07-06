@@ -213,11 +213,13 @@ class AzureRemoteSocket(Thread):
         self,
         instance: AzureRemoteShellProxy,
         connector: AzureRemoteConnector,
+        port: int,
         **kwargs,
     ):
         super().__init__()
         self._instance = instance
         self._connector = connector
+        self._port = port
         self._stop_event = Event()
 
     def stop(self):
@@ -229,30 +231,24 @@ class AzureRemoteSocket(Thread):
     # ---
     def run(self):
         sleep(5)
-        # cmd = [
-        #     "nc",
-        #     "localhost",
-        #     "22026",
-        # ]
-        # subprocess.run(cmd)
-        TcpProxy("127.0.0.1", 22026)()
-        # os.killpg(os.getpgid(self._connector.pid), signal.SIGTERM)
+        TcpProxy("127.0.0.1", self._port, self._connector)()
         self._connector.stop()
         if self._connector.stopped():
             self.stop()
-        # self.close()
 
 
 # ---
 class TcpProxy:
     BUFFER_SIZE = 4096
 
-    def __init__(self, dst_host, dst_port):
+    def __init__(self, dst_host, dst_port, connector: AzureRemoteConnector):
         self._dst = (dst_host, dst_port)
         self._input_list = []
 
         self._proxy_in, self._proxy_out = self._setup_proxy()
         self._target = self._setup_target()
+
+        self._connector = connector
 
     def _setup_target(self):
         try:
@@ -290,7 +286,7 @@ class TcpProxy:
     def _close(self, _channel):
         self._input_list.remove(_channel)
         self._target.close()
-        self._close()
+        # self._close()
 
     def _send(self, data):
         try:
@@ -302,3 +298,7 @@ class TcpProxy:
     def _receive(self, data):
         self._proxy_out.buffer.write(data)
         self._proxy_out.buffer.flush()
+
+    def __del__(self):
+        print("111")
+        self._connector.stop()
