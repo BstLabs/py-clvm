@@ -1,11 +1,20 @@
-from functools import partial
-from typing import Any
+"""stop vm instance"""
 
-from ._mapping import Instance
+from functools import partial
+from typing import Any, Dict, Union
+
+from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
+
+from pyclvm._common.gcp_instance_mapping import GcpInstanceProxy
+from pyclvm.plt import _default_platform, _unsupported_platform
+
 from ._process import process_instances
 
 
-def _stop_instance(instance_name: str, instance: Instance) -> Any:
+def _stop_instance_aws(
+    instance_name: str, instance: Ec2InstanceProxy, **kwargs: str
+) -> Any:
+
     return {
         "stopped": partial(_is_already_stopped, instance_name),
         "terminated": partial(_is_terminated, instance_name),
@@ -17,6 +26,27 @@ def _stop_instance(instance_name: str, instance: Instance) -> Any:
     }[instance.state.name]()
 
 
+def _stop_instance_gcp(
+    instance_name: str, instance: GcpInstanceProxy, **kwargs: str
+) -> Any:
+    return {
+        "STOPPED": partial(_is_already_stopped, instance_name),
+        "SUSPENDED": partial(_is_already_stopped, instance_name),
+        "TERMINATED": partial(_is_terminated, instance_name),
+        "RUNNING": partial(_stopping_instance, instance_name, instance),
+        "STOPPING": partial(_in_transition, instance_name, instance),
+        "PROVISIONING": partial(_in_transition, instance_name, instance),
+        "DEPROVISIONING": partial(_in_transition, instance_name, instance),
+        "REPAIRING": partial(_in_transition, instance_name, instance),
+        "STAGING": partial(_in_transition, instance_name, instance),
+        "SUSPENDING": partial(_in_transition, instance_name, instance),
+    }[instance.state]()
+
+
+def _stop_instance_azure():
+    ...
+
+
 def _is_already_stopped(instance_name: str) -> None:
     print(f"{instance_name} is already stopped.")
 
@@ -25,21 +55,26 @@ def _is_terminated(instance_name: str) -> None:
     print(f"{instance_name} is terminated.")
 
 
-def _stopping_instance(instance_name: str, instance: Instance) -> None:
+def _stopping_instance(
+    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]
+) -> None:
     print(f"Stopping {instance_name} ...")
     instance.stop()
     print(f"{instance_name} stopped.")
 
 
-def _in_transition(instance_name: str, instance: Instance) -> None:
+def _in_transition(
+    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]
+) -> None:
     print(
         f"{instance_name} is now in transition state. Wait untill current state is determined."
     )
-    instance.wait_until_exists()
+    # TODO handle transition mode
+    # instance.wait_until_exists()
     print(f"{instance_name} is {instance.state.name}")
 
 
-def stop(*instance_names: str, **kwargs: str) -> None:
+def stop(*instance_names: str, **kwargs: str) -> Union[Dict, None]:
     """
     stop vm instance
 
@@ -50,4 +85,28 @@ def stop(*instance_names: str, **kwargs: str) -> None:
     Returns:
         None
     """
-    process_instances(_stop_instance, "running", instance_names, kwargs)
+    platform, supported_platforms = _default_platform(**kwargs)
+
+    if platform in supported_platforms:
+        return {
+            "AWS": partial(_stop_aws, *instance_names, **kwargs),
+            "GCP": partial(_stop_gcp, *instance_names, **kwargs),
+            "AZURE": partial(_stop_azure, *instance_names, **kwargs),
+        }[platform.upper()]()
+    else:
+        _unsupported_platform(platform)
+
+
+# ---
+def _stop_aws(*instance_names: str, **kwargs: str):
+    process_instances(_stop_instance_aws, "running", instance_names, kwargs)
+
+
+# ---
+def _stop_gcp(*instance_names: str, **kwargs: str):
+    process_instances(_stop_instance_gcp, "TERMINATED", instance_names, kwargs)
+
+
+# ---
+def _stop_azure(*instance_names: str, **kwargs: str):
+    ...
