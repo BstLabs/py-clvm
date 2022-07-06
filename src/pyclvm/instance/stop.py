@@ -6,6 +6,7 @@ from typing import Any, Dict, Union
 from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
 
 from pyclvm._common.gcp_instance_mapping import GcpInstanceProxy
+from pyclvm._common.azure_instance_mapping import AzureInstanceProxy
 from pyclvm.plt import _default_platform, _unsupported_platform
 
 from ._process import process_instances
@@ -43,8 +44,18 @@ def _stop_instance_gcp(
     }[instance.state]()
 
 
-def _stop_instance_azure():
-    ...
+def _stop_instance_azure(
+    instance_name: str, instance: AzureInstanceProxy, **kwargs: str
+) -> Any:
+    return {
+        "VM stopped": partial(_is_already_stopped, instance_name),
+        "VM deallocated": partial(_is_terminated, instance_name),
+        "VM running": partial(_stopping_instance, instance_name, instance),
+        "VM stopping": partial(_in_transition, instance_name, instance),
+        "VM starting": partial(_in_transition, instance_name, instance),
+        "VM deallocating": partial(_in_transition, instance_name, instance),
+        "Provisioning succeeded": partial(_in_transition, instance_name, instance),
+    }[instance.state]()
 
 
 def _is_already_stopped(instance_name: str) -> None:
@@ -56,7 +67,7 @@ def _is_terminated(instance_name: str) -> None:
 
 
 def _stopping_instance(
-    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]
+    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy]
 ) -> None:
     print(f"Stopping {instance_name} ...")
     instance.stop()
@@ -64,14 +75,15 @@ def _stopping_instance(
 
 
 def _in_transition(
-    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy]
+    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy]
 ) -> None:
     print(
         f"{instance_name} is now in transition state. Wait untill current state is determined."
     )
     # TODO handle transition mode
     # instance.wait_until_exists()
-    print(f"{instance_name} is {instance.state.name}")
+    _state = instance.state if isinstance(instance.state, str) else instance.state.name
+    print(f"{instance_name} is {_state}")
 
 
 def stop(*instance_names: str, **kwargs: str) -> Union[Dict, None]:
@@ -109,4 +121,4 @@ def _stop_gcp(*instance_names: str, **kwargs: str):
 
 # ---
 def _stop_azure(*instance_names: str, **kwargs: str):
-    ...
+    process_instances(_stop_instance_azure, "VM running", instance_names, kwargs)
