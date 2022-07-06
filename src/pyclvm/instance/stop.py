@@ -67,7 +67,8 @@ def _is_terminated(instance_name: str) -> None:
 
 
 def _stopping_instance(
-    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy]
+    instance_name: str,
+    instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
 ) -> None:
     print(f"Stopping {instance_name} ...")
     instance.stop()
@@ -75,7 +76,8 @@ def _stopping_instance(
 
 
 def _in_transition(
-    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy]
+    instance_name: str,
+    instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
 ) -> None:
     print(
         f"{instance_name} is now in transition state. Wait untill current state is determined."

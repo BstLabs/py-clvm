@@ -166,7 +166,7 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
     except ValueError as e:
         raise RuntimeError(
             "\n------------\nNo such VM name or/and account. Set the existing VM name and account.\n"
-            "e.g \"clvm ssh new vm-instance-name account=username@domain.com platform=gcp\"\n"
+            'e.g "clvm ssh new vm-instance-name account=username@domain.com platform=gcp"\n'
         )
 
 
@@ -212,9 +212,7 @@ def _backup(file: str, perm: int) -> None:
 
 
 # ---
-def _write(
-        position: int, config_lines: List, skip_updated_text: bool
-):
+def _write(position: int, config_lines: List, skip_updated_text: bool):
     tmp_file, tmp_file_path = mkstemp()
     skip_flag = True
 
@@ -277,7 +275,11 @@ def _update_config(instance_name: str, config_lines: List, _platform: str) -> No
 
 
 # ---
-def _create(instance_name: str, instance: Union[GcpRemoteShellProxy, AzureRemoteShellProxy], **kwargs: str) -> None:
+def _create(
+    instance_name: str,
+    instance: Union[GcpRemoteShellProxy, AzureRemoteShellProxy],
+    **kwargs: str,
+) -> None:
     """
     Creates or updates SSH configuration file
 
@@ -292,7 +294,9 @@ def _create(instance_name: str, instance: Union[GcpRemoteShellProxy, AzureRemote
     config_lines = []
     if isinstance(instance, GcpRemoteShellProxy):
         _platform = "gcp"
-        config_lines = _config_lines(instance_name, _get_gcp_proxy_data(instance=instance, **kwargs), _platform)
+        config_lines = _config_lines(
+            instance_name, _get_gcp_proxy_data(instance=instance, **kwargs), _platform
+        )
     elif isinstance(instance, AzureRemoteShellProxy):
         _platform = "azure"
         config_lines = _azure_config_lines(instance_name, **kwargs)
@@ -301,15 +305,14 @@ def _create(instance_name: str, instance: Union[GcpRemoteShellProxy, AzureRemote
 
     if os.path.isfile(_SSH_CONFIG):
         _backup(_SSH_CONFIG, 0o600)
-        _update_config(instance_name=instance_name, config_lines=config_lines, _platform=_platform)
+        _update_config(
+            instance_name=instance_name, config_lines=config_lines, _platform=_platform
+        )
     else:
         with open(
-                os.open(_SSH_CONFIG, os.O_CREAT | os.O_WRONLY, 0o600), "w", encoding="utf8"
+            os.open(_SSH_CONFIG, os.O_CREAT | os.O_WRONLY, 0o600), "w", encoding="utf8"
         ) as config_file:
-            [
-                config_file.write(line)
-                for line in config_lines
-            ]
+            [config_file.write(line) for line in config_lines]
 
 
 # ---
@@ -319,9 +322,11 @@ def _azure_config_lines(instance_name: str, **kwargs: str) -> List:
     _account = kwargs.get("account")
     _key = kwargs.get("key")
     if not _account or not _key:
-        raise RuntimeError(f"\n------------\nSpecify account=account_name or/and key=/path/to/ssh/key/file\n"
-                           "e.g \"clvm ssh new vm-instance-name account=username "
-                           "key=/path/to/ssh/key/file platform=azure\"\n")
+        raise RuntimeError(
+            f"\n------------\nSpecify account=account_name or/and key=/path/to/ssh/key/file\n"
+            'e.g "clvm ssh new vm-instance-name account=username '
+            'key=/path/to/ssh/key/file platform=azure"\n'
+        )
 
     _port = next_free_port(port=22060, max_port=22160)
     instance_name = instance.name

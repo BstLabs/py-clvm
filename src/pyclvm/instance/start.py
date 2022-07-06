@@ -49,9 +49,7 @@ def _start_instance_azure(
     return {
         "VM running": partial(_is_running, instance_name),
         "VM stopped": partial(_is_stopped_or_terminated, instance_name, instance),
-        "VM deallocated": partial(
-            _is_stopped_or_terminated, instance_name, instance
-        ),
+        "VM deallocated": partial(_is_stopped_or_terminated, instance_name, instance),
         "VM stopping": partial(_in_transition, instance_name, instance),
         "VM starting": partial(_in_transition, instance_name, instance),
         "VM deallocating": partial(_in_transition, instance_name, instance),
@@ -64,7 +62,8 @@ def _is_running(instance_name: str) -> None:
 
 
 def _is_stopped_or_terminated(
-    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy]
+    instance_name: str,
+    instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
 ) -> None:
     print(f"Starting {instance_name} ...")
     instance.start()
@@ -72,7 +71,8 @@ def _is_stopped_or_terminated(
 
 
 def _in_transition(
-    instance_name: str, instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy]
+    instance_name: str,
+    instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
 ) -> None:
     print(
         f"{instance_name} is now in transition state. Wait untill current state is determined."
@@ -118,4 +118,6 @@ def _start_gcp(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
 
 # ---
 def _start_azure(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
-    return process_instances(_start_instance_azure, "VM deallocated", instance_names, kwargs)
+    return process_instances(
+        _start_instance_azure, "VM deallocated", instance_names, kwargs
+    )

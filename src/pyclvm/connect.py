@@ -12,7 +12,11 @@ from pyclvm.ssm.session import start as start_session
 
 
 # ---
-def _connect(instance_name: str, instance: Union[GcpRemoteShellProxy, AzureRemoteShellProxy], **kwargs) -> None:
+def _connect(
+    instance_name: str,
+    instance: Union[GcpRemoteShellProxy, AzureRemoteShellProxy],
+    **kwargs,
+) -> None:
     print(f"Connecting to {instance_name} ...")
     instance.execute((), **kwargs)
 

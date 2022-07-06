@@ -138,9 +138,7 @@ class GcpRemoteShellProxy(GcpInstanceProxy):
 
     # ---
     def execute(self, *commands: Union[str, Iterable], **kwargs) -> Any:
-        command = (
-            f"--command={' '.join(*commands)}" if len(*commands) > 0 else ""
-        )
+        command = f"--command={' '.join(*commands)}" if len(*commands) > 0 else ""
         tunnel_through_iap = strtobool(kwargs.get("iap", "yes"))
         dry_run = strtobool(kwargs.get("dry_run", "no"))
         account = kwargs.get("account")

@@ -21,7 +21,9 @@ def _execute_gcp(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) ->
     instance.execute((kwargs.get("script"),), **kwargs)
 
 
-def _execute_azure(instance_name: str, instance: AzureRemoteShellProxy, **kwargs) -> None:
+def _execute_azure(
+    instance_name: str, instance: AzureRemoteShellProxy, **kwargs
+) -> None:
     print(f"Working {instance_name} ...")
     instance.execute((kwargs.get("script"),), **kwargs)
 
@@ -35,9 +37,19 @@ def command(instance_name: str, script: str, **kwargs: str) -> Union[Dict, None]
 
     if platform in supported_platforms:
         return {
-            "AWS": partial(process_instances, _execute_aws, "running", (instance_name,), kwargs),
-            "GCP": partial(process_instances, _execute_gcp, "RUNNING", (instance_name,), kwargs),
-            "AZURE": partial(process_instances, _execute_azure, "VM running", (instance_name,), kwargs),
+            "AWS": partial(
+                process_instances, _execute_aws, "running", (instance_name,), kwargs
+            ),
+            "GCP": partial(
+                process_instances, _execute_gcp, "RUNNING", (instance_name,), kwargs
+            ),
+            "AZURE": partial(
+                process_instances,
+                _execute_azure,
+                "VM running",
+                (instance_name,),
+                kwargs,
+            ),
         }[platform.upper()]()
     else:
         _unsupported_platform(platform)
