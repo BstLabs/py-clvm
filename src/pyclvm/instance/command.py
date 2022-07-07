@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 from functools import partial
-from typing import Dict, Union
+from typing import Tuple, Union
 
 from ec2instances.ec2_instance_proxy import Ec2InstanceProxy
 
@@ -28,9 +28,9 @@ def _execute_azure(
     instance.execute((kwargs.get("script"),), **kwargs)
 
 
-def command(instance_name: str, script: str, **kwargs: str) -> Union[Dict, None]:
+def command(instance_name: str, script: str, **kwargs: str) -> Union[Tuple, None]:
     """
-    not implemented
+    send system commands to VM
     """
     kwargs["script"] = script
     platform, supported_platforms = _default_platform(**kwargs)
