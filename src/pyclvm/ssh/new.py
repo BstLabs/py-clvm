@@ -26,7 +26,7 @@ from pyclvm.plt import _default_platform, _unsupported_platform
 _SSH_DIR: Final[str] = expanduser(join("~", ".ssh"))
 _SSH_CONFIG: Final[str] = join(_SSH_DIR, "config")
 
-_GOOGLE_SSH_PRIV_KEY_NAME: Final[str] = f"google_compute_engine"
+_GOOGLE_SSH_PRIV_KEY_NAME: Final[str] = "google_compute_engine"
 _GOOGLE_SSH_PRIV_KEY: Final[str] = f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}"
 _GOOGLE_SSH_PUB_KEY: Final[str] = f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}.pub"
 _GOOGLE_SSH_KNOWN_HOSTS: Final[str] = f"{_SSH_DIR}/google_compute_known_hosts"
@@ -163,7 +163,7 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
             "proxy_command": _stdout[ind_1:ind_2],
             "user_name": account[:32].strip("_"),
         }
-    except ValueError as e:
+    except ValueError:
         raise RuntimeError(
             "\n------------\nNo such VM name or/and account. Set the existing VM name and account.\n"
             'e.g "clvm ssh new vm-instance-name account=username@domain.com platform=gcp"\n'
@@ -207,7 +207,7 @@ def _backup(file: str, perm: int) -> None:
         backup_file = f"{file}.{_BACKUP_SUFFIX}"
         copyfile(file, backup_file)
         os.chmod(backup_file, perm)
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         pass
 
 
@@ -323,7 +323,7 @@ def _azure_config_lines(instance_name: str, **kwargs: str) -> List:
     _key = kwargs.get("key")
     if not _account or not _key:
         raise RuntimeError(
-            f"\n------------\nSpecify account=account_name or/and key=/path/to/ssh/key/file\n"
+            "\n------------\nSpecify account=account_name or/and key=/path/to/ssh/key/file\n"
             'e.g "clvm ssh new vm-instance-name account=username '
             'key=/path/to/ssh/key/file platform=azure"\n'
         )

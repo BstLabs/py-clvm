@@ -1,4 +1,3 @@
-from typing import Optional
 from pyclvm.ssm.session.start import start as start_session
 from functools import partial
 from pyclvm._common.azure_instance_mapping import (

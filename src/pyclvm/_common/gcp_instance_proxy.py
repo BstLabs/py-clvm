@@ -158,7 +158,7 @@ class GcpRemoteShellProxy(GcpInstanceProxy):
         if account:
             cmd.append(f"--account={account}")
         if dry_run:
-            cmd.append(f"--dry-run")
+            cmd.append("--dry-run")
 
         return subprocess.run(cmd, capture_output=kwargs.get("capture_output", False))
 

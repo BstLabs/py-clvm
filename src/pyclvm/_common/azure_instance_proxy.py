@@ -6,9 +6,8 @@ import socket
 import subprocess
 import sys
 
-# from multiprocessing import Process, ProcessError
 from select import select
-from threading import Thread, ThreadError, Event
+from threading import Thread, ThreadError
 from time import sleep
 from typing import Any, Iterable, Union
 

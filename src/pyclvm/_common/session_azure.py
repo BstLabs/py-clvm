@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 
 import os
-from typing import Any, Union, Tuple, Iterable, Dict
+from typing import Any, Tuple, Dict
 
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient

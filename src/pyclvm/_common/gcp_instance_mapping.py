@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*- #
 
-import os
 from typing import Iterator, Iterable, AnyStr, Generator, Tuple, Union
 
 from .session_gcp import get_session, GcpSession
