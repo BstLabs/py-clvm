@@ -32,17 +32,6 @@ class GcpComputeAllInstancesData:
 
     # ---
     def _instances(self) -> Iterable:
-        # request = compute_v1.AggregatedListInstancesRequest()
-        # request.project = self._session.project_id
-        # # Use the `max_results` parameter to limit the number of results that the API returns per response page.
-        # # request.max_results = 50
-        # # _instances = filter(lambda x: (x[0] == f"zones/{self._zone}"),
-        # #              self._client.aggregated_list(request=request))
-        # _instances = []
-        # for zone, instances_in_zone in self._client.aggregated_list(request=request):
-        #     if f"zones/{self._zone}" == zone:
-        #         _instances = instances_in_zone.instances
-
         return [
             (
                 _instance.id,

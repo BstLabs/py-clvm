@@ -86,7 +86,6 @@ def new(instance_name: str, **kwargs: str) -> Union[Dict, None]:
 
     Args:
         instance_name (str): Virtual Machine instance name
-        port (int): port number
         **kwargs (str): (optional) classifiers, at the moment, profile name, also look at shell
 
     Returns:
@@ -147,7 +146,7 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
     kwargs["capture_output"] = True
     _stdout = instance.execute((), **kwargs).stdout.decode("utf8")
     try:
-        ind_1 = _stdout.index("ProxyCommand")
+        ind_1 = _stdout.index("ProxyCommand") + 13
         ind_2 = _stdout.index('" -o ProxyUseFdpass=no')
 
         account = kwargs.get("account")

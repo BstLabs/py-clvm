@@ -163,7 +163,8 @@ class AzureRemoteExecutor(Thread):
 
         if not self._account or not self._key:
             raise RuntimeError(
-                "Specify account=account_name or/and key=/path/to/ssh/key/file"
+                "\n-----------\nSpecify account=account_name or/and key=/path/to/ssh/key/file\n"
+                "e.g. clvm connect vm-instance-name account=username key=/path/to/ssh/key platform=azure\n"
             )
 
     # ---
