@@ -1,11 +1,19 @@
-from typing import Dict, Final, Tuple
+from functools import partial
+from typing import Dict, Final, Tuple, Union
 
 import boto3
 from ec2instances.ec2_instance_mapping import Ec2AllInstancesData
 from rich.console import Console
 from rich.table import Table
 
+from pyclvm._common.azure_instance_mapping import AzureComputeAllInstancesData
+from pyclvm._common.gcp_instance_mapping import GcpComputeAllInstancesData
+from pyclvm.plt import _default_platform, _unsupported_platform
+
 _COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
+
+# --- The list of colours of "rich"
+# https://rich.readthedocs.io/en/stable/appendix/colors.html
 
 _STATE_COLOR: Final[Dict[int, str]] = {
     0: "bright_yellow",
@@ -16,10 +24,56 @@ _STATE_COLOR: Final[Dict[int, str]] = {
     80: "bright_red",
 }
 
+_STATE_COLOR_GCP: Final[Dict[str, str]] = {
+    "DEPROVISIONING": "dark_orange",
+    "PROVISIONING": "orange1",
+    "REPAIRING": "yellow2",
+    "RUNNING": "bright_green",
+    "STAGING": "yellow1",
+    "STOPPED": "gold3",
+    "STOPPING": "misty_rose3",
+    "SUSPENDED": "bright_magenta",
+    "SUSPENDING": "orchid",
+    "TERMINATED": "red",
+    "UNDEFINED_STATUS": "bright_red",
+}
 
-def ls(**kwargs: str) -> None:
+_STATE_COLOR_AZURE: Final[Dict[str, str]] = {
+    "VM starting": "dark_orange",
+    "VM running": "bright_green",
+    "VM stopping": "yellow1",
+    "VM stopped": "gold3",
+    "VM deallocating": "bright_magenta",
+    "VM deallocated": "red",
+    "Provisioning succeeded": "bright_red",
+}
+
+
+def ls(**kwargs: str) -> Union[Dict, None]:
     """
     list vm instances
+
+    Args:
+        **kwargs (str): (optional) classifiers, at the moment, profile name, instance state, name patterns
+
+    Returns:
+        None
+
+    """
+    platform, supported_platforms = _default_platform(**kwargs)
+    if platform in supported_platforms:
+        return {
+            "AWS": partial(_ls_aws, **kwargs),
+            "GCP": partial(_ls_gcp, **kwargs),
+            "AZURE": partial(_ls_azure, **kwargs),
+        }[platform.upper()]()
+    else:
+        _unsupported_platform(platform)
+
+
+def _ls_aws(**kwargs: str) -> None:
+    """
+    list vm instances of AWS Cloud Platform
 
     Args:
         **kwargs (str): (optional) classifiers, at the moment, profile name, instance state, name patterns
@@ -49,5 +103,66 @@ def ls(**kwargs: str) -> None:
             )
         )
 
+    console = Console()
+    console.print(table)
+
+
+# ---
+def _ls_gcp(**kwargs: str) -> None:
+    """
+    list vm instances of Google Cloud Platform
+
+    Args:
+        **kwargs (str): (optional) classifiers, at the moment, profile name, instance state, name patterns
+
+    Returns:
+        None
+
+    """
+    instances = GcpComputeAllInstancesData(**kwargs)
+    table = Table(
+        title=f"{instances.get_session().account_email} Account GCP Instances"
+    )
+    for column in _COLUMNS:
+        table.add_column(column, justify="left", no_wrap=True)
+
+    for instance_id, instance_name, state in instances:
+        table.add_row(
+            *(
+                str(instance_id),
+                instance_name,
+                f"[{_STATE_COLOR_GCP[state]}]{state}",
+            )
+        )
+
+    console = Console()
+    console.print(table)
+
+
+# ---
+def _ls_azure(**kwargs: str) -> None:
+    """
+    list vm instances of Azure Cloud Platform
+
+    Args:
+        **kwargs (str): (optional) classifiers, at the moment, profile name, instance state, name patterns
+
+    Returns:
+        None
+
+    """
+    instances = AzureComputeAllInstancesData(**kwargs)
+    table = Table(title=f"{instances.session.subscription_name} Azure Instances")
+    for column in _COLUMNS:
+        table.add_column(column, justify="left", no_wrap=True)
+
+    for instance_id, instance_name, state in instances:
+        table.add_row(
+            *(
+                str(instance_id),
+                instance_name,
+                f"[{_STATE_COLOR_AZURE[state]}]{state}",
+            )
+        )
     console = Console()
     console.print(table)
