@@ -6,9 +6,8 @@ from ec2instances.ec2_instance_mapping import Ec2AllInstancesData
 from rich.console import Console
 from rich.table import Table
 
-from pyclvm._common.gcp_instance_mapping import GcpComputeAllInstancesData
 from pyclvm._common.azure_instance_mapping import AzureComputeAllInstancesData
-
+from pyclvm._common.gcp_instance_mapping import GcpComputeAllInstancesData
 from pyclvm.plt import _default_platform, _unsupported_platform
 
 _COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")

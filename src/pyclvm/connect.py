@@ -5,8 +5,8 @@ from typing import Dict, Union
 
 from instance._process import process_instances
 
-from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellProxy
+from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
 from pyclvm.plt import _default_platform, _unsupported_platform
 from pyclvm.ssm.session import start as start_session
 

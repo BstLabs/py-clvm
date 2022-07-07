@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*- #
 
-from typing import Iterator, Iterable, AnyStr, Generator, Tuple, Union
+from typing import AnyStr, Generator, Iterable, Iterator, Tuple, Union
 
-from .session_gcp import get_session, GcpSession
 from google.cloud import compute_v1
-
 from instances_map_abc.vm_instance_mapping import VmInstanceMappingBase
 from instances_map_abc.vm_instance_proxy import VmInstanceProxy
+
 from .gcp_instance_proxy import GcpInstanceProxy, GcpRemoteShellProxy
+from .session_gcp import GcpSession, get_session
 
 
 class GcpComputeAllInstancesData:

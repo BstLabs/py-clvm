@@ -2,13 +2,13 @@
 from functools import partial
 from typing import Dict, Union
 
-from ._process import process_instances
-
 from ec2instances.ec2_instance_proxy import Ec2InstanceProxy
 
-from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellProxy
+from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
 from pyclvm.plt import _default_platform, _unsupported_platform
+
+from ._process import process_instances
 
 
 def _execute_aws(instance_name: str, instance: Ec2InstanceProxy, **kwargs) -> None:

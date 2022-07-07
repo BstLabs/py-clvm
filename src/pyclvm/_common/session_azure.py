@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*- #
 
 import os
-from typing import Any, Tuple, Dict
+from collections import defaultdict
+from typing import Any, Dict, Tuple
 
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.subscription import SubscriptionClient
-
 from singleton_decorator import singleton
-
-from collections import defaultdict
 
 # import sqlite3
 

@@ -5,7 +5,6 @@ import signal
 import socket
 import subprocess
 import sys
-
 from select import select
 from threading import Thread, ThreadError
 from time import sleep

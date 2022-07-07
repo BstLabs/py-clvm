@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*- #
 
-import sys
 import subprocess
-from typing import Any, Iterable, Union
-
+import sys
 from distutils.util import strtobool
+from typing import Any, Iterable, Union
 
 from google.api_core.extended_operation import ExtendedOperation
 

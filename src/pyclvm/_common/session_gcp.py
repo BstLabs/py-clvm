@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*- #
 
 import os
-from typing import Any, Union, Iterable
+from typing import Any, Iterable, Union
 
 from google.auth import default
 from google.auth.credentials import Credentials
 from google.auth.transport.requests import AuthorizedSession
-from google.cloud.compute_v1 import InstancesClient, AggregatedListInstancesRequest
+from google.cloud.compute_v1 import AggregatedListInstancesRequest, InstancesClient
 from singleton_decorator import singleton
 
 

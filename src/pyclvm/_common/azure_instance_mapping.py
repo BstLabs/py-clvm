@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*- #
 
-from typing import Iterator, Iterable, AnyStr, Generator, Tuple, Union, Dict
-
-from .session_azure import get_session, AzureSession
+from typing import AnyStr, Dict, Generator, Iterable, Iterator, Tuple, Union
 
 from instances_map_abc.vm_instance_mapping import VmInstanceMappingBase
 from instances_map_abc.vm_instance_proxy import VmInstanceProxy
+
 from .azure_instance_proxy import AzureInstanceProxy, AzureRemoteShellProxy
+from .session_azure import AzureSession, get_session
 
 
 class AzureComputeAllInstancesData:

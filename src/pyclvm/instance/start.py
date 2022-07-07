@@ -5,8 +5,8 @@ from typing import Any, Tuple, Union
 
 from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
 
-from pyclvm._common.gcp_instance_mapping import GcpInstanceProxy
 from pyclvm._common.azure_instance_mapping import AzureInstanceProxy
+from pyclvm._common.gcp_instance_mapping import GcpInstanceProxy
 from pyclvm.plt import _default_platform, _unsupported_platform
 
 from ._process import process_instances

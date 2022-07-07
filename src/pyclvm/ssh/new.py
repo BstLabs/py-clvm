@@ -11,15 +11,15 @@ from Crypto.PublicKey import RSA
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 from sshconf import empty_ssh_config_file, read_ssh_config
 
-from pyclvm._common.gcp_instance_mapping import (
-    GcpRemoteShellMapping,
-    GcpRemoteShellProxy,
-)
 from pyclvm._common.azure_instance_mapping import (
     AzureRemoteShellMapping,
     AzureRemoteShellProxy,
 )
 from pyclvm._common.azure_instance_proxy import next_free_port
+from pyclvm._common.gcp_instance_mapping import (
+    GcpRemoteShellMapping,
+    GcpRemoteShellProxy,
+)
 from pyclvm._common.session import get_session
 from pyclvm.plt import _default_platform, _unsupported_platform
 

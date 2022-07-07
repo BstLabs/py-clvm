@@ -1,13 +1,9 @@
-from pyclvm.ssm.session.start import start as start_session
 from functools import partial
-from pyclvm._common.azure_instance_mapping import (
-    AzureRemoteShellMapping,
-)
-from pyclvm._common.azure_instance_proxy import (
-    AzureRemoteConnector,
-    AzureRemoteSocket,
-)
+
+from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
+from pyclvm._common.azure_instance_proxy import AzureRemoteConnector, AzureRemoteSocket
 from pyclvm.plt import _default_platform, _unsupported_platform
+from pyclvm.ssm.session.start import start as start_session
 
 
 def start(instance_name: str, port: int, **kwargs: str) -> None:

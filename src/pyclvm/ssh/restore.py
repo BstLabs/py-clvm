@@ -2,9 +2,8 @@
 
 import os
 from os.path import expanduser, join
-from typing import Final
 from shutil import copyfile
-
+from typing import Final
 
 _SSH_DIR: Final[str] = expanduser(join("~", ".ssh"))
 _SSH_CONFIG: Final[str] = join(_SSH_DIR, "config")
