@@ -1,5 +1,5 @@
 import subprocess
-from functools import partial
+from typing import List
 
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 
@@ -24,52 +24,42 @@ def start(instance_name: str, **kwargs: str) -> None:
     platform, supported_platforms = _default_platform(**kwargs)
 
     if platform in supported_platforms:
-        return {
-            "AWS": partial(_start_aws, instance_name, platform, **kwargs),
-            "GCP": partial(_start_gcp, instance_name, platform, **kwargs),
-            "AZURE": partial(_start_azure, instance_name, platform, **kwargs),
-        }[platform.upper()]()
+        return _start_vscode_with_given_platform(instance_name, platform, **kwargs)
     else:
         _unsupported_platform(platform)
 
 
-# ---
-def _start_aws(instance_name: str, _platform: str, **kwargs: str) -> None:
-    instance = Ec2RemoteShellMapping(get_session(kwargs)).get(instance_name)
-    instance.start()
+def _start_vscode_with_given_platform(
+    instance_name: str, _platform: str, **kwargs: str
+) -> None:
+    _get_platform_instance(instance_name, _platform, **kwargs)().start()
+    _run_subprocess(instance_name, _get_path(**kwargs))
 
-    path = kwargs.get("path", "/home/ssm-user")
-    cmd = [
+
+def _get_vscode_cmd(instance_name: str, path: str) -> List[str]:
+    return [
         "code",
         "--folder-uri",
-        f"vscode-remote://ssh-remote+{instance_name}-{_platform.lower()}{path}",
+        f"vscode-remote://ssh-remote+{instance_name}{path}",
     ]
-    subprocess.Popen(args=cmd, shell=True)
 
 
-# ---
-def _start_gcp(instance_name: str, _platform: str, **kwargs: str) -> None:
-    instance = GcpRemoteShellMapping().get(instance_name)
-    instance.start()
-
-    path = kwargs.get("path", "/home")
-    cmd = [
-        "code",
-        "--folder-uri",
-        f"vscode-remote://ssh-remote+{instance_name}-{_platform.lower()}{path}",
-    ]
-    subprocess.Popen(args=cmd, shell=True)
+def _run_subprocess(instance_name: str, path: str) -> None:
+    cmd = _get_vscode_cmd(instance_name, path)
+    process = subprocess.Popen(args=cmd)
+    process.communicate()
 
 
-# ---
-def _start_azure(instance_name: str, _platform: str, **kwargs: str) -> None:
-    instance = AzureRemoteShellMapping().get(instance_name)
-    instance.start()
+def _get_path(**kwargs: str) -> str:
+    return kwargs.get("path", "/home")
 
-    path = kwargs.get("path", "/home")
-    cmd = [
-        "code",
-        "--folder-uri",
-        f"vscode-remote://ssh-remote+{instance_name}-{_platform.lower()}{path}",
-    ]
-    subprocess.Popen(args=cmd, shell=True)
+
+def _get_platform_instance(
+    instance_name: str, _platform: str, **kwargs: str
+) -> callable:
+    platform_instance_map = {
+        "AWS": lambda: Ec2RemoteShellMapping(get_session(kwargs)).get(instance_name),
+        "GCP": lambda: GcpRemoteShellMapping().get(instance_name),
+        "AZURE": lambda: AzureRemoteShellMapping().get(instance_name),
+    }
+    return platform_instance_map.get(_platform.upper())
