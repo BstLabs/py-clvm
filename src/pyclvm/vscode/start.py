@@ -15,7 +15,7 @@ def start(instance_name: str, **kwargs: str) -> None:
 
     Args:
         instance_name (str): Virtual Machine instance name
-        **kwargs (str): (optional) classifiers, at the moment, profile name
+        **kwargs (str): (optional) classifiers, at the moment, profile name and path
 
     Returns:
         None
@@ -33,19 +33,19 @@ def _start_vscode_with_given_platform(
     instance_name: str, _platform: str, **kwargs: str
 ) -> None:
     _get_platform_instance(instance_name, _platform, **kwargs)().start()
-    _run_subprocess(instance_name, _get_path(**kwargs))
+    _run_subprocess(instance_name, _get_path(**kwargs), _platform)
 
 
-def _get_vscode_cmd(instance_name: str, path: str) -> List[str]:
+def _get_vscode_cmd(instance_name: str, path: str, _platform: str) -> List[str]:
     return [
         "code",
         "--folder-uri",
-        f"vscode-remote://ssh-remote+{instance_name}{path}",
+        f"vscode-remote://ssh-remote+{instance_name}-{_platform.lower()}{path}",
     ]
 
 
-def _run_subprocess(instance_name: str, path: str) -> None:
-    cmd = _get_vscode_cmd(instance_name, path)
+def _run_subprocess(instance_name: str, path: str, _platform: str) -> None:
+    cmd = _get_vscode_cmd(instance_name, path, _platform)
     process = subprocess.Popen(args=cmd)
     process.communicate()
 
