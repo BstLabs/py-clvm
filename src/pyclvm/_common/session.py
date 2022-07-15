@@ -1,9 +1,12 @@
 import getpass
 import platform
+import sys
 from datetime import datetime
 from typing import Dict, Final, Optional
 
+import backoff
 import boto3
+import botocore
 from boto3.session import Session
 from jdict import jdict, patch_module
 
@@ -56,6 +59,29 @@ def _store_credentials(profile: str, credentials: Credentials) -> None:
     store(make_file_name(profile), credentials)
 
 
+def _invalid_mfa_code_provided(details):
+    print("\n > Invalid MFA code provided, please try again!\n")
+
+
+def _give_up(e):
+    print("\n > Giving up after multiple fails...")
+    sys.exit(-1)
+
+
+@backoff.on_exception(
+    backoff.expo,
+    botocore.exceptions.ClientError,
+    max_tries=3,
+    on_giveup=_give_up,
+    on_backoff=_invalid_mfa_code_provided,
+)
+@backoff.on_exception(
+    backoff.expo,
+    botocore.exceptions.ParamValidationError,
+    max_tries=3,
+    on_giveup=_give_up,
+    on_backoff=_invalid_mfa_code_provided,
+)
 def _get_profile_credentials(profile: str, config: jdict) -> Credentials:
     token_code = input("Enter MFA Code: ")
 
