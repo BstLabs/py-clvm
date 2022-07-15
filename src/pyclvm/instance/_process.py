@@ -30,20 +30,20 @@ def _return_instances(**kwargs) -> Union[Dict, None]:
             "GCP": partial(_process_gcp, **kwargs),
             "AZURE": partial(_process_azure, **kwargs),
         }[platform.upper()]()
-    else:
-        _unsupported_platform(platform)
-        return None
+    _unsupported_platform(platform)
+    return None
 
 
 def _process_many(
     func: Callable, state: str, instance_names: Tuple[str], kwargs: Dict[str, str]
 ) -> None:
     # TODO realize platform selection
-    instances = list(
+    instances = [
         (name, instance)
         for name, instance in Ec2RemoteShellMapping(get_session(kwargs)).items()
         if instance.name in instance_names
-    )
+    ]
+
     with ThreadPoolExecutor() as executor:
         res = executor.map(lambda t: func(*t), instances)
         print(list(res))
@@ -52,16 +52,14 @@ def _process_many(
 
 def _process_one(
     func: Callable, instance_name: str, kwargs: Dict[str, str]
-) -> Tuple[Session, str]:
-
-    instance = _return_instances(**kwargs).get(instance_name)
-
-    if not instance:
-        raise RuntimeError(
-            "[ERROR] No such instance registered: wrong instance name provided"
-        )
-    func(instance_name, instance, **kwargs)
-    return instance.session, instance.id
+) -> Optional[Tuple[Session, str]]:
+    try:
+        instance = _return_instances(**kwargs).get(instance_name)
+    except RuntimeError as err:
+        print(err)
+    else:
+        func(instance_name, instance, **kwargs)
+        return instance.session, instance.id
 
 
 def process_instances(
