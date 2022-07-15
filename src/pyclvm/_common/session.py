@@ -24,13 +24,13 @@ class Credentials(jdict):
     Region: str
 
 
-def _make_file_name(profile: str) -> str:
+def make_file_name(profile: str) -> str:
     return f"aws-{profile}-credentials"
 
 
 def _read_credentials(profile: str) -> Optional[Credentials]:
     try:
-        credentials = fetch(_make_file_name(profile))
+        credentials = fetch(make_file_name(profile))
         expiration = datetime.fromisoformat(credentials.Expiration)
         return credentials if expiration > datetime.now(expiration.tzinfo) else None
     except FileNotFoundError:
@@ -53,7 +53,7 @@ def _store_credentials(profile: str, credentials: Credentials) -> None:
     credentials.Expiration = datetime.isoformat(
         credentials.Expiration
     )  # to make it json serializable
-    store(_make_file_name(profile), credentials)
+    store(make_file_name(profile), credentials)
 
 
 def _get_profile_credentials(profile: str, config: jdict) -> Credentials:
