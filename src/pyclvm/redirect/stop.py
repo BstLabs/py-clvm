@@ -20,7 +20,7 @@ def stop(instance_name: str, **kwargs: str) -> None:
         None
 
     """
-    port, local_port = _get_port_mapping(kwargs)
+    port, local_port = _get_port_mapping(**kwargs)
     with contextlib.suppress(FileNotFoundError):
         file_name = _make_file_name(
             "aws", kwargs.get("profile", "default"), instance_name, port, local_port

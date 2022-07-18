@@ -41,7 +41,7 @@ def start(instance_name: str, **kwargs: str) -> int:
         local port number (int)
 
     """
-    port, local_port = _get_port_mapping(kwargs)
+    port, local_port = _get_port_mapping(**kwargs)
     pid = start_session(
         instance_name,
         "--document-name",

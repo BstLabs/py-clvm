@@ -1,13 +1,17 @@
 """start/stop port redirection session"""
 
-import contextlib
+from typing import Tuple
 
 
-def _get_port_mapping(kwargs: dict) -> tuple:
-    for port, local_port in kwargs.items():
-        with contextlib.suppress(ValueError):
-            return int(port), int(local_port)
-    return 8080, 8080
+def _get_port_mapping(**kwargs: str) -> Tuple[int, int]:
+    if "port" in kwargs.keys():
+        return int(kwargs["port"]), 8080
+    elif "local_port" in kwargs.keys():
+        return 8080, int(kwargs["local_port"])
+    elif "port" and "local_port" in kwargs.keys():
+        return int(kwargs["port"]), int(kwargs["local_port"])
+    else:
+        return 8080, 8080
 
 
 def _make_file_name(
