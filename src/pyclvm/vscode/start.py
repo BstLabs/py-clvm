@@ -16,7 +16,6 @@ def start(instance_name: str, **kwargs: str) -> None:
     Args:
         instance_name (str): Virtual Machine instance name
         **kwargs (str): (optional) classifiers, at the moment, profile name and path
-
     Returns:
         None
 

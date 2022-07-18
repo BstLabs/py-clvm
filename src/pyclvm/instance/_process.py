@@ -62,6 +62,7 @@ def _process_one(
         return instance.session, instance.id
 
 
+
 def process_instances(
     func: Callable, state: str, instance_names: Tuple[str], kwargs: Dict[str, str]
 ) -> Optional[Tuple[Session, str]]:
