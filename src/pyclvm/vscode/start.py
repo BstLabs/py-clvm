@@ -1,12 +1,16 @@
 import subprocess
-from typing import List
+from typing import Any, List
 
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
-from pyclvm._common.session import get_session
-from pyclvm.plt import _default_platform, _unsupported_platform
+from pyclvm._common.session_aws import get_session
+from pyclvm.plt import (
+    _default_platform,
+    _get_supported_platforms,
+    _unsupported_platform,
+)
 
 
 def start(instance_name: str, **kwargs: str) -> None:
@@ -20,12 +24,17 @@ def start(instance_name: str, **kwargs: str) -> None:
         None
 
     """
-    platform, supported_platforms = _default_platform(**kwargs)
+    default_platform, supported_platforms = (
+        _default_platform(**kwargs),
+        _get_supported_platforms(),
+    )
 
-    if platform in supported_platforms:
-        return _start_vscode_with_given_platform(instance_name, platform, **kwargs)
+    if default_platform in supported_platforms:
+        return _start_vscode_with_given_platform(
+            instance_name, default_platform, **kwargs
+        )
     else:
-        _unsupported_platform(platform)
+        _unsupported_platform(default_platform)
 
 
 def _start_vscode_with_given_platform(
@@ -53,9 +62,7 @@ def _get_path(**kwargs: str) -> str:
     return kwargs.get("path", "/home")
 
 
-def _get_platform_instance(
-    instance_name: str, _platform: str, **kwargs: str
-) -> callable:
+def _get_platform_instance(instance_name: str, _platform: str, **kwargs: str) -> Any:
     platform_instance_map = {
         "AWS": lambda: Ec2RemoteShellMapping(get_session(kwargs)).get(instance_name),
         "GCP": lambda: GcpRemoteShellMapping().get(instance_name),

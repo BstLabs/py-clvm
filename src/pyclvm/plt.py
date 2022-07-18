@@ -6,7 +6,11 @@ change default platform (AWS, GCP, AZURE)
 import json
 from os import makedirs, path
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Set, Union
+
+
+def _get_supported_platforms() -> Set:
+    return {"AWS", "GCP", "AZURE"}
 
 
 def _get_cache_path():
@@ -21,7 +25,7 @@ def _create_cache() -> None:
         mode=0o700,
         exist_ok=True,
     )
-    with open(_get_cache_path(), "w") as cache:
+    with open(_get_cache_path(), "w", encoding="utf8") as cache:
         data = {"platform": "AWS"}
         json.dump(data, cache, indent=4)
     print("Cache file created!")
@@ -29,9 +33,8 @@ def _create_cache() -> None:
 
 def _set_default_platform(platform: str) -> None:
     """sets the default platform"""
-    supported_platforms = {"AWS", "GCP", "AZURE"}
-    if platform in supported_platforms:
-        with open(_get_cache_path(), "w") as cache:
+    if platform in _get_supported_platforms():
+        with open(_get_cache_path(), "w", encoding="utf8") as cache:
             data = {}
             data["platform"] = f"{platform.upper()}"
             cache.seek(0)
@@ -44,20 +47,21 @@ def _set_default_platform(platform: str) -> None:
 
 def _default_platform(**kwargs) -> Union[str, Any]:
     """returns the default platform"""
-    supported_platforms = {"AWS", "GCP", "AZURE"}
+
     if not path.exists(_get_cache_path()):
         _create_cache()
 
-    if "platform" not in kwargs.keys():
-        with open(_get_cache_path(), "r") as cache:
+    if "platform" in kwargs:
+        _set_default_platform(kwargs["platform"].upper())
+    elif "platform" not in kwargs:
+        with open(_get_cache_path(), "r", encoding="utf-8") as cache:
             platform_ = json.load(cache)
-        return platform_["platform"], supported_platforms
+        return platform_["platform"]
+    platform_ = str(kwargs["platform"]).upper()
+    if platform_ in _get_supported_platforms():
+        return platform_.upper()
     else:
-        platform_ = str(kwargs["platform"]).upper()
-        if platform_ in supported_platforms:
-            return platform_.upper(), supported_platforms
-        else:
-            _unsupported_platform(platform_)
+        _unsupported_platform(platform_)
 
 
 def _unsupported_platform(platform: Union[str, None]) -> None:
@@ -81,7 +85,10 @@ def plt(*platform: str, **kwargs: str) -> Union[str, None]:
     Returns:
         None
     """
-    default_platform, supported_platforms = _default_platform(**kwargs)
+    default_platform, supported_platforms = (
+        _default_platform(**kwargs),
+        _get_supported_platforms(),
+    )
     if platform:
         platform_name = platform[0].upper()
     else:

@@ -3,11 +3,14 @@
 from functools import partial
 from typing import Dict, Union
 
-from instance._process import process_instances
-
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellProxy
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
-from pyclvm.plt import _default_platform, _unsupported_platform
+from pyclvm.instance._process import process_instances
+from pyclvm.plt import (
+    _default_platform,
+    _get_supported_platforms,
+    _unsupported_platform,
+)
 from pyclvm.ssm.session import start as start_session
 
 
@@ -33,9 +36,12 @@ def connect(instance_name: str, **kwargs: str) -> Union[Dict, None]:
         None
 
     """
-    platform, supported_platforms = _default_platform(**kwargs)
+    default_platform, supported_platforms = (
+        _default_platform(**kwargs),
+        _get_supported_platforms(),
+    )
 
-    if platform in supported_platforms:
+    if default_platform in supported_platforms:
         return {
             "AWS": partial(start_session, instance_name, **kwargs),
             "GCP": partial(
@@ -44,6 +50,6 @@ def connect(instance_name: str, **kwargs: str) -> Union[Dict, None]:
             "AZURE": partial(
                 process_instances, _connect, "VM running", (instance_name,), kwargs
             ),
-        }[platform.upper()]()
+        }[default_platform.upper()]()
     else:
-        _unsupported_platform(platform)
+        _unsupported_platform(default_platform)

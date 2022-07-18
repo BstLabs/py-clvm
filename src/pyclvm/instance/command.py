@@ -6,7 +6,11 @@ from ec2instances.ec2_instance_proxy import Ec2InstanceProxy
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellProxy
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
-from pyclvm.plt import _default_platform, _unsupported_platform
+from pyclvm.plt import (
+    _default_platform,
+    _get_supported_platforms,
+    _unsupported_platform,
+)
 
 from ._process import process_instances
 
@@ -33,9 +37,12 @@ def command(instance_name: str, script: str, **kwargs: str) -> Union[Tuple, None
     send system commands to VM
     """
     kwargs["script"] = script
-    platform, supported_platforms = _default_platform(**kwargs)
+    default_platform, supported_platforms = (
+        _default_platform(**kwargs),
+        _get_supported_platforms(),
+    )
 
-    if platform in supported_platforms:
+    if default_platform in supported_platforms:
         return {
             "AWS": partial(
                 process_instances, _execute_aws, "running", (instance_name,), kwargs
@@ -50,6 +57,6 @@ def command(instance_name: str, script: str, **kwargs: str) -> Union[Tuple, None
                 (instance_name,),
                 kwargs,
             ),
-        }[platform.upper()]()
+        }[default_platform.upper()]()
     else:
-        _unsupported_platform(platform)
+        _unsupported_platform(default_platform)

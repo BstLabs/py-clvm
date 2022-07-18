@@ -2,7 +2,7 @@ from typing import Any, Tuple, Union
 
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 
-from pyclvm._common.session import get_session
+from pyclvm._common.session_aws import get_session
 
 
 def shell(
