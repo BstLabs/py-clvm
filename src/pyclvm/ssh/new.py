@@ -1,3 +1,4 @@
+import contextlib
 import getpass
 import os
 import platform
@@ -69,19 +70,21 @@ def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
     return private_key_name, pubkey
 
 
-def _update_ssh_config(instance_name: str, private_key_name: str, profile: str) -> None:
+def _update_ssh_config(
+    instance_name: str, private_key_name: str, profile: str, platform: str
+) -> None:
     try:
-        c = read_ssh_config(_SSH_CONFIG)
+        conf = read_ssh_config(_SSH_CONFIG)
     except FileNotFoundError:
-        c = empty_ssh_config_file()
+        conf = empty_ssh_config_file()
     params = {
         "IdentityFile": private_key_name,
-        "ProxyCommand": f"clvm ssh start %h %p profile={profile}",
+        "ProxyCommand": f"clvm ssh start %h %p profile={profile} platform={platform}",
         "User": "ssm-user",
     }
-    func = c.set if c.host(instance_name) else c.add
+    func = conf.set if conf.host(instance_name) else conf.add
     func(instance_name, **params)
-    c.write(_SSH_CONFIG)
+    conf.write(_SSH_CONFIG)
 
 
 def new(instance_name: str, **kwargs: str) -> Union[Dict, None]:
@@ -102,7 +105,7 @@ def new(instance_name: str, **kwargs: str) -> Union[Dict, None]:
 
     if default_platform in supported_platforms:
         return {
-            "AWS": partial(_new_aws, instance_name, **kwargs),
+            "AWS": partial(_new_aws, instance_name, default_platform.lower(), **kwargs),
             "GCP": partial(_new_gcp, instance_name, **kwargs),
             "AZURE": partial(_new_azure, instance_name, **kwargs),
         }[default_platform.upper()]()
@@ -111,11 +114,11 @@ def new(instance_name: str, **kwargs: str) -> Union[Dict, None]:
 
 
 # ---
-def _new_aws(instance_name: str, **kwargs: str) -> None:
+def _new_aws(instance_name: str, platform_: str, **kwargs: str) -> None:
     instance = Ec2RemoteShellMapping(get_session(kwargs))[instance_name]
     profile = kwargs.get("profile", "default")
     private_key_name, pubkey = _save_keys(profile, instance_name)
-    _update_ssh_config(instance_name, private_key_name, profile)
+    _update_ssh_config(instance_name, private_key_name, profile, platform_)
     instance.execute(
         "pip3 install --upgrade authk",
         f'runuser -u ssm-user -- authk add "{pubkey}"',
@@ -169,11 +172,11 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
             "proxy_command": _stdout[ind_1:ind_2],
             "user_name": account[:32].strip("_"),
         }
-    except ValueError:
+    except ValueError as e:
         raise RuntimeError(
             "\n------------\nNo such VM name or/and account. Set the existing VM name and account.\n"
             'e.g "clvm ssh new vm-instance-name account=username@domain.com platform=gcp"\n'
-        )
+        ) from e
 
 
 # ---
@@ -185,7 +188,7 @@ def _analyze_config(instance_name: str, _platform: str) -> Tuple[int, int]:
         for line_number, line_text in enumerate(lines):
             if f"Host {instance_name}-{_platform}" == line_text.strip():
                 previous_conf_pos = line_number
-            if "Host *" == line_text.strip():
+            if line_text.strip() == "Host *":
                 wildcard_conf_pos = line_number
 
     return previous_conf_pos, wildcard_conf_pos
@@ -209,12 +212,10 @@ def _backup(file: str, perm: int) -> None:
     """
     Backs up current SSH configuration file
     """
-    try:
+    with contextlib.suppress(FileNotFoundError):
         backup_file = f"{file}.{_BACKUP_SUFFIX}"
         copyfile(file, backup_file)
         os.chmod(backup_file, perm)
-    except FileNotFoundError:
-        pass
 
 
 # ---
