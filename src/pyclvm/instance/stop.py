@@ -7,7 +7,11 @@ from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
 
 from pyclvm._common.azure_instance_mapping import AzureInstanceProxy
 from pyclvm._common.gcp_instance_mapping import GcpInstanceProxy
-from pyclvm.plt import _default_platform, _unsupported_platform
+from pyclvm.plt import (
+    _default_platform,
+    _get_supported_platforms,
+    _unsupported_platform,
+)
 
 from ._process import process_instances
 
@@ -99,16 +103,19 @@ def stop(*instance_names: str, **kwargs: str) -> Union[Dict, None]:
     Returns:
         None
     """
-    platform, supported_platforms = _default_platform(**kwargs)
+    default_platform, supported_platforms = (
+        _default_platform(**kwargs),
+        _get_supported_platforms(),
+    )
 
-    if platform in supported_platforms:
+    if default_platform in supported_platforms:
         return {
             "AWS": partial(_stop_aws, *instance_names, **kwargs),
             "GCP": partial(_stop_gcp, *instance_names, **kwargs),
             "AZURE": partial(_stop_azure, *instance_names, **kwargs),
-        }[platform.upper()]()
+        }[default_platform.upper()]()
     else:
-        _unsupported_platform(platform)
+        _unsupported_platform(default_platform)
 
 
 # ---

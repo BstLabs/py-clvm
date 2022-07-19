@@ -8,7 +8,11 @@ from rich.table import Table
 
 from pyclvm._common.azure_instance_mapping import AzureComputeAllInstancesData
 from pyclvm._common.gcp_instance_mapping import GcpComputeAllInstancesData
-from pyclvm.plt import _default_platform, _unsupported_platform
+from pyclvm.plt import (
+    _default_platform,
+    _get_supported_platforms,
+    _unsupported_platform,
+)
 
 _COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
 
@@ -60,15 +64,18 @@ def ls(**kwargs: str) -> Union[Dict, None]:
         None
 
     """
-    platform, supported_platforms = _default_platform(**kwargs)
-    if platform in supported_platforms:
+    default_platform, supported_platforms = (
+        _default_platform(**kwargs),
+        _get_supported_platforms(),
+    )
+    if default_platform in supported_platforms:
         return {
             "AWS": partial(_ls_aws, **kwargs),
             "GCP": partial(_ls_gcp, **kwargs),
             "AZURE": partial(_ls_azure, **kwargs),
-        }[platform.upper()]()
+        }[default_platform.upper()]()
     else:
-        _unsupported_platform(platform)
+        _unsupported_platform(default_platform)
 
 
 def _ls_aws(**kwargs: str) -> None:
