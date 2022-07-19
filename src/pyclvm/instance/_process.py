@@ -6,8 +6,12 @@ from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
-from pyclvm._common.session import Session, get_session
-from pyclvm.plt import _default_platform, _unsupported_platform
+from pyclvm._common.session_aws import Session, get_session
+from pyclvm.plt import (
+    _default_platform,
+    _get_supported_platforms,
+    _unsupported_platform,
+)
 
 
 def _process_aws(**kwargs: str) -> Ec2RemoteShellMapping:
@@ -23,14 +27,17 @@ def _process_azure(**kwargs: str):
 
 
 def _return_instances(**kwargs) -> Union[Dict, None]:
-    platform, supported_platforms = _default_platform(**kwargs)
-    if platform in supported_platforms:
+    default_platform, supported_platforms = (
+        _default_platform(**kwargs),
+        _get_supported_platforms(),
+    )
+    if default_platform in supported_platforms:
         return {
             "AWS": partial(_process_aws, **kwargs),
             "GCP": partial(_process_gcp, **kwargs),
             "AZURE": partial(_process_azure, **kwargs),
-        }[platform.upper()]()
-    _unsupported_platform(platform)
+        }[default_platform.upper()]()
+    _unsupported_platform(default_platform)
     return None
 
 

@@ -2,7 +2,11 @@ from functools import partial
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
 from pyclvm._common.azure_instance_proxy import AzureRemoteConnector, AzureRemoteSocket
-from pyclvm.plt import _default_platform, _unsupported_platform
+from pyclvm.plt import (
+    _default_platform,
+    _get_supported_platforms,
+    _unsupported_platform,
+)
 from pyclvm.ssm.session.start import start as start_session
 
 
@@ -18,16 +22,19 @@ def start(instance_name: str, port: int, **kwargs: str) -> None:
     Returns:
         None
     """
-    platform, supported_platforms = _default_platform(**kwargs)
+    default_platform, supported_platforms = (
+        _default_platform(**kwargs),
+        _get_supported_platforms(),
+    )
 
-    if platform in supported_platforms:
+    if default_platform in supported_platforms:
         return {
             "AWS": partial(_start_aws, instance_name, port, **kwargs),
             "GCP": partial(_start_gcp, instance_name, port, **kwargs),
             "AZURE": partial(_start_azure, instance_name, port, **kwargs),
-        }[platform.upper()]()
+        }[default_platform.upper()]()
     else:
-        _unsupported_platform(platform)
+        _unsupported_platform(default_platform)
 
 
 def _start_aws(instance_name: str, port: int, **kwargs: str) -> None:

@@ -21,8 +21,12 @@ from pyclvm._common.gcp_instance_mapping import (
     GcpRemoteShellMapping,
     GcpRemoteShellProxy,
 )
-from pyclvm._common.session import get_session
-from pyclvm.plt import _default_platform, _unsupported_platform
+from pyclvm._common.session_aws import get_session
+from pyclvm.plt import (
+    _default_platform,
+    _get_supported_platforms,
+    _unsupported_platform,
+)
 
 _SSH_DIR: Final[str] = expanduser(join("~", ".ssh"))
 _SSH_CONFIG: Final[str] = join(_SSH_DIR, "config")
@@ -94,16 +98,19 @@ def new(instance_name: str, **kwargs: str) -> Union[Dict, None]:
     Returns:
         None
     """
-    platform_, supported_platforms = _default_platform(**kwargs)
+    default_platform, supported_platforms = (
+        _default_platform(**kwargs),
+        _get_supported_platforms(),
+    )
 
-    if platform_ in supported_platforms:
+    if default_platform in supported_platforms:
         return {
-            "AWS": partial(_new_aws, instance_name, platform_.lower(), **kwargs),
+            "AWS": partial(_new_aws, instance_name, default_platform.lower(), **kwargs),
             "GCP": partial(_new_gcp, instance_name, **kwargs),
             "AZURE": partial(_new_azure, instance_name, **kwargs),
-        }[platform_.upper()]()
-
-    _unsupported_platform(platform_)
+        }[default_platform.upper()]()
+    else:
+        _unsupported_platform(default_platform)
 
 
 # ---

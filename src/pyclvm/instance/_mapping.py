@@ -3,7 +3,7 @@ from typing import Dict, Final, Generator, List, Optional, Tuple, Type
 
 from boto3.session import Session
 
-from pyclvm._common.session import get_session
+from pyclvm._common.session_aws import get_session
 
 _FILTERS: Final[Dict[str, str]] = {"states": "instance-state-name", "names": "tag:Name"}
 
