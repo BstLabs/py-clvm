@@ -1,4 +1,4 @@
-# CLVM
+# <b>CLVM</b>
 
 A Cloud VM command line tool for powerful and efficient management of cloud instances
 
@@ -6,7 +6,7 @@ This tool addresses the inefficient hassle of having to use your mouse to click 
 
 To improve the development experience, we have replicated various solutions for handling different steps of using cloud virtual machines and combined them with VSCode Remote to deliver maximum convenience for fellow developers and engineers.
 
-CLVM currently works with cloud instances on AWS, Azure and GCP. It is built on top of [DynaCLI](https://github.com/BstLabs/py-dynacli), another excellent open-source tool from [BST Labs](https://github.com/BstLabs/). For more detail on using CLVM, see the blog post [Simply Cloud Instance Management from your Command Line](https://github.com/BstLabs/medium-articles/blob/main/use_cloud_vm_from_cli/ARTICLE.md).
+CLVM currently works with cloud instances on AWS, Azure and GCP. It is built on top of [DynaCLI](https://github.com/BstLabs/py-dynacli), another excellent open-source tool from [BST Labs](https://github.com/BstLabs/). For more detail on using CLVM, see the blog post [Simplify Cloud Instance Management from your Command Line](https://medium.com/@orkhanshirin/simplify-cloud-instance-management-from-your-command-line-4b44a5b3949e).
 
 ## Capabilities of CLVM
 
@@ -20,6 +20,17 @@ CLVM currently works with cloud instances on AWS, Azure and GCP. It is built on 
 ## Installation
 
 `$ pip3 install pyclvm`
+
+## Quick start
+
+*Each cloud platform can require different authorization procedures. For detailed authorization information please check the respective provider's documentation.*
+
+```console
+$ clvm ssh new <vm_instance_name> platform=<aws, gcp or azure>
+```
+```console
+$ clvm vscode start <vm_instance_name>
+```
 
 ## How to install for local development
 
