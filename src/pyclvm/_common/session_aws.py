@@ -83,7 +83,8 @@ def _give_up(e):
     on_backoff=_invalid_mfa_code_provided,
 )
 def _get_profile_credentials(profile: str, config: jdict) -> Credentials:
-    token_code = input("Enter MFA Code: ")
+
+    token_code = getpass.getpass("Enter MFA Code: ")
 
     credentials = (
         Session(
