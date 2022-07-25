@@ -1,3 +1,4 @@
+import os
 import subprocess
 from typing import Any, List
 
@@ -56,6 +57,7 @@ def _run_subprocess(instance_name: str, path: str, _platform: str) -> None:
     cmd = _get_vscode_cmd(instance_name, path, _platform)
     process = subprocess.Popen(args=cmd)
     process.communicate()
+    os.environ["VSCODE_AWS_PROMPT"] = "True"
 
 
 def _get_path(**kwargs: str) -> str:
