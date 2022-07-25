@@ -4,7 +4,8 @@ change default platform (AWS, GCP, AZURE)
 
 
 import json
-from os import makedirs, path
+from functools import wraps
+from os import environ, getenv, makedirs, path
 from pathlib import Path
 from typing import Any, Set, Union
 
@@ -31,6 +32,18 @@ def _create_cache() -> None:
     print("Cache file created!")
 
 
+def check_cache_for_platform(func):
+    # This is for preventing muliple cache file hit
+    @wraps(func)
+    def decorator(platform):
+        if platform.upper() == getenv("CLVM_DEFAULT_PLATFORM"):
+            return
+        return func(platform)
+
+    return decorator
+
+
+@check_cache_for_platform
 def _set_default_platform(platform: str) -> None:
     """sets the default platform"""
     if platform in _get_supported_platforms():
@@ -40,6 +53,7 @@ def _set_default_platform(platform: str) -> None:
             cache.seek(0)
             json.dump(data, cache, indent=4)
             cache.truncate()
+            environ["CLVM_DEFAULT_PLATFORM"] = platform.upper()
         print(f"Default platform is {platform.upper()}")
     else:
         _unsupported_platform(platform)
