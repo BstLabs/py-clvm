@@ -1,17 +1,19 @@
 """start/stop port redirection session"""
 
-from typing import Tuple
+from typing import Dict, Tuple
 
 
-def _get_port_mapping(**kwargs: str) -> Tuple[int, int]:
-    if "port" in kwargs.keys():
-        return int(kwargs["port"]), 8080
-    elif "local_port" in kwargs.keys():
-        return 8080, int(kwargs["local_port"])
-    elif "port" and "local_port" in kwargs.keys():
-        return int(kwargs["port"]), int(kwargs["local_port"])
-    else:
-        return 8080, 8080
+def _get_port_mapping(kwargs: Dict) -> Tuple:
+    if kwargs:
+        try:
+            port = kwargs.get("port", 8080)
+            local_port = kwargs.get("local_port", 8080)
+            return (int(port), int(local_port))
+        except ValueError as err:
+            raise Exception(
+                "[INFO] Only integer type supported for port numbers!"
+            ) from err
+    return 8080, 8080
 
 
 def _make_file_name(
