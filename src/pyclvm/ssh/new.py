@@ -2,6 +2,7 @@ import contextlib
 import getpass
 import os
 import platform
+import sys
 from functools import partial
 from os.path import exists, expanduser, join
 from shutil import copyfile, copymode, move
@@ -73,13 +74,14 @@ def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
 def _update_ssh_config(
     instance_name: str, private_key_name: str, profile: str, platform: str
 ) -> None:
+    _main = sys.modules["__main__"].__file__
     try:
         conf = read_ssh_config(_SSH_CONFIG)
     except FileNotFoundError:
         conf = empty_ssh_config_file()
     params = {
         "IdentityFile": private_key_name,
-        "ProxyCommand": f"clvm ssh start %h %p profile={profile} platform={platform}",
+        "ProxyCommand": f"{str(_main)} ssh start %h %p profile={profile} platform={platform}",
         "User": "ssm-user",
     }
     func = conf.set if conf.host(instance_name) else conf.add
@@ -170,13 +172,13 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
         return {
             "identity_file": _GOOGLE_SSH_PRIV_KEY,
             "proxy_command": _stdout[ind_1:ind_2],
-            "user_name": account[:32].strip("_"),
+            "user_name": account[:33].strip("_"),
         }
-    except ValueError as e:
+    except ValueError as err:
         raise RuntimeError(
             "\n------------\nNo such VM name or/and account. Set the existing VM name and account.\n"
             'e.g "clvm ssh new vm-instance-name account=username@domain.com platform=gcp"\n'
-        ) from e
+        ) from err
 
 
 # ---
@@ -198,6 +200,7 @@ def _analyze_config(instance_name: str, _platform: str) -> Tuple[int, int]:
 def _config_lines(instance_name: str, proxy_data: Dict, _platform: str) -> List:
     lines = [
         f"Host {instance_name}-{_platform}\n",
+        f"  HostName {instance_name}\n",
         f"  IdentityFile {proxy_data['identity_file']}\n",
         f"  ProxyCommand {proxy_data['proxy_command']}\n",
         f"  User {proxy_data['user_name']}\n",
