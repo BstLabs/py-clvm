@@ -1,4 +1,5 @@
 import getpass
+import os
 import platform
 import sys
 from datetime import datetime
@@ -83,7 +84,11 @@ def _give_up(e):
     on_backoff=_invalid_mfa_code_provided,
 )
 def _get_profile_credentials(profile: str, config: jdict) -> Credentials:
-    token_code = input("Enter MFA Code: ")
+    # That means the clvm vscode start was called no need to ask twice for token
+    if os.getenv("VSCODE_AWS_PROMPT"):
+        sys.exit(0)
+
+    token_code = getpass.getpass("Enter MFA Code: ")
 
     credentials = (
         Session(
