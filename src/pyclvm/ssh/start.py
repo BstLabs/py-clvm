@@ -1,4 +1,5 @@
 from functools import partial
+from time import sleep
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
 from pyclvm._common.azure_instance_proxy import AzureRemoteConnector, AzureRemoteSocket
@@ -55,6 +56,14 @@ def _start_gcp(instance_name: str, port: int, **kwargs: str) -> None:
 
 def _start_azure(instance_name: str, port: int, **kwargs: str) -> None:
     instance = AzureRemoteShellMapping().get(instance_name)
+    pre_state = instance.state
+
+    print(f"Starting {instance_name} ...")
+    instance.start()
+    if pre_state != "VM running":
+        sleep(15)
+    print(f"{instance_name} is running")
+
     connector = AzureRemoteConnector(instance, port)
     socket = AzureRemoteSocket(instance, connector, port)
     connector.start()

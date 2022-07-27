@@ -15,10 +15,10 @@ from .session_azure import AzureSession
 
 class AzureInstanceProxy:
     def __init__(
-            self,
-            instance_name: str,
-            session: AzureSession,
-            **kwargs: str,
+        self,
+        instance_name: str,
+        session: AzureSession,
+        **kwargs: str,
     ) -> None:
         self._session = session
         self._instance_name = instance_name
@@ -163,12 +163,12 @@ class AzureRemoteExecutor(Thread):
     """
 
     def __init__(
-            self,
-            instance: AzureRemoteShellProxy,
-            connector: AzureRemoteConnector,
-            port: int,
-            *commands: Union[str, Iterable],
-            **kwargs,
+        self,
+        instance: AzureRemoteShellProxy,
+        connector: AzureRemoteConnector,
+        port: int,
+        *commands: Union[str, Iterable],
+        **kwargs,
     ):
         super().__init__()
         self._instance = instance
@@ -216,11 +216,11 @@ class AzureRemoteSocket(Thread):
     """
 
     def __init__(
-            self,
-            instance: AzureRemoteShellProxy,
-            connector: AzureRemoteConnector,
-            port: int,
-            **kwargs,
+        self,
+        instance: AzureRemoteShellProxy,
+        connector: AzureRemoteConnector,
+        port: int,
+        **kwargs,
     ):
         super().__init__()
         self._instance = instance
