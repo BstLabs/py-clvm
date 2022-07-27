@@ -15,10 +15,10 @@ from .session_azure import AzureSession
 
 class AzureInstanceProxy:
     def __init__(
-        self,
-        instance_name: str,
-        session: AzureSession,
-        **kwargs: str,
+            self,
+            instance_name: str,
+            session: AzureSession,
+            **kwargs: str,
     ) -> None:
         self._session = session
         self._instance_name = instance_name
@@ -26,31 +26,48 @@ class AzureInstanceProxy:
         self._instance = self._session.instances[instance_name]
 
     # ---
-    def start(self) -> Union[Any, None]:
+    def _wait_for_extended_operation(self, state: str, timeout: int = 300) -> None:
+        while timeout:
+            if self.state == state:
+                break
+            sleep(1)
+            timeout -= 1
+
+    # ---
+    def start(self, wait: bool = True) -> Union[Any, None]:
         """
         Starts the vm
         """
-        return self._client.virtual_machines.begin_start(
+        vm_operation = self._client.virtual_machines.begin_start(
             self._instance["resource_group"].lower(), self._instance["instance_name"]
         )
+        if wait:
+            self._wait_for_extended_operation("VM running")
+        return vm_operation
 
     # ---
-    def stop(self) -> Union[Any, None]:
+    def stop(self, wait: bool = True) -> Union[Any, None]:
         """
         Stops the vm
         """
-        return self._client.virtual_machines.begin_deallocate(
+        vm_operation = self._client.virtual_machines.begin_deallocate(
             self._instance["resource_group"].lower(), self._instance["instance_name"]
         )
+        if wait:
+            self._wait_for_extended_operation("VM deallocated")
+        return vm_operation
 
     @property
-    def state(self) -> str:
+    def state(self) -> Union[str, None]:
         instance_details = self._client.virtual_machines.get(
             self._instance["resource_group"].lower(),
             self._instance["instance_name"],
             expand="instanceView",
         )
-        return instance_details.instance_view.statuses[1].display_status
+        try:
+            return instance_details.instance_view.statuses[1].display_status
+        except IndexError:
+            pass
 
     @property
     def id(self) -> str:
@@ -146,12 +163,12 @@ class AzureRemoteExecutor(Thread):
     """
 
     def __init__(
-        self,
-        instance: AzureRemoteShellProxy,
-        connector: AzureRemoteConnector,
-        port: int,
-        *commands: Union[str, Iterable],
-        **kwargs,
+            self,
+            instance: AzureRemoteShellProxy,
+            connector: AzureRemoteConnector,
+            port: int,
+            *commands: Union[str, Iterable],
+            **kwargs,
     ):
         super().__init__()
         self._instance = instance
@@ -199,11 +216,11 @@ class AzureRemoteSocket(Thread):
     """
 
     def __init__(
-        self,
-        instance: AzureRemoteShellProxy,
-        connector: AzureRemoteConnector,
-        port: int,
-        **kwargs,
+            self,
+            instance: AzureRemoteShellProxy,
+            connector: AzureRemoteConnector,
+            port: int,
+            **kwargs,
     ):
         super().__init__()
         self._instance = instance
