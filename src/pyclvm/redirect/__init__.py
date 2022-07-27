@@ -3,7 +3,7 @@
 from typing import Dict, Tuple
 
 
-def _get_port_mapping(**kwargs: str) -> Tuple:
+def _get_port_mapping(**kwargs: str) -> Tuple[int, int]:
     if kwargs:
         try:
             return (8080, int(kwargs.get("port", 8080)))

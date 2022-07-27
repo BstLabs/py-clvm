@@ -5,7 +5,7 @@ start port(s) redirection to a Virtual Machine
 import json
 import socket
 from time import sleep
-from typing import Any
+from typing import Optional
 
 import psutil
 from ec2instances.common.user_data import store
@@ -25,7 +25,7 @@ def _wait_for_port(port: int) -> None:
         sleep(10)
 
 
-def _get_session_id(pid: int) -> Any:
+def _get_session_id(pid: int) -> Optional[str]:
     parent = psutil.Process(pid)
     for child in parent.children(recursive=True):
         cmd, args, *_ = child.cmdline()
