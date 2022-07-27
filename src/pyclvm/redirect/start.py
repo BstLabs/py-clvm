@@ -61,5 +61,7 @@ def start(instance_name: str, **kwargs: str) -> int:
         "aws", kwargs.get("profile", "default"), instance_name, local_port
     )
     store(file_name, jdict(pid=pid, session_id=session_id))
-    print(f"Click here to redirect to browser: http://localhost:{local_port}/")
+    print(
+        f"[<!>] Click the link to redirect to browser: http://localhost:{local_port}/"
+    )
     return local_port
