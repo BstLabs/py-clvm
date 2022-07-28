@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*- #
 
+import contextlib
 import os
 import signal
 import socket
@@ -8,7 +9,7 @@ import sys
 from select import select
 from threading import Thread, ThreadError
 from time import sleep
-from typing import Any, Iterable, Union
+from typing import Any, Iterable, Optional, Union
 
 from .session_azure import AzureSession
 
@@ -26,31 +27,46 @@ class AzureInstanceProxy:
         self._instance = self._session.instances[instance_name]
 
     # ---
-    def start(self) -> Union[Any, None]:
+    def _wait_for_extended_operation(self, state: str, timeout: int = 300) -> None:
+        while timeout:
+            if self.state == state:
+                break
+            sleep(1)
+            timeout -= 1
+
+    # ---
+    def start(self, wait: bool = True) -> Any:
         """
         Starts the vm
         """
-        return self._client.virtual_machines.begin_start(
+        vm_operation = self._client.virtual_machines.begin_start(
             self._instance["resource_group"].lower(), self._instance["instance_name"]
         )
+        if wait:
+            self._wait_for_extended_operation("VM running")
+        return vm_operation
 
     # ---
-    def stop(self) -> Union[Any, None]:
+    def stop(self, wait: bool = True) -> Any:
         """
         Stops the vm
         """
-        return self._client.virtual_machines.begin_deallocate(
+        vm_operation = self._client.virtual_machines.begin_deallocate(
             self._instance["resource_group"].lower(), self._instance["instance_name"]
         )
+        if wait:
+            self._wait_for_extended_operation("VM deallocated")
+        return vm_operation
 
     @property
-    def state(self) -> str:
+    def state(self) -> Optional[str]:
         instance_details = self._client.virtual_machines.get(
             self._instance["resource_group"].lower(),
             self._instance["instance_name"],
             expand="instanceView",
         )
-        return instance_details.instance_view.statuses[1].display_status
+        with contextlib.suppress(IndexError):
+            return instance_details.instance_view.statuses[1].display_status
 
     @property
     def id(self) -> str:
@@ -97,7 +113,7 @@ class AzureRemoteConnector(Thread):
     Azure remote connector class
     """
 
-    def __init__(self, instance: AzureRemoteShellProxy, port: int):
+    def __init__(self, instance: AzureRemoteShellProxy, port: int) -> None:
         super().__init__()
         self._instance = instance
         self._proc = None
@@ -112,7 +128,7 @@ class AzureRemoteConnector(Thread):
         instance_name = self._instance.name
         self._proc = subprocess
 
-        try:
+        with contextlib.suppress(ThreadError, RuntimeError):
             cmd = [
                 "az",
                 "network",
@@ -132,8 +148,6 @@ class AzureRemoteConnector(Thread):
             ]
             self._proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL)
             raise ThreadError
-        except (ThreadError, RuntimeError):
-            pass
 
     def stop(self):
         os.killpg(os.getpgid(self._proc.pid), signal.SIGTERM)
@@ -151,7 +165,7 @@ class AzureRemoteExecutor(Thread):
         connector: AzureRemoteConnector,
         port: int,
         *commands: Union[str, Iterable],
-        **kwargs,
+        **kwargs: str,
     ):
         super().__init__()
         self._instance = instance
@@ -171,7 +185,7 @@ class AzureRemoteExecutor(Thread):
     def run(self):
         sleep(5)
         command = " ".join(*self._commands) if len(self._commands) > 0 else ""
-        try:
+        with contextlib.suppress(ThreadError, RuntimeError):
             cmd = [
                 "ssh",
                 "-p",
@@ -188,8 +202,6 @@ class AzureRemoteExecutor(Thread):
                 cmd.append(command)
             subprocess.run(cmd)
             self._connector.stop()
-        except (ThreadError, RuntimeError):
-            pass
 
 
 # ---
@@ -236,9 +248,9 @@ class TcpProxy:
             target.connect(self._dst)
             self._input_list.append(target)
             return target
-        except ConnectionRefusedError as e:
-            print(e)
-            raise KeyboardInterrupt()
+        except ConnectionRefusedError as err:
+            print(err)
+            raise KeyboardInterrupt() from err
             # sys.exit(-1)
 
     def _setup_proxy(self):
@@ -271,9 +283,9 @@ class TcpProxy:
     def _send(self, data):
         try:
             self._target.send(data)
-        except OSError as e:
-            print(e)
-            raise KeyboardInterrupt()
+        except OSError as err:
+            print(err)
+            raise KeyboardInterrupt() from err
             # sys.exit(-1)
 
     def _receive(self, data):

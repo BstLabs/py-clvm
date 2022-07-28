@@ -70,8 +70,7 @@ def _is_stopped_or_terminated(
     instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
 ) -> None:
     print(f"Starting {instance_name} ...")
-    instance.start()
-    print(f"{instance_name} is running")
+    instance.start(wait=False)
 
 
 def _in_transition(
