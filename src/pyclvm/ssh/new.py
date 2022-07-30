@@ -1,7 +1,5 @@
 import contextlib
-import getpass
 import os
-import platform
 import sys
 from functools import partial
 from os.path import exists, expanduser, join
@@ -9,9 +7,11 @@ from shutil import copyfile, copymode, move
 from tempfile import mkstemp
 from typing import Dict, Final, List, Tuple, Union
 
-from Crypto.PublicKey import RSA
-from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping, Ec2RemoteShellProxy
+from cryptography.hazmat.backends import default_backend as crypto_default_backend
+from cryptography.hazmat.primitives import serialization as crypto_serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 
+from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping, Ec2RemoteShellProxy
 from pyclvm._common.azure_instance_mapping import (
     AzureRemoteShellMapping,
     AzureRemoteShellProxy,
@@ -105,7 +105,9 @@ def _aws_config_lines(instance: Ec2RemoteShellProxy, **kwargs: str):
 
 # ---
 def _gcp_config_lines(instance: GcpRemoteShellProxy, **kwargs: str):
-    return _config_lines(instance.name, _get_gcp_proxy_data(instance=instance, **kwargs))
+    return _config_lines(
+        instance.name, _get_gcp_proxy_data(instance=instance, **kwargs)
+    )
 
 
 # ---
@@ -132,14 +134,22 @@ def _azure_config_lines(instance: AzureRemoteShellProxy, **kwargs: str) -> List:
 
 # ---------------------------------
 # --- Generate new SSH key pair ---
-def _format_public_key(pubkey) -> str:
-    return f'{pubkey.exportKey(r"OpenSSH").decode("utf-8")} {getpass.getuser()}@{platform.node()}'
-
-
 def _generate_keys() -> Tuple[str, str]:
-    key = RSA.generate(1024)
-    pubkey = key.publickey()
-    return key.exportKey("PEM").decode("utf-8"), _format_public_key(pubkey)
+    key = rsa.generate_private_key(
+        backend=crypto_default_backend(), public_exponent=65537, key_size=2048
+    )
+
+    private_key = key.private_bytes(
+        crypto_serialization.Encoding.PEM,
+        crypto_serialization.PrivateFormat.PKCS8,
+        crypto_serialization.NoEncryption(),
+    )
+
+    public_key = key.public_key().public_bytes(
+        crypto_serialization.Encoding.OpenSSH, crypto_serialization.PublicFormat.OpenSSH
+    )
+
+    return private_key.decode("utf-8"), public_key.decode("utf-8")
 
 
 def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
@@ -161,6 +171,8 @@ def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
         f.write(pubkey)
 
     return private_key_name, pubkey
+
+
 # --- End of Generate new SSH key pair ---
 # ----------------------------------------
 
@@ -301,6 +313,8 @@ def _create_config_block(
             os.open(_SSH_CONFIG, os.O_CREAT | os.O_WRONLY, 0o600), "w", encoding="utf8"
         ) as config_file:
             [config_file.write(line) for line in config_lines]
+
+
 # --- End of Analysis and writing config file ---
 # -----------------------------------------------
 
@@ -336,14 +350,17 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
         return {
             "identity_file": _GOOGLE_SSH_PRIV_KEY,
             "proxy_command": _stdout[ind_1:ind_2],
-            "user_name": account[:32].strip("_"),  # Google OSLogin account name length is <= 32 without
-                                                   # underline sign at the end
+            "user_name": account[:32].strip(
+                "_"
+            ),  # Google OSLogin account name length is <= 32 without
+            # underline sign at the end
         }
     except ValueError as err:
         raise RuntimeError(
             "\n------------\nNo such VM name or/and account. Set the existing VM name and account.\n"
             'e.g "clvm ssh new vm-instance-name account=username@domain.com platform=gcp"\n'
         ) from err
+
+
 # --- End of Special for Google SDK extract proxy data ---
 # --------------------------------------------------------
-
