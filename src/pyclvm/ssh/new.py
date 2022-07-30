@@ -1,8 +1,8 @@
 import contextlib
-import os
-import sys
 import getpass
+import os
 import platform
+import sys
 from functools import partial
 from os.path import exists, expanduser, join
 from shutil import copyfile, copymode, move
@@ -12,8 +12,8 @@ from typing import Dict, Final, List, Tuple, Union
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping, Ec2RemoteShellProxy
+
 from pyclvm._common.azure_instance_mapping import (
     AzureRemoteShellMapping,
     AzureRemoteShellProxy,
@@ -137,7 +137,7 @@ def _azure_config_lines(instance: AzureRemoteShellProxy, **kwargs: str) -> List:
 # ---------------------------------
 # --- Generate new SSH key pair ---
 def _format_public_key(pubkey) -> str:
-    return f'{pubkey.exportKey(r"OpenSSH").decode("utf-8")} {getpass.getuser()}@{platform.node()}'
+    return f'{pubkey.decode("utf-8")} {getpass.getuser()}@{platform.node()}'
 
 
 def _generate_keys() -> Tuple[str, str]:
