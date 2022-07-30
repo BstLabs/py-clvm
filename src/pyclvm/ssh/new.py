@@ -136,6 +136,10 @@ def _azure_config_lines(instance: AzureRemoteShellProxy, **kwargs: str) -> List:
 
 # ---------------------------------
 # --- Generate new SSH key pair ---
+def _format_public_key(pubkey) -> str:
+    return f'{pubkey.decode("utf-8")} {getpass.getuser()}@{platform.node()}'
+
+
 def _generate_keys() -> Tuple[str, str]:
     key = rsa.generate_private_key(
         backend=crypto_default_backend(), public_exponent=65537, key_size=2048
