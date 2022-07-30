@@ -1,5 +1,7 @@
 import contextlib
+import getpass
 import os
+import platform
 import sys
 from functools import partial
 from os.path import exists, expanduser, join
@@ -10,8 +12,8 @@ from typing import Dict, Final, List, Tuple, Union
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping, Ec2RemoteShellProxy
+
 from pyclvm._common.azure_instance_mapping import (
     AzureRemoteShellMapping,
     AzureRemoteShellProxy,
@@ -148,8 +150,7 @@ def _generate_keys() -> Tuple[str, str]:
     public_key = key.public_key().public_bytes(
         crypto_serialization.Encoding.OpenSSH, crypto_serialization.PublicFormat.OpenSSH
     )
-
-    return private_key.decode("utf-8"), public_key.decode("utf-8")
+    return private_key.decode("utf-8"), _format_public_key(public_key)
 
 
 def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
