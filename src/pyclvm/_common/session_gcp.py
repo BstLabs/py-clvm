@@ -20,6 +20,7 @@ class GcpSession:
         scopes = ["https://www.googleapis.com/auth/cloud-platform"]
         self._profile = self._zone = kwargs.get("profile", None)  # TODO handle profiles
         self._credentials, _ = default(scopes=scopes)
+
         self._authed_session = AuthorizedSession(self._credentials)
 
         self.project_id = self._authed_session.credentials.project_id
