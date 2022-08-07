@@ -2,6 +2,7 @@
 
 from functools import partial
 from typing import Dict, Union
+from time import sleep
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellProxy
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
@@ -20,6 +21,14 @@ def _connect(
     instance: Union[GcpRemoteShellProxy, AzureRemoteShellProxy],
     **kwargs,
 ) -> None:
+    pre_state = True if "running".upper() in instance.state.upper() else False
+
+    print(f"Starting {instance_name} ...")
+    instance.start()
+    if not pre_state:
+        sleep(15)
+    print(f"{instance_name} is running")
+
     print(f"Connecting to {instance_name} ...")
     instance.execute((), **kwargs)
 
