@@ -119,11 +119,12 @@ def _azure_config_lines(instance: AzureRemoteShellProxy, **kwargs: str) -> List:
     account = kwargs.get("account")
     key = kwargs.get("key")
     if not account or not key:
-        raise RuntimeError(
+        print(
             "\n------------\nSpecify account=account_name or/and key=/path/to/ssh/key/file\n"
             'e.g "clvm ssh new vm-instance-name account=username '
             'key=/path/to/ssh/key/file platform=azure"\n'
         )
+        sys.exit(-1)
 
     port = next_free_port(port=22060, max_port=22960)
     proxy_data = {
@@ -336,13 +337,13 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
     Returns:
         (jdict) Retrieved data
     """
-
+    profile = kwargs.get("profile", "default")
     kwargs["dry_run"] = "yes"
     kwargs["capture_output"] = True
     _stdout = instance.execute((), **kwargs).stdout.decode("utf8")
     try:
-        ind_1 = _stdout.index("ProxyCommand") + 13
-        ind_2 = _stdout.index('" -o ProxyUseFdpass=no')
+        _stdout.index("ProxyCommand") + 13
+        # ind_2 = _stdout.index('" -o ProxyUseFdpass=no')
 
         account = kwargs.get("account")
         if not account:
@@ -354,17 +355,19 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
 
         return {
             "identity_file": _GOOGLE_SSH_PRIV_KEY,
-            "proxy_command": _stdout[ind_1:ind_2],
+            # "proxy_command": _stdout[ind_1:ind_2],
+            "proxy_command": f"{str(_MAIN)} ssh start {instance.name} %p profile={profile} platform={_PLATFORM}",
             "user_name": account[:32].strip(
                 "_"
             ),  # Google OSLogin account name length is <= 32 without
             # underline sign at the end
         }
-    except ValueError as err:
-        raise RuntimeError(
-            "\n------------\nNo such VM name or/and account. Set the existing VM name and account.\n"
+    except ValueError:
+        print(
+            "\n------------\nNo such VM name or/and account. Set the existing VM name or/and account.\n"
             'e.g "clvm ssh new vm-instance-name account=username@domain.com platform=gcp"\n'
-        ) from err
+        )
+        sys.exit(-1)
 
 
 # --- End of Special for Google SDK extract proxy data ---
