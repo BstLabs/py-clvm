@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Iterable, Union
 
 from google.auth.credentials import Credentials
-from google.auth.exceptions import DefaultCredentialsError
+from google.auth.exceptions import DefaultCredentialsError, RefreshError
 from google.auth.transport.requests import AuthorizedSession
 from google.cloud.compute_v1 import AggregatedListInstancesRequest, InstancesClient
 from google.oauth2 import credentials, service_account
@@ -77,7 +77,10 @@ class GcpSession:
         self._zone = kwargs.get(
             "zone", os.getenv("CLOUDSDK_COMPUTE_ZONE", "europe-west2-b")
         )
-        self._instances = self._get_instances()
+        try:
+            self._instances = self._get_instances()
+        except RefreshError:
+            self._print_exception_text_and_exit()
 
     # ---
     @staticmethod
@@ -87,7 +90,7 @@ class GcpSession:
             "If service account credentials json file is available, set the environment variable\n"
             "\texport GOOGLE_APPLICATION_CREDENTIALS=/path/to/the/credentials/file\n\n",
             "To reauthenticate existent account to Google Cloud Platform\n",
-            "\tgcloud auth login\n\n",
+            "\tgcloud auth login --update-adc\n\n",
             "To authenticate a new account to Google Cloud Platform:\n",
             "\tgcloud auth login\n",
             "\tgcloud auth application-default login\n",
