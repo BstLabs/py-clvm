@@ -60,14 +60,12 @@ class GcpSession:
             self.account_email = self._authed_session.credentials.service_account_email
         except AttributeError:
             try:
-
+                # TODO make profile support
                 config_default = ConfigParser()
                 config_default.read(
                     os.path.normpath(f"{GCP_CONFIG_PATH}/configurations/config_default")
                 )
-                default_profile = config_default.sections()[
-                    0
-                ]  # TODO make profile support
+                default_profile = config_default.sections()[0]
                 self.project_id = config_default.get(default_profile, "project")
                 self.account_email = config_default.get(default_profile, "account")
             except NoOptionError:
