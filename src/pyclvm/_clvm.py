@@ -17,7 +17,7 @@ search_path = [cwd]
 sys.path.extend(search_path)
 
 _map = {
-    "__version__": "1.1.3",
+    "__version__": "1.1.4",
     "__doc__": """
 Command Line Utility to connect or redirect ports to a Cloud Virtual Machine""",
 }
