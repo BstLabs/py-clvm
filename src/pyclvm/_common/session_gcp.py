@@ -13,9 +13,11 @@ from google.cloud.compute_v1 import AggregatedListInstancesRequest, InstancesCli
 from google.oauth2 import credentials, service_account
 from singleton_decorator import singleton
 import subprocess
+from pyclvm.plt import _get_os
 
 from pyclvm.login import _get_config_path, _login_gcp
 
+_OS = _get_os()
 
 @singleton
 class GcpSession:
@@ -139,7 +141,7 @@ def get_session(**kwargs) -> GcpSession:
         return GcpSession(**kwargs)
     except RefreshError:
         subprocess.run([
-            "gcloud.cmd",
+            "gcloud.cmd" if _OS == "Windows" else "gcloud",
             "auth",
             "login",
             "--update-adc",
