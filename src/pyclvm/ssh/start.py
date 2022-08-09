@@ -15,6 +15,10 @@ from pyclvm.plt import (
 )
 from pyclvm.ssm.session.start import start as start_session
 
+from pyclvm.plt import _get_os
+
+_OS = _get_os()
+
 
 def start(instance_name: str, port: int, **kwargs: str) -> None:
     """
@@ -66,41 +70,41 @@ def _start_gcp(instance_name: str, port: int, **kwargs: str) -> None:
         sleep(15)
     print(f"{instance_name} is running")
 
-    sdk_name = "google-cloud-sdk"
-    cli_name = "google-cloud-cli"
-    current_dir = str(Path(os.path.dirname(os.path.realpath(__file__))).resolve())
-    possible_location_prefixes = [
-        # -- current dir
-        f"{current_dir}/{sdk_name}/lib/",
-        f"{current_dir}/{cli_name}/lib/",
-        # -- standard Linux
-        f"/usr/lib/{sdk_name}/lib/",
-        f"/usr/lib/{cli_name}/lib/",
-        # -- Windows
-        f"{os.getenv('PROGRAMFILES(x86)', '')}\\Google\\Cloud SDK\\lib\\",
-        f"{os.getenv('PROGRAMFILES(x86)', '')}\\Google\\Cloud CLI\\lib\\",
-        # -- standard Darwin
-        f"{os.getenv('HOME')}/{sdk_name}/lib/",
-        f"{os.getenv('HOME')}/{cli_name}/lib/",
-        # -- snap
-        f"/snap/{sdk_name}/current/lib/",
-        f"/snap/{cli_name}/current/lib/",
-    ]
-
-    gcloud_path = ""
-
-    for possible_location_prefix in possible_location_prefixes:
-        if os.path.isdir(possible_location_prefix):
-            gcloud_path = f"{possible_location_prefix}gcloud.py"
-            break
-
-    if not gcloud_path.strip():
-        print("Install Google CLoud Platform CLI or SDK")
-        sys.exit(-1)
+    # sdk_name = "google-cloud-sdk"
+    # cli_name = "google-cloud-cli"
+    # current_dir = str(Path(os.path.dirname(os.path.realpath(__file__))).resolve())
+    # possible_location_prefixes = [
+    #     # -- current dir
+    #     f"{current_dir}/{sdk_name}/lib/",
+    #     f"{current_dir}/{cli_name}/lib/",
+    #     # -- standard Linux
+    #     f"/usr/lib/{sdk_name}/lib/",
+    #     f"/usr/lib/{cli_name}/lib/",
+    #     # -- Windows
+    #     f"{os.getenv('PROGRAMFILES(x86)', '')}\\Google\\Cloud SDK\\lib\\",
+    #     f"{os.getenv('PROGRAMFILES(x86)', '')}\\Google\\Cloud CLI\\lib\\",
+    #     # -- standard Darwin
+    #     f"{os.getenv('HOME')}/{sdk_name}/lib/",
+    #     f"{os.getenv('HOME')}/{cli_name}/lib/",
+    #     # -- snap
+    #     f"/snap/{sdk_name}/current/lib/",
+    #     f"/snap/{cli_name}/current/lib/",
+    # ]
+    #
+    # gcloud_path = ""
+    #
+    # for possible_location_prefix in possible_location_prefixes:
+    #     if os.path.isdir(possible_location_prefix):
+    #         gcloud_path = f"{possible_location_prefix}gcloud.py"
+    #         break
+    #
+    # if not gcloud_path.strip():
+    #     print("Install Google CLoud Platform CLI or SDK")
+    #     sys.exit(-1)
 
     cmd = [
-        "python3",
-        gcloud_path,
+        # "python3",
+        "gcloud.cmd" if _OS == "Windows" else "gcloud",
         "compute",
         "start-iap-tunnel",
         instance_name,

@@ -30,16 +30,24 @@ from pyclvm.plt import (
     _unsupported_platform,
 )
 
-_SSH_DIR: Final[str] = expanduser(join("~", ".ssh"))
+
+from pyclvm.plt import _get_os
+
+_OS = _get_os()
+
+# _SSH_DIR: Final[str] = expanduser(join("~", ".ssh"))
+_SSH_DIR: Final[str] = os.path.normpath(f"{os.getenv('USERPROFILE')}/.ssh") if _OS == "Windows" else f"{os.getenv('HOME')}/.ssh"
 _SSH_CONFIG: Final[str] = join(_SSH_DIR, "config")
 
 _GOOGLE_SSH_PRIV_KEY_NAME: Final[str] = "google_compute_engine"
-_GOOGLE_SSH_PRIV_KEY: Final[str] = f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}"
-_GOOGLE_SSH_PUB_KEY: Final[str] = f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}.pub"
-_GOOGLE_SSH_KNOWN_HOSTS: Final[str] = f"{_SSH_DIR}/google_compute_known_hosts"
+_GOOGLE_SSH_PRIV_KEY: Final[str] = os.path.normpath(f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}")
+_GOOGLE_SSH_PUB_KEY: Final[str] = os.path.normpath(f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}.pub")
+_GOOGLE_SSH_KNOWN_HOSTS: Final[str] = os.path.normpath(f"{_SSH_DIR}/google_compute_known_hosts")
 
 _BACKUP_SUFFIX = "ORIG"
 _MAIN = sys.modules["__main__"].__file__
+if _OS == "Windows":
+    _MAIN = _MAIN[:-len("\\__main__.py")]
 _PLATFORM = _default_platform().lower()
 
 
@@ -338,11 +346,11 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
         (jdict) Retrieved data
     """
     profile = kwargs.get("profile", "default")
-    kwargs["dry_run"] = "yes"
-    kwargs["capture_output"] = True
-    _stdout = instance.execute((), **kwargs).stdout.decode("utf8")
+    # kwargs["dry_run"] = "yes"
+    # kwargs["capture_output"] = True
+    # _stdout = instance.execute((), **kwargs).stdout.decode("utf8")
     try:
-        _stdout.index("ProxyCommand") + 13
+        # _stdout.index("ProxyCommand") + 13
         # ind_2 = _stdout.index('" -o ProxyUseFdpass=no')
 
         account = kwargs.get("account")
