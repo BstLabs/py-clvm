@@ -98,7 +98,19 @@ def _login_gcp(**kwargs: str) -> None:
 
 # ---
 def _login_azure(**kwargs: str) -> Union[None, Tuple]:
+    def _login():
+        subprocess.run(
+            [
+                "az.cmd" if _OS == "Windows" else "az",
+                "login",
+            ]
+        )
+        sys.exit(0)
+
     config_path = _get_config_path(str(_default_platform()))
+    if not os.path.isdir(config_path):
+        _login()
+
     with open(os.path.normpath(f"{config_path}/azureProfile.json"), "rb") as cfg:
         azure_cfg = json.load(cfg)
 
@@ -121,13 +133,7 @@ def _login_azure(**kwargs: str) -> Union[None, Tuple]:
                 )
         raise ClientAuthenticationError()
     except (ClientAuthenticationError, KeyError):
-        subprocess.run(
-            [
-                "az.cmd" if _OS == "Windows" else "az",
-                "login",
-            ]
-        )
-        sys.exit(0)
+        _login()
 
 
 # ---
