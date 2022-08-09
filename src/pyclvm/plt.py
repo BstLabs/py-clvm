@@ -4,10 +4,16 @@ change default platform (AWS, GCP, AZURE)
 
 
 import json
+import sys
 from functools import wraps
 from os import environ, getenv, makedirs, path
 from pathlib import Path
 from typing import Any, Set, Union
+import platform
+
+
+def _get_os() -> str:
+    return platform.system()
 
 
 def _get_supported_platforms() -> Set:
@@ -87,6 +93,7 @@ def _unsupported_platform(platform: Union[str, None]) -> None:
         "Supported platforms are: AWS, GCP, AZURE",
         sep="\n",
     )
+    sys.exit(-1)
 
 
 def plt(*platform: str, **kwargs: str) -> Union[str, None]:
