@@ -4,7 +4,7 @@ import os
 import platform
 import sys
 from functools import partial
-from os.path import exists, expanduser, join
+from os.path import exists, join
 from shutil import copyfile, copymode, move
 from tempfile import mkstemp
 from typing import Dict, Final, List, Tuple, Union
@@ -35,7 +35,6 @@ from pyclvm.plt import _get_os
 
 _OS = _get_os()
 
-# _SSH_DIR: Final[str] = expanduser(join("~", ".ssh"))
 _SSH_DIR: Final[str] = os.path.normpath(f"{os.getenv('USERPROFILE')}/.ssh") if _OS == "Windows" else f"{os.getenv('HOME')}/.ssh"
 _SSH_CONFIG: Final[str] = join(_SSH_DIR, "config")
 

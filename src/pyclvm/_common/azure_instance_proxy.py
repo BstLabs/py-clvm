@@ -13,6 +13,10 @@ from typing import Any, Iterable, Optional, Union
 
 from .session_azure import AzureSession
 
+from pyclvm.plt import _get_os
+
+_OS = _get_os()
+
 
 class AzureInstanceProxy:
     def __init__(
@@ -130,7 +134,7 @@ class AzureRemoteConnector(Thread):
 
         with contextlib.suppress(ThreadError, RuntimeError):
             cmd = [
-                "az",
+                "az.cmd" if _OS == "Windows" else "az",
                 "network",
                 "bastion",
                 "tunnel",
@@ -150,7 +154,10 @@ class AzureRemoteConnector(Thread):
             raise ThreadError
 
     def stop(self):
-        os.killpg(os.getpgid(self._proc.pid), signal.SIGTERM)
+        if _OS == "Windows":
+            os.kill(self._proc.pid, signal.SIGTERM)
+        else:
+            os.killpg(os.getpgid(self._proc.pid), signal.SIGTERM)
 
 
 # ---
