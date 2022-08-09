@@ -8,6 +8,11 @@ from functools import wraps
 from os import environ, getenv, makedirs, path
 from pathlib import Path
 from typing import Any, Set, Union
+import platform
+
+
+def _get_os() -> str:
+    return platform.system()
 
 
 def _get_supported_platforms() -> Set:
