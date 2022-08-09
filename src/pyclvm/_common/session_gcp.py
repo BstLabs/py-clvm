@@ -2,6 +2,7 @@
 
 import json
 import os
+import subprocess
 import sys
 from configparser import ConfigParser, NoOptionError
 from typing import Any, Iterable, Union
@@ -12,12 +13,12 @@ from google.auth.transport.requests import AuthorizedSession
 from google.cloud.compute_v1 import AggregatedListInstancesRequest, InstancesClient
 from google.oauth2 import credentials, service_account
 from singleton_decorator import singleton
-import subprocess
-from pyclvm.plt import _get_os
 
 from pyclvm.login import _get_config_path, _login_gcp
+from pyclvm.plt import _get_os
 
 _OS = _get_os()
+
 
 @singleton
 class GcpSession:
@@ -66,13 +67,17 @@ class GcpSession:
                 # TODO make profile support
                 config_default = ConfigParser()
                 config_default.read(
-                    os.path.normpath(f"{_get_config_path('GCP')}/configurations/config_default")
+                    os.path.normpath(
+                        f"{_get_config_path('GCP')}/configurations/config_default"
+                    )
                 )
                 default_profile = config_default.sections()[0]
                 self.project_id = config_default.get(default_profile, "project")
                 self.account_email = config_default.get(default_profile, "account")
             except NoOptionError:
-                print("\n------\nSpecify project name\n\ne.g.\n\tclvm login gcp project=project-id")
+                print(
+                    "\n------\nSpecify project name\n\ne.g.\n\tclvm login gcp project=project-id"
+                )
                 sys.exit(-1)
 
         self._expired = self._authed_session.credentials.expired
@@ -140,13 +145,12 @@ def get_session(**kwargs) -> GcpSession:
     try:
         return GcpSession(**kwargs)
     except RefreshError:
-        subprocess.run([
-            "gcloud.cmd" if _OS == "Windows" else "gcloud",
-            "auth",
-            "login",
-            "--update-adc",
-        ])
+        subprocess.run(
+            [
+                "gcloud.cmd" if _OS == "Windows" else "gcloud",
+                "auth",
+                "login",
+                "--update-adc",
+            ]
+        )
         return GcpSession(**kwargs)
-
-
-

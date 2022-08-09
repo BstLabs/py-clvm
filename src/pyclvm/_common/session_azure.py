@@ -4,12 +4,11 @@ import os
 from collections import defaultdict
 from typing import Any, Dict, Tuple
 
-from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.subscription import SubscriptionClient
 from singleton_decorator import singleton
 
-from pyclvm.login import _get_config_path, _login_azure
+from pyclvm.login import _login_azure
 
 
 @singleton
@@ -20,7 +19,11 @@ class AzureSession:
 
     def __init__(self, **kwargs):
         self._profile = self._zone = kwargs.get("profile", None)  # TODO handle profiles
-        self._credentials, self._subscription_name, self._subscription_id = _login_azure(**kwargs)
+        (
+            self._credentials,
+            self._subscription_name,
+            self._subscription_id,
+        ) = _login_azure(**kwargs)
         self._client = ComputeManagementClient(
             credential=self._credentials,
             subscription_id=self._subscription_id,

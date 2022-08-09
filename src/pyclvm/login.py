@@ -2,18 +2,19 @@
 help to log in on dedicated platform
 """
 import json
-from pathlib import Path
 import os
-import sys
-from typing import Union, Tuple
-from pyclvm.plt import plt, _get_os, _default_platform
-from functools import partial
-from configparser import ConfigParser, NoOptionError
 import subprocess
-from azure.identity import DefaultAzureCredential
-from jdict import jdict
-from azure.mgmt.subscription import SubscriptionClient
+import sys
+from configparser import ConfigParser, NoOptionError
+from functools import partial
+from pathlib import Path
+from typing import Tuple, Union
+
 from azure.core.exceptions import ClientAuthenticationError
+from azure.identity import DefaultAzureCredential
+from azure.mgmt.subscription import SubscriptionClient
+
+from pyclvm.plt import _default_platform, _get_os, plt
 
 _OS = _get_os()
 
@@ -51,37 +52,47 @@ def _login_gcp(**kwargs: str) -> None:
         project_id = config_default.get(default_profile, "project")
     except NoOptionError:
         if project_id:
-            subprocess.run([
-                "gcloud.cmd" if _OS == "Windows" else "gcloud",
-                "config",
-                "set",
-                "project",
-                project_id,
-            ])
+            subprocess.run(
+                [
+                    "gcloud.cmd" if _OS == "Windows" else "gcloud",
+                    "config",
+                    "set",
+                    "project",
+                    project_id,
+                ]
+            )
         else:
-            print("\n------\nSpecify project name\n\ne.g.\n\tclvm login gcp project=project-id")
+            print(
+                "\n------\nSpecify project name\n\ne.g.\n\tclvm login gcp project=project-id"
+            )
             sys.exit(-1)
 
     except IndexError:
-        subprocess.run([
-            "gcloud.cmd" if _OS == "Windows" else "gcloud",
-            "auth",
-            "login",
-        ])
-        subprocess.run([
-            "gcloud.cmd" if _OS == "Windows" else "gcloud",
-            "auth",
-            "application-default",
-            "login",
-        ])
-        if project_id:
-            subprocess.run([
+        subprocess.run(
+            [
                 "gcloud.cmd" if _OS == "Windows" else "gcloud",
-                "config",
-                "set",
-                "project",
-                project_id,
-            ])
+                "auth",
+                "login",
+            ]
+        )
+        subprocess.run(
+            [
+                "gcloud.cmd" if _OS == "Windows" else "gcloud",
+                "auth",
+                "application-default",
+                "login",
+            ]
+        )
+        if project_id:
+            subprocess.run(
+                [
+                    "gcloud.cmd" if _OS == "Windows" else "gcloud",
+                    "config",
+                    "set",
+                    "project",
+                    project_id,
+                ]
+            )
         sys.exit(0)
 
 
@@ -103,13 +114,19 @@ def _login_azure(**kwargs: str) -> Union[None, Tuple]:
 
         for subscription in subscription_client.subscriptions.list():
             if subscription.subscription_id == subscription_id:
-                return default_credentials, subscription.display_name, subscription.subscription_id
+                return (
+                    default_credentials,
+                    subscription.display_name,
+                    subscription.subscription_id,
+                )
         raise ClientAuthenticationError()
     except (ClientAuthenticationError, KeyError):
-        subprocess.run([
-            "az.cmd" if _OS == "Windows" else "az",
-            "login",
-        ])
+        subprocess.run(
+            [
+                "az.cmd" if _OS == "Windows" else "az",
+                "login",
+            ]
+        )
         sys.exit(0)
 
 
@@ -145,6 +162,3 @@ def _get_config_path(platform: str) -> str:
             sys.exit(-1)
 
     return _path
-
-
-
