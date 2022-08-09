@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 import commentjson
@@ -18,11 +19,17 @@ def adjust() -> None:
     """
 
     config_location = "Code/User/settings.json"
+    carrier_os = _get_os()
 
-    if _get_os() == "Windows":
+    if carrier_os == "Windows":
         path_ = os.path.normpath(f"{os.getenv('APPDATA')}/{config_location}")
-    else:
+    elif carrier_os == "Darwin":
+        path_ = f"{Path.home()}/Library/Application Support/{config_location}"
+    elif carrier_os == "Linux":
         path_ = f"{Path.home()}/.config/{config_location}"
+    else:
+        print("Unsupported carrier operating system")
+        sys.exit(-1)
 
     with open(path_, "rb") as cfg:
         settings = commentjson.loads(cfg.read())
