@@ -5,13 +5,15 @@ import os
 import signal
 import socket
 import subprocess
-import sys
-from select import select
 from threading import Thread, ThreadError
 from time import sleep
 from typing import Any, Iterable, Optional, Union
 
+from pyclvm.plt import _get_os
+
 from .session_azure import AzureSession
+
+_OS = _get_os()
 
 
 class AzureInstanceProxy:
@@ -113,7 +115,7 @@ class AzureRemoteConnector(Thread):
     Azure remote connector class
     """
 
-    def __init__(self, instance: AzureRemoteShellProxy, port: int) -> None:
+    def __init__(self, instance: AzureRemoteShellProxy, port: int, **kwargs) -> None:
         super().__init__()
         self._instance = instance
         self._proc = None
@@ -130,7 +132,7 @@ class AzureRemoteConnector(Thread):
 
         with contextlib.suppress(ThreadError, RuntimeError):
             cmd = [
-                "az",
+                "az.cmd" if _OS == "Windows" else "az",
                 "network",
                 "bastion",
                 "tunnel",
@@ -150,7 +152,10 @@ class AzureRemoteConnector(Thread):
             raise ThreadError
 
     def stop(self):
-        os.killpg(os.getpgid(self._proc.pid), signal.SIGTERM)
+        if _OS == "Windows":
+            os.kill(self._proc.pid, signal.SIGTERM)
+        else:
+            os.killpg(os.getpgid(self._proc.pid), signal.SIGTERM)
 
 
 # ---
@@ -221,79 +226,30 @@ class AzureRemoteSocket(Thread):
         self._instance = instance
         self._connector = connector
         self._port = port
+        self._account = kwargs.get("account")
+        self._key = kwargs.get("key")
 
     # ---
     def run(self):
-        sleep(5)
-        TcpProxy("127.0.0.1", self._port, self._connector)()
-        raise ThreadError()
-
-
-# ---
-class TcpProxy:
-    BUFFER_SIZE = 4096
-
-    def __init__(self, dst_host, dst_port, connector: AzureRemoteConnector):
-        self._dst = (dst_host, dst_port)
-        self._input_list = []
-
-        self._proxy_in, self._proxy_out = self._setup_proxy()
-        self._target = self._setup_target()
-
-        self._connector = connector
-
-    def _setup_target(self):
-        try:
-            target = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            target.connect(self._dst)
-            self._input_list.append(target)
-            return target
-        except ConnectionRefusedError as err:
-            print(err)
-            raise KeyboardInterrupt() from err
-            # sys.exit(-1)
-
-    def _setup_proxy(self):
-        proxy_in = sys.stdin
-        proxy_out = sys.stdout
-        self._input_list.append(proxy_in)
-        return proxy_in, proxy_out
-
-    def __call__(self):
-        while True:
-            channel_rlist, _, _ = select(self._input_list, [], [])
-
-            for channel in channel_rlist:
-                if channel == self._proxy_in:
-                    data = channel.buffer.read1()
-                    if len(data):
-                        self._send(data)
-                elif channel == self._target:
-                    _data = channel.recv(self.BUFFER_SIZE)
-                    if len(_data) == 0:
-                        self._close(channel)
-                        break
-                    else:
-                        self._receive(_data)
-
-    def _close(self, _channel):
-        self._input_list.remove(_channel)
-        self._target.close()
-
-    def _send(self, data):
-        try:
-            self._target.send(data)
-        except OSError as err:
-            print(err)
-            raise KeyboardInterrupt() from err
-            # sys.exit(-1)
-
-    def _receive(self, data):
-        self._proxy_out.buffer.write(data)
-        self._proxy_out.buffer.flush()
-
-    def __del__(self):
+        sleep(5)  # Delay to run az tunnel
+        subprocess.run(
+            [
+                "ssh",
+                "-p",
+                f"{self._port}",
+                "-i",
+                os.path.normpath(f"{self._key}"),
+                f"{self._account}@localhost",
+                "-o",
+                "UserKnownHostsFile=/dev/null",
+                "-o",
+                "StrictHostKeyChecking=no",
+                "-W",
+                "localhost:22",
+            ]
+        )
         self._connector.stop()
+        raise ThreadError()
 
 
 # ---
