@@ -6,6 +6,8 @@ import commentjson
 
 from pyclvm.plt import _get_os
 
+_OS = _get_os()
+
 
 def adjust() -> None:
     """
@@ -20,13 +22,12 @@ def adjust() -> None:
     """
 
     config_location = "Code/User/settings.json"
-    carrier_os = _get_os()
 
-    if carrier_os == "Windows":
+    if _OS == "Windows":
         path_ = os.path.normpath(f"{os.getenv('APPDATA')}/{config_location}")
-    elif carrier_os == "Darwin":
+    elif _OS == "Darwin":
         path_ = f"{Path.home()}/Library/Application Support/{config_location}"
-    elif carrier_os == "Linux":
+    elif _OS == "Linux":
         path_ = f"{Path.home()}/.config/{config_location}"
     else:
         print("Unsupported carrier operating system")

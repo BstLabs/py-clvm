@@ -55,7 +55,8 @@ _BACKUP_SUFFIX = "ORIG"
 _MAIN = sys.modules["__main__"].__file__
 if _OS == "Windows":
     _MAIN = _MAIN[: -len("\\__main__.py")]
-_PLATFORM = _default_platform().lower()
+
+cloud_platform = None
 
 
 def new(instance_name: str, **kwargs: str) -> Union[Dict, None]:
@@ -73,6 +74,8 @@ def new(instance_name: str, **kwargs: str) -> Union[Dict, None]:
         _default_platform(**kwargs),
         _get_supported_platforms(),
     )
+    global cloud_platform
+    cloud_platform = default_platform.lower()
 
     if default_platform in supported_platforms:
         return {
@@ -106,10 +109,11 @@ def _new_azure(instance_name: str, **kwargs: str) -> None:
 def _aws_config_lines(instance: Ec2RemoteShellProxy, **kwargs: str):
     profile = kwargs.get("profile", "default")
     private_key_name, pubkey = _save_keys(profile, instance.name)
+    global cloud_platform
 
     proxy_data = {
         "identity_file": private_key_name,
-        "proxy_command": f"{str(_MAIN)} ssh start {instance.name} %p profile={profile} platform={_PLATFORM}",
+        "proxy_command": f"{str(_MAIN)} ssh start {instance.name} %p profile={profile} platform={cloud_platform}",
         "user_name": "ssm-user",
     }
     instance.execute(
@@ -130,8 +134,7 @@ def _gcp_config_lines(instance: GcpRemoteShellProxy, **kwargs: str):
 # ---
 def _azure_config_lines(instance: AzureRemoteShellProxy, **kwargs: str) -> List:
     profile = kwargs.get("profile", "default")
-    account = kwargs.get("account")
-    key = kwargs.get("key")
+    global cloud_platform
 
     account = kwargs.get("account")
     key = kwargs.get("key")
@@ -146,7 +149,7 @@ def _azure_config_lines(instance: AzureRemoteShellProxy, **kwargs: str) -> List:
     port = next_free_port(port=22060, max_port=22960)
     proxy_data = {
         "identity_file": key,
-        "proxy_command": f"{str(_MAIN)} ssh start {instance.name} {port} profile={profile} platform={_PLATFORM} account={account} key={os.path.normpath(key)}",
+        "proxy_command": f"{str(_MAIN)} ssh start {instance.name} {port} profile={profile} platform={cloud_platform} account={account} key={os.path.normpath(key)}",
         "user_name": account,
     }
     return _config_lines(instance.name, proxy_data)
@@ -202,13 +205,15 @@ def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
 
 # ----------------------------------------
 # --- Analysis and writing config file ---
-def _analyze_config(instance_name: str, _platform: str) -> Tuple[int, int]:
+def _analyze_config(instance_name: str) -> Tuple[int, int]:
+    global cloud_platform
+
     previous_conf_pos = -1
     wildcard_conf_pos = -1
     with open(_SSH_CONFIG, "r", encoding="utf8") as config_file:
         lines = config_file.readlines()
         for line_number, line_text in enumerate(lines):
-            if f"Host {instance_name}-{_platform}" == line_text.strip():
+            if f"Host {instance_name}-{cloud_platform}" == line_text.strip():
                 previous_conf_pos = line_number
             if line_text.strip() == "Host *":
                 wildcard_conf_pos = line_number
@@ -219,7 +224,7 @@ def _analyze_config(instance_name: str, _platform: str) -> Tuple[int, int]:
 # ---
 def _config_lines(instance_name: str, proxy_data: Dict) -> List:
     lines = [
-        f"Host {instance_name}-{_PLATFORM}\n",
+        f"Host {instance_name}-{cloud_platform}\n",
         f"  IdentityFile {proxy_data['identity_file']}\n",
         f"  ProxyCommand {proxy_data['proxy_command']}\n",
         f"  User {proxy_data['user_name']}\n",
@@ -279,8 +284,8 @@ def _write(position: int, config_lines: List, skip_updated_text: bool):
 
 
 # ---
-def _update_config(instance_name: str, config_lines: List, _platform: str) -> None:
-    previous_conf_pos, wildcard_conf_pos = _analyze_config(instance_name, _platform)
+def _update_config(instance_name: str, config_lines: List) -> None:
+    previous_conf_pos, wildcard_conf_pos = _analyze_config(instance_name)
     if previous_conf_pos < 0:
         if wildcard_conf_pos < 0:
             # write to the end of file
@@ -320,19 +325,19 @@ def _create_config_block(
     Returns:
         None
     """
+    global cloud_platform
+
     config_lines = {
         "aws": partial(_aws_config_lines, instance, **kwargs),
         "gcp": partial(_gcp_config_lines, instance, **kwargs),
         "azure": partial(_azure_config_lines, instance, **kwargs),
-    }[_PLATFORM]()
+    }[cloud_platform]()
 
     os.makedirs(name=_SSH_DIR, mode=0o700, exist_ok=True)
 
     if os.path.isfile(_SSH_CONFIG):
         _backup(_SSH_CONFIG, 0o600)
-        _update_config(
-            instance_name=instance.name, config_lines=config_lines, _platform=_PLATFORM
-        )
+        _update_config(instance_name=instance.name, config_lines=config_lines)
     else:
         with open(
             os.open(_SSH_CONFIG, os.O_CREAT | os.O_WRONLY, 0o600), "w", encoding="utf8"
@@ -356,6 +361,8 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
     Returns:
         (jdict) Retrieved data
     """
+    global cloud_platform
+
     profile = kwargs.get("profile", "default")
     try:
         account = kwargs.get("account")
@@ -368,7 +375,7 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
 
         return {
             "identity_file": _GOOGLE_SSH_PRIV_KEY,
-            "proxy_command": f"{str(_MAIN)} ssh start {instance.name} %p profile={profile} platform={_PLATFORM}",
+            "proxy_command": f"{str(_MAIN)} ssh start {instance.name} %p profile={profile} platform={cloud_platform}",
             "user_name": account[:32].strip(
                 "_"
             ),  # Google OSLogin account name length is <= 32 without
