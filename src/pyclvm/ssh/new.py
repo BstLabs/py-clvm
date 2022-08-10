@@ -4,7 +4,7 @@ import os
 import platform
 import sys
 from functools import partial
-from os.path import exists, expanduser, join
+from os.path import exists, join
 from shutil import copyfile, copymode, move
 from tempfile import mkstemp
 from typing import Dict, Final, List, Tuple, Union
@@ -26,20 +26,35 @@ from pyclvm._common.gcp_instance_mapping import (
 from pyclvm._common.session_aws import get_session
 from pyclvm.plt import (
     _default_platform,
+    _get_os,
     _get_supported_platforms,
     _unsupported_platform,
 )
 
-_SSH_DIR: Final[str] = expanduser(join("~", ".ssh"))
+_OS = _get_os()
+
+_SSH_DIR: Final[str] = (
+    os.path.normpath(f"{os.getenv('USERPROFILE')}/.ssh")
+    if _OS == "Windows"
+    else f"{os.getenv('HOME')}/.ssh"
+)
 _SSH_CONFIG: Final[str] = join(_SSH_DIR, "config")
 
 _GOOGLE_SSH_PRIV_KEY_NAME: Final[str] = "google_compute_engine"
-_GOOGLE_SSH_PRIV_KEY: Final[str] = f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}"
-_GOOGLE_SSH_PUB_KEY: Final[str] = f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}.pub"
-_GOOGLE_SSH_KNOWN_HOSTS: Final[str] = f"{_SSH_DIR}/google_compute_known_hosts"
+_GOOGLE_SSH_PRIV_KEY: Final[str] = os.path.normpath(
+    f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}"
+)
+_GOOGLE_SSH_PUB_KEY: Final[str] = os.path.normpath(
+    f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}.pub"
+)
+_GOOGLE_SSH_KNOWN_HOSTS: Final[str] = os.path.normpath(
+    f"{_SSH_DIR}/google_compute_known_hosts"
+)
 
 _BACKUP_SUFFIX = "ORIG"
 _MAIN = sys.modules["__main__"].__file__
+if _OS == "Windows":
+    _MAIN = _MAIN[: -len("\\__main__.py")]
 _PLATFORM = _default_platform().lower()
 
 
@@ -115,6 +130,8 @@ def _gcp_config_lines(instance: GcpRemoteShellProxy, **kwargs: str):
 # ---
 def _azure_config_lines(instance: AzureRemoteShellProxy, **kwargs: str) -> List:
     profile = kwargs.get("profile", "default")
+    account = kwargs.get("account")
+    key = kwargs.get("key")
 
     account = kwargs.get("account")
     key = kwargs.get("key")
@@ -129,7 +146,7 @@ def _azure_config_lines(instance: AzureRemoteShellProxy, **kwargs: str) -> List:
     port = next_free_port(port=22060, max_port=22960)
     proxy_data = {
         "identity_file": key,
-        "proxy_command": f"{str(_MAIN)} ssh start {instance.name} {port} profile={profile} platform={_PLATFORM}",
+        "proxy_command": f"{str(_MAIN)} ssh start {instance.name} {port} profile={profile} platform={_PLATFORM} account={account} key={os.path.normpath(key)}",
         "user_name": account,
     }
     return _config_lines(instance.name, proxy_data)
@@ -206,6 +223,8 @@ def _config_lines(instance_name: str, proxy_data: Dict) -> List:
         f"  IdentityFile {proxy_data['identity_file']}\n",
         f"  ProxyCommand {proxy_data['proxy_command']}\n",
         f"  User {proxy_data['user_name']}\n",
+        "  UserKnownHostsFile /dev/null\n",
+        "  StrictHostKeyChecking no\n",
     ]
     if "port" in proxy_data.keys():
         lines.append(f"  Port {proxy_data['port']}\n")
@@ -338,13 +357,7 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
         (jdict) Retrieved data
     """
     profile = kwargs.get("profile", "default")
-    kwargs["dry_run"] = "yes"
-    kwargs["capture_output"] = True
-    _stdout = instance.execute((), **kwargs).stdout.decode("utf8")
     try:
-        _stdout.index("ProxyCommand") + 13
-        # ind_2 = _stdout.index('" -o ProxyUseFdpass=no')
-
         account = kwargs.get("account")
         if not account:
             raise ValueError(
@@ -355,7 +368,6 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
 
         return {
             "identity_file": _GOOGLE_SSH_PRIV_KEY,
-            # "proxy_command": _stdout[ind_1:ind_2],
             "proxy_command": f"{str(_MAIN)} ssh start {instance.name} %p profile={profile} platform={_PLATFORM}",
             "user_name": account[:32].strip(
                 "_"

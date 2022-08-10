@@ -7,7 +7,11 @@ from typing import Any, Iterable, Union
 
 from google.api_core.extended_operation import ExtendedOperation
 
+from pyclvm.plt import _get_os
+
 from .session_gcp import GcpSession
+
+_OS = _get_os()
 
 
 class GcpInstanceProxy:
@@ -143,12 +147,13 @@ class GcpRemoteShellProxy(GcpInstanceProxy):
         account = kwargs.get("account")
 
         cmd = [
-            "gcloud",
+            "gcloud.cmd" if _OS == "Windows" else "gcloud",
             "compute",
             "ssh",
             f"--project={self._session.project}",
             f"--zone={self._session.zone}",
             self._instance_name,
+            "--strict-host-key-checking=no",
         ]
         if command:
             cmd.append(command)
