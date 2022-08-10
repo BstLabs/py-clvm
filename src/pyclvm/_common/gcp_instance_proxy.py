@@ -152,6 +152,7 @@ class GcpRemoteShellProxy(GcpInstanceProxy):
             f"--project={self._session.project}",
             f"--zone={self._session.zone}",
             self._instance_name,
+            "--strict-host-key-checking=no",
         ]
         if command:
             cmd.append(command)

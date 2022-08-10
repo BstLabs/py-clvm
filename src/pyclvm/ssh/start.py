@@ -91,8 +91,8 @@ def _start_azure(instance_name: str, port: int, **kwargs: str) -> None:
         sleep(15)
     print(f"{instance_name} is running")
 
-    connector = AzureRemoteConnector(instance, port)
-    socket = AzureRemoteSocket(instance, connector, port)
+    connector = AzureRemoteConnector(instance, port, **kwargs)
+    socket = AzureRemoteSocket(instance, connector, port, **kwargs)
     connector.start()
     socket.start()
     connector.join()

@@ -122,6 +122,8 @@ def _gcp_config_lines(instance: GcpRemoteShellProxy, **kwargs: str):
 # ---
 def _azure_config_lines(instance: AzureRemoteShellProxy, **kwargs: str) -> List:
     profile = kwargs.get("profile", "default")
+    account = kwargs.get("account")
+    key = kwargs.get("key")
 
     account = kwargs.get("account")
     key = kwargs.get("key")
@@ -136,7 +138,7 @@ def _azure_config_lines(instance: AzureRemoteShellProxy, **kwargs: str) -> List:
     port = next_free_port(port=22060, max_port=22960)
     proxy_data = {
         "identity_file": key,
-        "proxy_command": f"{str(_MAIN)} ssh start {instance.name} {port} profile={profile} platform={_PLATFORM}",
+        "proxy_command": f"{str(_MAIN)} ssh start {instance.name} {port} profile={profile} platform={_PLATFORM} account={account} key={os.path.normpath(key)}",
         "user_name": account,
     }
     return _config_lines(instance.name, proxy_data)
@@ -213,6 +215,8 @@ def _config_lines(instance_name: str, proxy_data: Dict) -> List:
         f"  IdentityFile {proxy_data['identity_file']}\n",
         f"  ProxyCommand {proxy_data['proxy_command']}\n",
         f"  User {proxy_data['user_name']}\n",
+        f"  UserKnownHostsFile /dev/null\n",
+        f"  StrictHostKeyChecking no\n",
     ]
     if "port" in proxy_data.keys():
         lines.append(f"  Port {proxy_data['port']}\n")
@@ -345,13 +349,7 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
         (jdict) Retrieved data
     """
     profile = kwargs.get("profile", "default")
-    # kwargs["dry_run"] = "yes"
-    # kwargs["capture_output"] = True
-    # _stdout = instance.execute((), **kwargs).stdout.decode("utf8")
     try:
-        # _stdout.index("ProxyCommand") + 13
-        # ind_2 = _stdout.index('" -o ProxyUseFdpass=no')
-
         account = kwargs.get("account")
         if not account:
             raise ValueError(
@@ -362,7 +360,6 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
 
         return {
             "identity_file": _GOOGLE_SSH_PRIV_KEY,
-            # "proxy_command": _stdout[ind_1:ind_2],
             "proxy_command": f"{str(_MAIN)} ssh start {instance.name} %p profile={profile} platform={_PLATFORM}",
             "user_name": account[:32].strip(
                 "_"
