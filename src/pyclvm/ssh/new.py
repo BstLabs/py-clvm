@@ -26,27 +26,35 @@ from pyclvm._common.gcp_instance_mapping import (
 from pyclvm._common.session_aws import get_session
 from pyclvm.plt import (
     _default_platform,
+    _get_os,
     _get_supported_platforms,
     _unsupported_platform,
 )
 
-
-from pyclvm.plt import _get_os
-
 _OS = _get_os()
 
-_SSH_DIR: Final[str] = os.path.normpath(f"{os.getenv('USERPROFILE')}/.ssh") if _OS == "Windows" else f"{os.getenv('HOME')}/.ssh"
+_SSH_DIR: Final[str] = (
+    os.path.normpath(f"{os.getenv('USERPROFILE')}/.ssh")
+    if _OS == "Windows"
+    else f"{os.getenv('HOME')}/.ssh"
+)
 _SSH_CONFIG: Final[str] = join(_SSH_DIR, "config")
 
 _GOOGLE_SSH_PRIV_KEY_NAME: Final[str] = "google_compute_engine"
-_GOOGLE_SSH_PRIV_KEY: Final[str] = os.path.normpath(f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}")
-_GOOGLE_SSH_PUB_KEY: Final[str] = os.path.normpath(f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}.pub")
-_GOOGLE_SSH_KNOWN_HOSTS: Final[str] = os.path.normpath(f"{_SSH_DIR}/google_compute_known_hosts")
+_GOOGLE_SSH_PRIV_KEY: Final[str] = os.path.normpath(
+    f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}"
+)
+_GOOGLE_SSH_PUB_KEY: Final[str] = os.path.normpath(
+    f"{_SSH_DIR}/{_GOOGLE_SSH_PRIV_KEY_NAME}.pub"
+)
+_GOOGLE_SSH_KNOWN_HOSTS: Final[str] = os.path.normpath(
+    f"{_SSH_DIR}/google_compute_known_hosts"
+)
 
 _BACKUP_SUFFIX = "ORIG"
 _MAIN = sys.modules["__main__"].__file__
 if _OS == "Windows":
-    _MAIN = _MAIN[:-len("\\__main__.py")]
+    _MAIN = _MAIN[: -len("\\__main__.py")]
 _PLATFORM = _default_platform().lower()
 
 
@@ -215,8 +223,8 @@ def _config_lines(instance_name: str, proxy_data: Dict) -> List:
         f"  IdentityFile {proxy_data['identity_file']}\n",
         f"  ProxyCommand {proxy_data['proxy_command']}\n",
         f"  User {proxy_data['user_name']}\n",
-        f"  UserKnownHostsFile /dev/null\n",
-        f"  StrictHostKeyChecking no\n",
+        "  UserKnownHostsFile /dev/null\n",
+        "  StrictHostKeyChecking no\n",
     ]
     if "port" in proxy_data.keys():
         lines.append(f"  Port {proxy_data['port']}\n")

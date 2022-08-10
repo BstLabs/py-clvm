@@ -7,12 +7,11 @@ from pyclvm._common.azure_instance_proxy import AzureRemoteConnector, AzureRemot
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
 from pyclvm.plt import (
     _default_platform,
+    _get_os,
     _get_supported_platforms,
     _unsupported_platform,
 )
 from pyclvm.ssm.session.start import start as start_session
-
-from pyclvm.plt import _get_os
 
 _OS = _get_os()
 

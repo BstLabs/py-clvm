@@ -5,15 +5,13 @@ import os
 import signal
 import socket
 import subprocess
-import sys
-from select import select
 from threading import Thread, ThreadError
 from time import sleep
 from typing import Any, Iterable, Optional, Union
 
-from .session_azure import AzureSession
-
 from pyclvm.plt import _get_os
+
+from .session_azure import AzureSession
 
 _OS = _get_os()
 
@@ -234,20 +232,22 @@ class AzureRemoteSocket(Thread):
     # ---
     def run(self):
         sleep(5)  # Delay to run az tunnel
-        subprocess.run([
-            "ssh",
-            "-p",
-            f"{self._port}",
-            "-i",
-            os.path.normpath(f"{self._key}"),
-            f"{self._account}@localhost",
-            "-o",
-            "UserKnownHostsFile=/dev/null",
-            "-o",
-            "StrictHostKeyChecking=no",
-            "-W",
-            "localhost:22",
-        ])
+        subprocess.run(
+            [
+                "ssh",
+                "-p",
+                f"{self._port}",
+                "-i",
+                os.path.normpath(f"{self._key}"),
+                f"{self._account}@localhost",
+                "-o",
+                "UserKnownHostsFile=/dev/null",
+                "-o",
+                "StrictHostKeyChecking=no",
+                "-W",
+                "localhost:22",
+            ]
+        )
         self._connector.stop()
         raise ThreadError()
 

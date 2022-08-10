@@ -7,8 +7,9 @@ from typing import Any, Iterable, Union
 
 from google.api_core.extended_operation import ExtendedOperation
 
-from .session_gcp import GcpSession
 from pyclvm.plt import _get_os
+
+from .session_gcp import GcpSession
 
 _OS = _get_os()
 
