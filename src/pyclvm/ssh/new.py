@@ -337,9 +337,7 @@ def _create_config_block(
 
     if os.path.isfile(_SSH_CONFIG):
         _backup(_SSH_CONFIG, 0o600)
-        _update_config(
-            instance_name=instance.name, config_lines=config_lines
-        )
+        _update_config(instance_name=instance.name, config_lines=config_lines)
     else:
         with open(
             os.open(_SSH_CONFIG, os.O_CREAT | os.O_WRONLY, 0o600), "w", encoding="utf8"
