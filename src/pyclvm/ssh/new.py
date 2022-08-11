@@ -245,7 +245,9 @@ def _backup(file: str, perm: int) -> None:
 
 
 # ---
-def _write(position: int, config_lines: List, skip_updated_text: bool, skip_new_line: bool) -> None:
+def _write(
+    position: int, config_lines: List, skip_updated_text: bool, skip_new_line: bool
+) -> None:
     tmp_file, tmp_file_path = mkstemp()
     skip_flag = True
 
