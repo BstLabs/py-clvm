@@ -2,6 +2,7 @@
 
 import contextlib
 import os
+import sys
 import signal
 import socket
 import subprocess
@@ -181,10 +182,11 @@ class AzureRemoteExecutor(Thread):
         self._key = kwargs.get("key")
 
         if not self._account or not self._key:
-            raise RuntimeError(
+            print(
                 "\n-----------\nSpecify account=account_name or/and key=/path/to/ssh/key/file\n"
-                "e.g. clvm connect vm-instance-name account=username key=/path/to/ssh/key platform=azure\n"
+                "e.g.\n\tclvm connect vm-instance-name account=username key=/path/to/ssh/key platform=azure\n"
             )
+            sys.exit(-1)
 
     # ---
     def run(self):
