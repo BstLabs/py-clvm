@@ -2,10 +2,10 @@
 
 import contextlib
 import os
-import sys
 import signal
 import socket
 import subprocess
+import sys
 from threading import Thread, ThreadError
 from time import sleep
 from typing import Any, Iterable, Optional, Union
