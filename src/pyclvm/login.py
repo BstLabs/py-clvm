@@ -121,7 +121,10 @@ def _login_azure(**kwargs: str) -> Union[None, Tuple]:
             if subscription["isDefault"]:
                 subscription_id = subscription["id"]
 
-        default_credentials = DefaultAzureCredential()
+        credentials_params = {
+            "exclude_shared_token_cache_credential": True,
+        }
+        default_credentials = DefaultAzureCredential(**credentials_params)
         subscription_client = SubscriptionClient(default_credentials)
 
         for subscription in subscription_client.subscriptions.list():
