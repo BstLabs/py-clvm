@@ -106,7 +106,7 @@ def _new_azure(instance_name: str, **kwargs: str) -> None:
 
 
 # ---
-def _aws_config_lines(instance: Ec2RemoteShellProxy, **kwargs: str):
+def _aws_config_lines(instance: Ec2RemoteShellProxy, **kwargs: str) -> List:
     profile = kwargs.get("profile", "default")
     private_key_name, pubkey = _save_keys(profile, instance.name)
     global cloud_platform
@@ -125,7 +125,7 @@ def _aws_config_lines(instance: Ec2RemoteShellProxy, **kwargs: str):
 
 
 # ---
-def _gcp_config_lines(instance: GcpRemoteShellProxy, **kwargs: str):
+def _gcp_config_lines(instance: GcpRemoteShellProxy, **kwargs: str) -> List:
     return _config_lines(
         instance.name, _get_gcp_proxy_data(instance=instance, **kwargs)
     )
@@ -223,7 +223,7 @@ def _analyze_config(instance_name: str) -> Tuple[int, int]:
 
 # ---
 def _config_lines(instance_name: str, proxy_data: Dict) -> List:
-    lines = [
+    return [
         f"Host {instance_name}-{cloud_platform}\n",
         f"  IdentityFile {proxy_data['identity_file']}\n",
         f"  ProxyCommand {proxy_data['proxy_command']}\n",
@@ -231,9 +231,6 @@ def _config_lines(instance_name: str, proxy_data: Dict) -> List:
         "  UserKnownHostsFile /dev/null\n",
         "  StrictHostKeyChecking no\n",
     ]
-    if "port" in proxy_data.keys():
-        lines.append(f"  Port {proxy_data['port']}\n")
-    return lines
 
 
 # ---
@@ -248,7 +245,7 @@ def _backup(file: str, perm: int) -> None:
 
 
 # ---
-def _write(position: int, config_lines: List, skip_updated_text: bool):
+def _write(position: int, config_lines: List, skip_updated_text: bool, skip_new_line: bool) -> None:
     tmp_file, tmp_file_path = mkstemp()
     skip_flag = True
 
@@ -257,6 +254,10 @@ def _write(position: int, config_lines: List, skip_updated_text: bool):
             if position < 0:
                 position = len(src_file.readlines()) - 1
                 src_file.seek(0)
+                if position < 0:
+                    [dst_file.write(line) for line in config_lines]
+                    dst_file.write("\n")
+
             for line_num, line_text in enumerate(src_file):
                 if line_num == position:
                     if "" == line_text.strip():
@@ -264,7 +265,8 @@ def _write(position: int, config_lines: List, skip_updated_text: bool):
 
                     [dst_file.write(line) for line in config_lines]
                     skip_flag = skip_updated_text
-                    dst_file.write("\n")
+                    if not skip_new_line:
+                        dst_file.write("\n")
 
                     if skip_flag:
                         dst_file.write(line_text)
@@ -293,6 +295,7 @@ def _update_config(instance_name: str, config_lines: List) -> None:
                 previous_conf_pos,
                 config_lines=config_lines,
                 skip_updated_text=True,
+                skip_new_line=True,
             )
         else:
             # write before wildcard line
@@ -300,6 +303,7 @@ def _update_config(instance_name: str, config_lines: List) -> None:
                 wildcard_conf_pos,
                 config_lines=config_lines,
                 skip_updated_text=True,
+                skip_new_line=False,
             )
     else:
         # update lines from the position
@@ -307,6 +311,7 @@ def _update_config(instance_name: str, config_lines: List) -> None:
             previous_conf_pos,
             config_lines=config_lines,
             skip_updated_text=False,
+            skip_new_line=False,
         )
 
 
@@ -342,6 +347,7 @@ def _create_config_block(
         with open(
             os.open(_SSH_CONFIG, os.O_CREAT | os.O_WRONLY, 0o600), "w", encoding="utf8"
         ) as config_file:
+            config_lines.append("\n")
             [config_file.write(line) for line in config_lines]
 
 
