@@ -1,21 +1,16 @@
 # -*- coding: utf-8 -*- #
 
+import json
 import subprocess
 import sys
 from distutils.util import strtobool
-from typing import Any, Iterable, Union
+from typing import Any, Iterable, NewType, Optional, Union
 
 from google.api_core.extended_operation import ExtendedOperation
-
-from pyclvm.plt import _get_os
-
-from typing import Optional
-import json
-
 from google.cloud import pubsub_v1
 from google.cloud.pubsub_v1.exceptions import TimeoutError
 
-from typing import NewType
+from pyclvm.plt import _get_os
 
 from .session_gcp import GcpSession
 
@@ -108,7 +103,9 @@ class GcpInstanceProxy:
         vm_status = None
 
         if wait:
-            vm_status = self._wait_for_extended_operation(operation, "instance stopping")
+            vm_status = self._wait_for_extended_operation(
+                operation, "instance stopping"
+            )
             if self._subscription_id:
                 self._wait_runtime()
 
@@ -151,7 +148,9 @@ class GcpInstanceProxy:
     def _sub(self, timeout: Optional[float] = None) -> Status:
         global status
         subscriber_client = pubsub_v1.SubscriberClient()
-        subscription_path = subscriber_client.subscription_path(self._session.project_id, self._subscription_id)
+        subscription_path = subscriber_client.subscription_path(
+            self._session.project_id, self._subscription_id
+        )
 
         def callback(message: pubsub_v1.subscriber.message.Message) -> None:
             global status

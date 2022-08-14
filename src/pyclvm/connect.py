@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*- #
 
 from functools import partial
-from time import sleep
 from typing import Dict, Union
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellProxy
