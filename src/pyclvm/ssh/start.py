@@ -58,12 +58,10 @@ def _start_aws(instance_name: str, port: int, **kwargs: str) -> None:
 def _start_gcp(instance_name: str, port: int, **kwargs: str) -> None:
     instance = GcpRemoteShellMapping().get(instance_name)
 
-    pre_state = instance.state
+    # pre_state = instance.state
 
     print(f"Starting {instance_name} ...")
     instance.start()
-    if pre_state != "RUNNING":
-        sleep(15)
     print(f"{instance_name} is running")
 
     cmd = [

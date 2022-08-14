@@ -21,12 +21,8 @@ def _connect(
     instance: Union[GcpRemoteShellProxy, AzureRemoteShellProxy],
     **kwargs,
 ) -> None:
-    pre_state = True if "running".upper() in instance.state.upper() else False
-
     print(f"Starting {instance_name} ...")
     instance.start()
-    if not pre_state:
-        sleep(15)
     print(f"{instance_name} is running")
 
     print(f"Connecting to {instance_name} ...")

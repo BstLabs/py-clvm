@@ -30,7 +30,6 @@ class GcpSession:
         scopes = ["https://www.googleapis.com/auth/cloud-platform"]
         self._profile = self._zone = kwargs.get("profile", None)  # TODO handle profiles
         self._credentials = None
-        # self._credentials, _ = default(scopes=scopes)
 
         try:
             creds = os.path.normpath(
@@ -112,14 +111,6 @@ class GcpSession:
     # ---
     def get_client(self) -> InstancesClient:
         return self._client
-
-    # ---
-    def is_expired(self) -> bool:
-        return self._expired
-
-    # ---
-    def is_verified(self) -> Union[bool, str, None]:
-        return self._verify
 
     # ---
     def get_zone(self) -> Union[bool, str, None]:

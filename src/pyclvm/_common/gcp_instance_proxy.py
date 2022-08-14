@@ -9,9 +9,20 @@ from google.api_core.extended_operation import ExtendedOperation
 
 from pyclvm.plt import _get_os
 
+from typing import Optional
+import json
+
+from google.cloud import pubsub_v1
+from google.cloud.pubsub_v1.exceptions import TimeoutError
+
+from typing import NewType
+
 from .session_gcp import GcpSession
 
 _OS = _get_os()
+
+Status = NewType("status", str)
+status = Status("down")
 
 
 class GcpInstanceProxy:
@@ -19,6 +30,7 @@ class GcpInstanceProxy:
         self,
         instance_name: str,
         session: GcpSession,
+        subscription_id: Optional[str] = None,
         **kwargs: str,
     ) -> None:
         self._session = session
@@ -29,6 +41,7 @@ class GcpInstanceProxy:
             zone=self._session.zone,
             instance=self._instance_name,
         )
+        self._subscription_id = instance_name
 
     # ---
     @staticmethod
@@ -91,11 +104,15 @@ class GcpInstanceProxy:
             zone=self._session.zone,
             instance=self._instance_name,
         )
-        return (
-            self._wait_for_extended_operation(operation, "instance stopping")
-            if wait
-            else None
-        )
+
+        vm_status = None
+
+        if wait:
+            vm_status = self._wait_for_extended_operation(operation, "instance stopping")
+            if self._subscription_id:
+                self._wait_runtime()
+
+        return vm_status
 
     # ---
     def stop(self, wait: bool = True) -> Union[Any, None]:
@@ -124,11 +141,48 @@ class GcpInstanceProxy:
         return str(self._instance.id)
 
     @property
-    def name(self):
+    def name(self) -> str:
         try:
             return self._instance.tags.name
         except AttributeError:
             return self._instance.name
+
+    # ---
+    def _sub(self, timeout: Optional[float] = None) -> Status:
+        global status
+        subscriber_client = pubsub_v1.SubscriberClient()
+        subscription_path = subscriber_client.subscription_path(self._session.project_id, self._subscription_id)
+
+        def callback(message: pubsub_v1.subscriber.message.Message) -> None:
+            global status
+            res = json.loads(message.data)
+            try:
+                if res["vm-id"] == self.id:
+                    status = res["status"]
+            except KeyError:
+                print("\n------\nWrong Pub/Sub message. Try again later.\n")
+                sys.exit(-1)
+
+        streaming_pull_future = subscriber_client.subscribe(subscription_path, callback)
+        try:
+            streaming_pull_future.result(timeout=timeout)
+        except TimeoutError:
+            streaming_pull_future.cancel()
+            streaming_pull_future.result()
+
+        subscriber_client.close()
+        return status
+
+    # ---
+    def _wait_runtime(self) -> None:
+        timeout = 100
+        while timeout > 0:
+            timeout -= 1
+            if "up" == self._sub(2.0):
+                return
+
+        print("\n------\nUnexpected behavior. Try again later.\n")
+        sys.exit(-1)
 
 
 class GcpRemoteShellProxy(GcpInstanceProxy):
