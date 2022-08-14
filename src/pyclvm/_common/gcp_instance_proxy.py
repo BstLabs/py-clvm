@@ -25,7 +25,6 @@ class GcpInstanceProxy:
         self,
         instance_name: str,
         session: GcpSession,
-        subscription_id: Optional[str] = None,
         **kwargs: str,
     ) -> None:
         self._session = session
@@ -37,6 +36,7 @@ class GcpInstanceProxy:
             instance=self._instance_name,
         )
         self._subscription_id = instance_name
+        self._wait_for_queue = kwargs.get("wait", "yes")
 
     # ---
     @staticmethod
@@ -106,7 +106,7 @@ class GcpInstanceProxy:
             vm_status = self._wait_for_extended_operation(
                 operation, "instance stopping"
             )
-            if self._subscription_id:
+            if strtobool(self._wait_for_queue):
                 self._wait_runtime()
 
         return vm_status

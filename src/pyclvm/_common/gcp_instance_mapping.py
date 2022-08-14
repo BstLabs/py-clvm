@@ -104,4 +104,4 @@ class GcpInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
 # ---
 class GcpRemoteShellMapping(GcpInstanceMapping, VmInstanceMappingBase):
     def _get_instance(self, instance_name: str) -> GcpRemoteShellProxy:
-        return GcpRemoteShellProxy(instance_name, self._session)
+        return GcpRemoteShellProxy(instance_name, self._session, **self._kwargs)
