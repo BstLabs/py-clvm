@@ -107,7 +107,7 @@ class GcpInstanceProxy:
                 operation, "instance stopping"
             )
             if strtobool(self._wait_for_queue):
-                self._wait_runtime()
+                self._wait_runtime(100)
 
         return vm_status
 
@@ -173,12 +173,12 @@ class GcpInstanceProxy:
         return status
 
     # ---
-    def _wait_runtime(self) -> None:
-        timeout = 100
+    def _wait_runtime(self, timeout: int) -> None:
         while timeout > 0:
             timeout -= 1
             if "up" == self._sub(2.0):
                 return
+            print(".", end='')
 
         print("\n------\nUnexpected behavior. Try again later.\n")
         sys.exit(-1)

@@ -58,11 +58,9 @@ def _start_aws(instance_name: str, port: int, **kwargs: str) -> None:
 def _start_gcp(instance_name: str, port: int, **kwargs: str) -> None:
     instance = GcpRemoteShellMapping(**kwargs).get(instance_name)
 
-    # pre_state = instance.state
-
     print(f"Starting {instance_name} ...")
     instance.start()
-    print(f"{instance_name} is running")
+    print(f"\n{instance_name} is running")
 
     cmd = [
         "gcloud.cmd" if _OS == "Windows" else "gcloud",
@@ -80,13 +78,10 @@ def _start_gcp(instance_name: str, port: int, **kwargs: str) -> None:
 
 def _start_azure(instance_name: str, port: int, **kwargs: str) -> None:
     instance = AzureRemoteShellMapping().get(instance_name)
-    pre_state = instance.state
 
     print(f"Starting {instance_name} ...")
     instance.start()
-    if pre_state != "VM running":
-        sleep(15)
-    print(f"{instance_name} is running")
+    print(f"\n{instance_name} is running")
 
     connector = AzureRemoteConnector(instance, port, **kwargs)
     socket = AzureRemoteSocket(instance, connector, port, **kwargs)

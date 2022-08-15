@@ -70,6 +70,13 @@ class AzureSession:
         """
         return self._subscription_id
 
+    @property
+    def credentials(self) -> Any:
+        """
+        Returns Azure Subscription name
+        """
+        return self._credentials
+
     # ---
     @property
     def subscription_name(self) -> Any:
