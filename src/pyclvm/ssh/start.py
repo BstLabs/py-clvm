@@ -1,6 +1,5 @@
 import subprocess
 from functools import partial
-from time import sleep
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
 from pyclvm._common.azure_instance_proxy import AzureRemoteConnector, AzureRemoteSocket

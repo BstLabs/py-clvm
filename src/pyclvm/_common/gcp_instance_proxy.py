@@ -6,8 +6,8 @@ import sys
 from distutils.util import strtobool
 from typing import Any, Iterable, NewType, Optional, Union
 
-from google.api_core.extended_operation import ExtendedOperation
 from google.api_core.exceptions import NotFound
+from google.api_core.extended_operation import ExtendedOperation
 from google.cloud import pubsub_v1
 from google.cloud.pubsub_v1.exceptions import TimeoutError
 
@@ -181,9 +181,11 @@ class GcpInstanceProxy:
             timeout -= 1
             if "up" == self._sub(2.0):
                 return
-            print(".", end='')
+            print(".", end="")
 
-        print("\n------\nQueue service is not adjusted. You can continue, but it takes time to start an VM instance.\n")
+        print(
+            "\n------\nQueue service is not adjusted. You can continue, but it takes time to start an VM instance.\n"
+        )
 
 
 class GcpRemoteShellProxy(GcpInstanceProxy):
