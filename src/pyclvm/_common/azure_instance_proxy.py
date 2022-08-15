@@ -148,8 +148,7 @@ class AzureInstanceProxy:
                 return
             print(".", end='')
 
-        print("\n------\nUnexpected behavior. Try again later.\n")
-        sys.exit(-1)
+        print("\n------\nQueue service is not adjusted. You can continue, but it takes time to start an VM instance.\n")
 
 
 # ---
