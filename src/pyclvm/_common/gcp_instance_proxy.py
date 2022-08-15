@@ -7,6 +7,7 @@ from distutils.util import strtobool
 from typing import Any, Iterable, NewType, Optional, Union
 
 from google.api_core.extended_operation import ExtendedOperation
+from google.api_core.exceptions import NotFound
 from google.cloud import pubsub_v1
 from google.cloud.pubsub_v1.exceptions import TimeoutError
 
@@ -107,7 +108,7 @@ class GcpInstanceProxy:
                 operation, "instance stopping"
             )
             if strtobool(self._wait_for_queue):
-                self._wait_runtime(100)
+                self._wait_runtime(60)
 
         return vm_status
 
@@ -168,6 +169,8 @@ class GcpInstanceProxy:
         except TimeoutError:
             streaming_pull_future.cancel()
             streaming_pull_future.result()
+        except NotFound:
+            return status
 
         subscriber_client.close()
         return status
