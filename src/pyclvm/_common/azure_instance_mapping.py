@@ -109,4 +109,4 @@ class AzureInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
 # ---
 class AzureRemoteShellMapping(AzureInstanceMapping, VmInstanceMappingBase):
     def _get_instance(self, instance_name: str) -> AzureRemoteShellProxy:
-        return AzureRemoteShellProxy(instance_name, self._session)
+        return AzureRemoteShellProxy(instance_name, self._session, **self._kwargs)

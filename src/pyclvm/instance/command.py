@@ -21,14 +21,23 @@ def _execute_aws(instance_name: str, instance: Ec2InstanceProxy, **kwargs) -> No
 
 
 def _execute_gcp(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) -> None:
+    print(f"Starting {instance_name} ...")
+    instance.start()
+    print(f"{instance_name} is running")
     print(f"Working {instance_name} ...")
+
     instance.execute((kwargs.get("script"),), **kwargs)
 
 
 def _execute_azure(
     instance_name: str, instance: AzureRemoteShellProxy, **kwargs
 ) -> None:
+    print(f"Starting {instance_name} ...")
+    instance.start()
+    print(f"{instance_name} is running")
     print(f"Working {instance_name} ...")
+    print(f"Working {instance_name} ...")
+
     instance.execute((kwargs.get("script"),), **kwargs)
 
 
