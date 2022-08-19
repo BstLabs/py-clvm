@@ -3,6 +3,7 @@ import getpass
 import os
 import platform
 import sys
+import time
 from functools import partial
 from os.path import exists, join
 from shutil import copyfile, copymode, move
@@ -116,11 +117,22 @@ def _aws_config_lines(instance: Ec2RemoteShellProxy, **kwargs: str) -> List:
         "proxy_command": f"{str(_MAIN)} ssh start {instance.name} %p profile={profile} platform={cloud_platform}",
         "user_name": "ssm-user",
     }
+    # ---
+    instance.start(wait=True)
+    timeout = 10
+    while timeout > 0:
+        print(".", end="")
+        time.sleep(1)
+        timeout -= 1
+    print()
+    # ---
     instance.execute(
         "pip3 install --upgrade authk",
         f'runuser -u ssm-user -- authk add "{pubkey}"',
         **kwargs,
     )
+    # ---
+    instance.stop(wait=False)
     return _config_lines(instance.name, proxy_data)
 
 
