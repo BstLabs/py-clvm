@@ -148,6 +148,7 @@ def _make_session(credentials, profile) -> Session:
 
 def get_session(kwargs: Dict[str, str]) -> Session:
     profile = kwargs.get("profile", "default")
+    boto3.setup_default_session(profile_name=profile)
     return _make_session(
         (_read_credentials(profile) or _get_credentials(profile)), profile
     )
