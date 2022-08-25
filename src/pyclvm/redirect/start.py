@@ -38,7 +38,7 @@ def start(instance_name: str, **kwargs: str) -> int:
     start port(s) redirection to a Virtual Machine
 
     Args:
-        instance_name (str): Virtual Machine instance name
+        instance_name (str): vm instance name
         **kwargs (str): (optional) classifiers, at the moment, profile name and port numbers (default 8080=8080)
 
     Returns:

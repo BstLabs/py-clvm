@@ -6,9 +6,9 @@ from typing import Dict, Tuple
 def _get_port_mapping(**kwargs: str) -> Tuple[int, int]:
     if kwargs:
         try:
-            return (8080, int(kwargs.get("port", 8080)))
+            return 8080, int(kwargs.get("port", 8080))
         except ValueError as err:
-            raise Exception(
+            raise ValueError(
                 "[INFO] Only integer type supported for port numbers!"
             ) from err
     return 8080, 8080

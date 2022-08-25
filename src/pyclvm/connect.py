@@ -55,5 +55,4 @@ def connect(instance_name: str, **kwargs: str) -> Union[Dict, None]:
                 process_instances, _connect, "VM running", (instance_name,), kwargs
             ),
         }[default_platform.upper()]()
-    else:
-        _unsupported_platform(default_platform)
+    _unsupported_platform(default_platform)

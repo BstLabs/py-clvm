@@ -59,7 +59,9 @@ def _stop_instance_azure(
         "VM starting": partial(_in_transition, instance_name, instance),
         "VM deallocating": partial(_in_transition, instance_name, instance),
         "Provisioning succeeded": partial(_in_transition, instance_name, instance),
-    }[instance.state]()
+    }[
+        instance.state
+    ]()  # type: ignore
 
 
 def _is_already_stopped(instance_name: str) -> None:

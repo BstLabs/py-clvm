@@ -15,8 +15,8 @@ def _run_script(*commands: List[str]) -> None:
         try:
             print(" ".join(command))
             subprocess.run(command, check=True, shell=True)
-        except subprocess.CalledProcessError as e:
-            print(e.output)
+        except subprocess.CalledProcessError as err:
+            print(err.output)
             sys.exit(1)
 
 

@@ -110,7 +110,6 @@ def _new_azure(instance_name: str, **kwargs: str) -> None:
 def _aws_config_lines(instance: Ec2RemoteShellProxy, **kwargs: str) -> List:
     profile = kwargs.get("profile", "default")
     private_key_name, pubkey = _save_keys(profile, instance.name)
-    global cloud_platform
 
     proxy_data = {
         "identity_file": private_key_name,
@@ -146,7 +145,6 @@ def _gcp_config_lines(instance: GcpRemoteShellProxy, **kwargs: str) -> List:
 # ---
 def _azure_config_lines(instance: AzureRemoteShellProxy, **kwargs: str) -> List:
     profile = kwargs.get("profile", "default")
-    global cloud_platform
 
     account = kwargs.get("account")
     key = kwargs.get("key")
@@ -218,7 +216,6 @@ def _save_keys(profile: str, instance_name: str) -> Tuple[str, str]:
 # ----------------------------------------
 # --- Analysis and writing config file ---
 def _analyze_config(instance_name: str) -> Tuple[int, int]:
-    global cloud_platform
 
     previous_conf_pos = -1
     wildcard_conf_pos = -1
@@ -264,7 +261,7 @@ def _write(
     skip_flag = True
 
     with os.fdopen(tmp_file, "w", encoding="utf8") as dst_file:
-        with open(_SSH_CONFIG) as src_file:
+        with open(_SSH_CONFIG, encoding="utf-8") as src_file:
             if position < 0:
                 position = len(src_file.readlines()) - 1
                 src_file.seek(0)
@@ -344,13 +341,14 @@ def _create_config_block(
     Returns:
         None
     """
-    global cloud_platform
 
     config_lines = {
         "aws": partial(_aws_config_lines, instance, **kwargs),
         "gcp": partial(_gcp_config_lines, instance, **kwargs),
         "azure": partial(_azure_config_lines, instance, **kwargs),
-    }[cloud_platform]()
+    }[
+        cloud_platform
+    ]()  # type: ignore
 
     os.makedirs(name=_SSH_DIR, mode=0o700, exist_ok=True)
 
@@ -381,7 +379,6 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
     Returns:
         (jdict) Retrieved data
     """
-    global cloud_platform
 
     profile = kwargs.get("profile", "default")
     try:
@@ -390,8 +387,8 @@ def _get_gcp_proxy_data(instance: GcpRemoteShellProxy, **kwargs: str) -> Dict:
             raise ValueError(
                 "No username/account, use [--account=username@company.com]"
             )
-        for c in ("@", ".", "-"):
-            account = account.replace(c, "_")
+        for char in "@", ".", "-":
+            account = account.replace(char, "_")
 
         return {
             "identity_file": _GOOGLE_SSH_PRIV_KEY,
