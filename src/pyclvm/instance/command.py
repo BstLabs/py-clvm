@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*- #
+"""send system commands to VM"""
+
 from functools import partial
 from typing import Tuple, Union
 
@@ -44,6 +46,14 @@ def _execute_azure(
 def command(instance_name: str, script: str, **kwargs: str) -> Union[Tuple, None]:
     """
     send system commands to VM
+
+    Args:
+        instance_name (str): vm instance name
+        script (str): system commands wrapped around " "
+        **kwargs (str): (optional) additional arguments, currently only profile
+
+    Returns:
+        Union[Tuple, None]
     """
     kwargs["script"] = script
     default_platform, supported_platforms = (
@@ -67,5 +77,4 @@ def command(instance_name: str, script: str, **kwargs: str) -> Union[Tuple, None
                 kwargs,
             ),
         }[default_platform.upper()]()
-    else:
-        _unsupported_platform(default_platform)
+    _unsupported_platform(default_platform)

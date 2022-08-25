@@ -23,6 +23,13 @@ _OS = _get_os()
 def login(platform: str, **kwargs: str) -> Union[str, None]:
     """
     help to log in on dedicated platform
+
+    Args:
+        platform (str): cloud platform name (AWS, GCP, AZURE)
+        **kwargs (str): (optional) additional arguments, currently only `project`
+
+    Returns:
+        Union[str, None]
     """
     plt(platform, **kwargs)
 
@@ -59,7 +66,8 @@ def _login_gcp(**kwargs: str) -> None:
                     "set",
                     "project",
                     project_id,
-                ]
+                ],
+                check=True,
             )
         else:
             print(
@@ -73,7 +81,8 @@ def _login_gcp(**kwargs: str) -> None:
                 "gcloud.cmd" if _OS == "Windows" else "gcloud",
                 "auth",
                 "login",
-            ]
+            ],
+            check=True,
         )
         subprocess.run(
             [
@@ -81,7 +90,8 @@ def _login_gcp(**kwargs: str) -> None:
                 "auth",
                 "application-default",
                 "login",
-            ]
+            ],
+            check=True,
         )
         if project_id:
             subprocess.run(
@@ -91,7 +101,8 @@ def _login_gcp(**kwargs: str) -> None:
                     "set",
                     "project",
                     project_id,
-                ]
+                ],
+                check=True,
             )
         sys.exit(0)
 
@@ -103,7 +114,8 @@ def _login_azure(**kwargs: str) -> Union[None, Tuple]:
             [
                 "az.cmd" if _OS == "Windows" else "az",
                 "login",
-            ]
+            ],
+            check=True,
         )
         sys.exit(0)
 
@@ -141,7 +153,6 @@ def _login_azure(**kwargs: str) -> Union[None, Tuple]:
 
 # ---
 def _get_config_path(platform: str) -> str:
-    # carrier_os = _get_os()
     _path = ""
 
     if platform == "GCP":

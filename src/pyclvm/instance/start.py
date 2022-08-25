@@ -58,7 +58,9 @@ def _start_instance_azure(
         "VM starting": partial(_in_transition, instance_name, instance),
         "VM deallocating": partial(_in_transition, instance_name, instance),
         "Provisioning succeeded": partial(_in_transition, instance_name, instance),
-    }[instance.state]()
+    }[
+        instance.state
+    ]()  # type: ignore
 
 
 def _is_running(instance_name: str) -> None:
@@ -95,7 +97,7 @@ def start(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
         **kwargs (str): (optional) additional arguments, currently only profile
 
     Returns:
-        Tuple[Session, instance_is (str)]
+        Union[Tuple, None]
     """
     default_platform, supported_platforms = (
         _default_platform(**kwargs),
@@ -108,8 +110,7 @@ def start(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
             "GCP": partial(_start_gcp, *instance_names, **kwargs),
             "AZURE": partial(_start_azure, *instance_names, **kwargs),
         }[default_platform.upper()]()
-    else:
-        _unsupported_platform(default_platform)
+    _unsupported_platform(default_platform)
 
 
 # ---
