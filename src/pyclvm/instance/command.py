@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*- #
 """send system commands to VM"""
 
+from doctest import script_from_examples
 from functools import partial
+from pathlib import Path
 from typing import Tuple, Union
 
 from ec2instances.ec2_instance_proxy import Ec2InstanceProxy
@@ -19,7 +21,11 @@ from ._process import process_instances
 
 def _execute_aws(instance_name: str, instance: Ec2InstanceProxy, **kwargs) -> None:
     print(f"Working {instance_name} ...")
-    instance.execute(kwargs.get("script"), **kwargs)
+    # to get rid of the overloading warning script assigned to a variable
+    script = kwargs.get("script")
+    # custom script ensures that the pwd is ssm-user
+    custom_script = f"cd /home/ssm-user/ && {script}"
+    instance.execute(custom_script, **kwargs)
 
 
 def _execute_gcp(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) -> None:
