@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*- #
 """send system commands to VM"""
 
-from doctest import script_from_examples
 from functools import partial
-from pathlib import Path
 from typing import Tuple, Union
 
 from ec2instances.ec2_instance_proxy import Ec2InstanceProxy
