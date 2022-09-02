@@ -38,8 +38,7 @@ def start(instance_name: str, port: int, **kwargs: str) -> None:
             "GCP": partial(_start_gcp, instance_name, port, **kwargs),
             "AZURE": partial(_start_azure, instance_name, port, **kwargs),
         }[default_platform.upper()]()
-    else:
-        _unsupported_platform(default_platform)
+    _unsupported_platform(default_platform)
 
 
 def _start_aws(instance_name: str, port: int, **kwargs: str) -> None:
@@ -54,7 +53,7 @@ def _start_aws(instance_name: str, port: int, **kwargs: str) -> None:
     )
 
 
-def _start_gcp(instance_name: str, port: int, **kwargs: str) -> None:
+def _start_gcp(instance_name: str, **kwargs: str) -> None:
     instance = GcpRemoteShellMapping(**kwargs).get(instance_name)
 
     print(f"Starting {instance_name} ...")
@@ -72,7 +71,7 @@ def _start_gcp(instance_name: str, port: int, **kwargs: str) -> None:
         f"--zone={instance.session.zone}",
         "--verbosity=warning",
     ]
-    subprocess.run(cmd)
+    subprocess.run(cmd, check=True)
 
 
 def _start_azure(instance_name: str, port: int, **kwargs: str) -> None:
