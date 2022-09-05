@@ -37,7 +37,8 @@ def _return_instances(**kwargs) -> Union[Dict, None]:
             "GCP": partial(_process_gcp, **kwargs),
             "AZURE": partial(_process_azure, **kwargs),
         }[default_platform.upper()]()
-    _unsupported_platform(default_platform)
+    else:
+        _unsupported_platform(default_platform)
     return None
 
 

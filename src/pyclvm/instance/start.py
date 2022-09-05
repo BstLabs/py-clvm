@@ -113,17 +113,14 @@ def start(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
     _unsupported_platform(default_platform)
 
 
-# ---
 def _start_aws(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
     return process_instances(_start_instance_aws, "stopped", instance_names, kwargs)
 
 
-# ---
 def _start_gcp(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
     return process_instances(_start_instance_gcp, "TERMINATED", instance_names, kwargs)
 
 
-# ---
 def _start_azure(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
     return process_instances(
         _start_instance_azure, "VM deallocated", instance_names, kwargs
