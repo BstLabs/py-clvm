@@ -60,8 +60,7 @@ def _set_default_platform(cloud_platform: str) -> None:
             cache.truncate()
             environ["CLVM_DEFAULT_PLATFORM"] = cloud_platform.upper()
         print(f"Default platform is {cloud_platform.upper()}")
-    else:
-        _unsupported_platform(cloud_platform)
+    _unsupported_platform(cloud_platform)
 
 
 def _default_platform(**kwargs) -> Union[str, Any]:
@@ -79,8 +78,7 @@ def _default_platform(**kwargs) -> Union[str, Any]:
     cloud_platform = str(kwargs["platform"]).upper()
     if cloud_platform in _get_supported_platforms():
         return cloud_platform.upper()
-    else:
-        _unsupported_platform(cloud_platform)
+    _unsupported_platform(cloud_platform)
 
 
 def _unsupported_platform(cloud_platform: Union[str, None]) -> None:
@@ -117,5 +115,4 @@ def plt(*cloud_platform: str, **kwargs: str) -> Union[str, None]:
 
     if platform_name in supported_platforms:
         _set_default_platform(platform_name)
-    else:
-        _unsupported_platform(platform_name)
+    _unsupported_platform(platform_name)

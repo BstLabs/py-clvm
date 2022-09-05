@@ -83,5 +83,4 @@ def command(
                 kwargs,
             ),
         }[default_platform.upper()]()
-    else:
-        _unsupported_platform(default_platform)
+    _unsupported_platform(default_platform)
