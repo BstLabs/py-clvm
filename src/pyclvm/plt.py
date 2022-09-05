@@ -115,5 +115,4 @@ def plt(*cloud_platform: str, **kwargs: str) -> Union[str, None]:
 
     if platform_name in supported_platforms:
         _set_default_platform(platform_name)
-    else:
-        _unsupported_platform(platform_name)
+    _unsupported_platform(platform_name)

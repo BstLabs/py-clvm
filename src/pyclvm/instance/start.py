@@ -110,8 +110,7 @@ def start(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
             "GCP": partial(_start_gcp, *instance_names, **kwargs),
             "AZURE": partial(_start_azure, *instance_names, **kwargs),
         }[default_platform.upper()]()
-    else:
-        _unsupported_platform(default_platform)
+    _unsupported_platform(default_platform)
 
 
 def _start_aws(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:

@@ -38,8 +38,7 @@ def start(instance_name: str, port: int, **kwargs: str) -> None:
             "GCP": partial(_start_gcp, instance_name, port, **kwargs),
             "AZURE": partial(_start_azure, instance_name, port, **kwargs),
         }[default_platform.upper()]()
-    else:
-        _unsupported_platform(default_platform)
+    _unsupported_platform(default_platform)
 
 
 def _start_aws(instance_name: str, port: int, **kwargs: str) -> None:
