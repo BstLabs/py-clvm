@@ -38,7 +38,8 @@ def start(instance_name: str, port: int, **kwargs: str) -> None:
             "GCP": partial(_start_gcp, instance_name, port, **kwargs),
             "AZURE": partial(_start_azure, instance_name, port, **kwargs),
         }[default_platform.upper()]()
-    _unsupported_platform(default_platform)
+    else:
+        _unsupported_platform(default_platform)
 
 
 def _start_aws(instance_name: str, port: int, **kwargs: str) -> None:
@@ -48,7 +49,7 @@ def _start_aws(instance_name: str, port: int, **kwargs: str) -> None:
         "AWS-StartSSHSession",
         "--parameter",
         f"portNumber={port}",
-        wait=True,
+        wait=True,  # type: ignore
         **kwargs,
     )
 
@@ -57,7 +58,7 @@ def _start_gcp(instance_name: str, **kwargs: str) -> None:
     instance = GcpRemoteShellMapping(**kwargs).get(instance_name)
 
     print(f"Starting {instance_name} ...")
-    instance.start()
+    instance.start()  # type: ignore
     print(f"\n{instance_name} is running")
 
     cmd = [
@@ -67,8 +68,8 @@ def _start_gcp(instance_name: str, **kwargs: str) -> None:
         instance_name,
         "22",
         "--listen-on-stdin",
-        f"--project={instance.session.project}",
-        f"--zone={instance.session.zone}",
+        f"--project={instance.session.project}",  # type: ignore
+        f"--zone={instance.session.zone}",  # type: ignore
         "--verbosity=warning",
     ]
     subprocess.run(cmd, check=True)
@@ -78,11 +79,11 @@ def _start_azure(instance_name: str, port: int, **kwargs: str) -> None:
     instance = AzureRemoteShellMapping().get(instance_name)
 
     print(f"Starting {instance_name} ...")
-    instance.start()
+    instance.start()  # type: ignore
     print(f"\n{instance_name} is running")
 
-    connector = AzureRemoteConnector(instance, port, **kwargs)
-    socket = AzureRemoteSocket(instance, connector, port, **kwargs)
+    connector = AzureRemoteConnector(instance, port, **kwargs)  # type: ignore
+    socket = AzureRemoteSocket(instance, connector, port, **kwargs)  # type: ignore
     connector.start()
     socket.start()
     connector.join()

@@ -61,7 +61,7 @@ def start(instance_name: str, *args: str, **kwargs: str) -> Popen:
 
     """
     try:
-        session, instance_id = instance_start(instance_name, **kwargs)
+        session, instance_id = instance_start(instance_name, **kwargs)  # type: ignore
         return _start_ssm_session(
             instance_id, _make_env(session), kwargs.get("wait", True), *args
         )

@@ -21,4 +21,4 @@ def restore() -> None:
         os.chmod(_SSH_CONFIG, 0o600)
         os.remove(backup_file)
     except FileNotFoundError as err:
-        print(f"\n-------------\nException: {err}\n")
+        print("-" * 50, f"Exception: {err}", sep="\n\n", end="\n")
