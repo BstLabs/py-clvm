@@ -2,7 +2,7 @@
 """send system commands to VM"""
 
 from functools import partial
-from typing import Tuple, Union
+from typing import Any, Tuple, Union
 
 from ec2instances.ec2_instance_proxy import Ec2InstanceProxy
 
@@ -47,7 +47,9 @@ def _execute_azure(
     instance.execute((kwargs.get("script"),), **kwargs)
 
 
-def command(instance_name: str, script: str, **kwargs: str) -> Union[Tuple, None]:
+def command(
+    instance_name: str, script: str, **kwargs: str
+) -> Union[Tuple[Any, str], None]:
     """
     send system commands to VM
 
@@ -57,7 +59,7 @@ def command(instance_name: str, script: str, **kwargs: str) -> Union[Tuple, None
         **kwargs (str): (optional) additional arguments, currently only profile
 
     Returns:
-        Union[Tuple, None]
+        Union[Tuple[Any, str], None]
     """
     kwargs["script"] = script
     default_platform, supported_platforms = (

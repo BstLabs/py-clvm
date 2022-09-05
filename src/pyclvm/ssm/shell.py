@@ -23,4 +23,4 @@ def shell(
 
     """
     instance = Ec2RemoteShellMapping(get_session(kwargs))[instance_name]
-    return instance.execute(*commands)
+    return instance.execute(*commands)  # type: ignore
