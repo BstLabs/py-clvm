@@ -31,7 +31,12 @@ def login(platform: str, **kwargs: str) -> Union[str, None]:
     Returns:
         Union[str, None]
     """
-    plt(platform, **kwargs)
+    platform = platform.split("=")[-1]
+    try:
+        plt(platform, **kwargs)
+    except TypeError:  # TODO exception occurs in dynacli, try to pass the exception trace here
+        print("\n------\nMultiple platform references. User the only one."
+              "\ne.g.\n\tclvm login azure\n\tclvm login platform=azure")
 
     return {
         "AWS": partial(_login_aws, **kwargs),
