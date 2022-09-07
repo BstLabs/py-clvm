@@ -35,8 +35,10 @@ def login(platform: str, **kwargs: str) -> Union[str, None]:
     try:
         plt(platform, **kwargs)
     except TypeError:  # TODO exception occurs in dynacli, try to pass the exception trace here
-        print("\n------\nMultiple platform references. User the only one."
-              "\ne.g.\n\tclvm login azure\n\tclvm login platform=azure")
+        print(
+            "\n------\nMultiple platform references. User the only one."
+            "\ne.g.\n\tclvm login azure\n\tclvm login platform=azure"
+        )
 
     return {
         "AWS": partial(_login_aws, **kwargs),
@@ -47,7 +49,8 @@ def login(platform: str, **kwargs: str) -> Union[str, None]:
 
 # ---
 def _login_aws(**kwargs: str) -> None:
-    pass
+    print("\n------\nAWS login not implemented yet.\n")
+    sys.exit(-1)
 
 
 # ---
