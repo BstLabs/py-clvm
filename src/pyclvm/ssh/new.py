@@ -131,7 +131,6 @@ def _aws_config_lines(instance: Ec2RemoteShellProxy, **kwargs: str) -> List:
         **kwargs,
     )
     # ---
-    instance.stop(wait=False)
     return _config_lines(instance.name, proxy_data)
 
 
