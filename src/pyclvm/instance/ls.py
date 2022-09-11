@@ -8,6 +8,7 @@ from rich.table import Table
 
 from pyclvm._common.azure_instance_mapping import AzureComputeAllInstancesData
 from pyclvm._common.gcp_instance_mapping import GcpComputeAllInstancesData
+from pyclvm.login import _login_aws
 from pyclvm.plt import (
     _default_platform,
     _get_supported_platforms,
@@ -93,7 +94,7 @@ def _ls_aws(**kwargs: str) -> None:
     if current_profile:
         boto3.setup_default_session(profile_name=current_profile)
 
-    instances = Ec2AllInstancesData()
+    instances = Ec2AllInstancesData(auth_callback=_login_aws)
     sts_client = boto3.client("sts")
 
     account = sts_client.get_caller_identity().Account
