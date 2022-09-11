@@ -11,6 +11,8 @@ import botocore
 from boto3.session import Session
 from jdict import jdict, patch_module
 
+from pyclvm.login import _login_aws
+
 from .user_data import fetch, store
 
 patch_module("botocore.parsers")
@@ -61,12 +63,14 @@ def _store_credentials(profile: str, credentials: Credentials) -> None:
 
 
 def _invalid_mfa_code_provided(details):
-    print("\n > Invalid MFA code provided, please try again!\n")
+    print(
+        "\n > Invalid MFA code provided or other authentication problem, please try again!\n"
+    )
 
 
 def _give_up(e):
     print("\n > Giving up after multiple fails...")
-    sys.exit(-1)
+    _login_aws()
 
 
 @backoff.on_exception(

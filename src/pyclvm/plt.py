@@ -26,7 +26,7 @@ def _get_cache_path():
 
 
 def _create_cache() -> None:
-    """creates the cache directory and file if they doesn't exist"""
+    """creates the cache directory and file if they don't exist"""
     makedirs(
         name=path.join(Path.home(), ".clvm"),
         mode=0o700,
@@ -39,7 +39,7 @@ def _create_cache() -> None:
 
 
 def check_cache_for_platform(func):
-    # This is for preventing muliple cache file hit
+    # This is for preventing multiple cache file hit
     @wraps(func)
     def decorator(cloud_platform):
         if cloud_platform.upper() == getenv("CLVM_DEFAULT_PLATFORM"):
@@ -60,7 +60,8 @@ def _set_default_platform(cloud_platform: str) -> None:
             cache.truncate()
             environ["CLVM_DEFAULT_PLATFORM"] = cloud_platform.upper()
         print(f"Default platform is {cloud_platform.upper()}")
-    _unsupported_platform(cloud_platform)
+    else:
+        _unsupported_platform(cloud_platform)
 
 
 def _default_platform(**kwargs) -> Union[str, Any]:
@@ -77,7 +78,7 @@ def _default_platform(**kwargs) -> Union[str, Any]:
         return cloud_platform["platform"]
     cloud_platform = str(kwargs["platform"]).upper()
     if cloud_platform in _get_supported_platforms():
-        return cloud_platform.upper()
+        return cloud_platform
     _unsupported_platform(cloud_platform)
 
 
@@ -115,4 +116,5 @@ def plt(*cloud_platform: str, **kwargs: str) -> Union[str, None]:
 
     if platform_name in supported_platforms:
         _set_default_platform(platform_name)
-    _unsupported_platform(platform_name)
+    else:
+        _unsupported_platform(platform_name)

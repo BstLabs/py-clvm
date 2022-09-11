@@ -19,10 +19,11 @@ from ._process import process_instances
 
 def _execute_aws(instance_name: str, instance: Ec2InstanceProxy, **kwargs) -> None:
     print(f"Working {instance_name} ...")
+    instance.start()
     # to get rid of the overloading warning script assigned to a variable
     script = kwargs.get("script")
     # custom script ensures that the pwd is ssm-user
-    custom_script = f"cd /home/ssm-user/ && {script}"
+    custom_script = f"cd /home/ssm-user && {script}"
     instance.execute(custom_script, **kwargs)
 
 
@@ -32,7 +33,7 @@ def _execute_gcp(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) ->
     print(f"{instance_name} is running")
     print(f"Working {instance_name} ...")
 
-    instance.execute((kwargs.get("script"),), **kwargs)
+    instance.execute((f"cd $HOME && {kwargs.get('script')}",), **kwargs)
 
 
 def _execute_azure(
@@ -42,9 +43,8 @@ def _execute_azure(
     instance.start()
     print(f"{instance_name} is running")
     print(f"Working {instance_name} ...")
-    print(f"Working {instance_name} ...")
 
-    instance.execute((kwargs.get("script"),), **kwargs)
+    instance.execute((f"cd $HOME && {kwargs.get('script')}",), **kwargs)
 
 
 def command(

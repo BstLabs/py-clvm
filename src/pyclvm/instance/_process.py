@@ -7,6 +7,7 @@ from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
 from pyclvm._common.session_aws import Session, get_session
+from pyclvm.login import _login_aws
 from pyclvm.plt import (
     _default_platform,
     _get_supported_platforms,
@@ -15,7 +16,7 @@ from pyclvm.plt import (
 
 
 def _process_aws(**kwargs: str) -> Ec2RemoteShellMapping:
-    return Ec2RemoteShellMapping(get_session(kwargs))
+    return Ec2RemoteShellMapping(get_session(kwargs), auth_callback=_login_aws)
 
 
 def _process_gcp(**kwargs: str) -> GcpRemoteShellMapping:
