@@ -1,5 +1,6 @@
 import subprocess
 from functools import partial
+from typing import Optional
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
 from pyclvm._common.azure_instance_proxy import AzureRemoteConnector, AzureRemoteSocket
@@ -53,7 +54,7 @@ def _start_aws(instance_name: str, port: int, **kwargs: str) -> None:
     )
 
 
-def _start_gcp(instance_name: str, **kwargs: str) -> None:
+def _start_gcp(instance_name: str, port: Optional[int] = None, **kwargs: str) -> None:
     instance = GcpRemoteShellMapping(**kwargs).get(instance_name)
 
     print(f"Starting {instance_name} ...")

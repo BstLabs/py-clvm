@@ -49,8 +49,19 @@ def login(platform: str, **kwargs: str) -> Union[str, None]:
 
 # ---
 def _login_aws(**kwargs: str) -> None:
-    print("\n------\nAWS login not implemented yet.\n")
-    sys.exit(-1)
+    profile_name = kwargs.get("profile", "default")
+    print(
+        f'\n------\nPlease, fix your AWS credentials and back again. Profile name "{profile_name}"\n'
+    )
+    subprocess.run(
+        [
+            "aws.exe" if _OS == "Windows" else "aws",
+            "configure",
+            f"--profile={profile_name}",
+        ],
+        check=True,
+    )
+    sys.exit(0)
 
 
 # ---
