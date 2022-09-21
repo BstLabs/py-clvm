@@ -31,7 +31,14 @@ def login(platform: str, **kwargs: str) -> Union[str, None]:
     Returns:
         Union[str, None]
     """
-    plt(platform, **kwargs)
+    platform = platform.split("=")[-1]
+    try:
+        plt(platform, **kwargs)
+    except TypeError:  # TODO exception occurs in dynacli, try to pass the exception trace here
+        print(
+            "\n------\nMultiple platform references. User the only one."
+            "\ne.g.\n\tclvm login azure\n\tclvm login platform=azure"
+        )
 
     return {
         "AWS": partial(_login_aws, **kwargs),
@@ -42,7 +49,19 @@ def login(platform: str, **kwargs: str) -> Union[str, None]:
 
 # ---
 def _login_aws(**kwargs: str) -> None:
-    pass
+    profile_name = kwargs.get("profile", "default")
+    print(
+        f'\n------\nPlease, fix your AWS credentials and back again. Profile name "{profile_name}"\n'
+    )
+    subprocess.run(
+        [
+            "aws.exe" if _OS == "Windows" else "aws",
+            "configure",
+            f"--profile={profile_name}",
+        ],
+        check=True,
+    )
+    sys.exit(0)
 
 
 # ---
