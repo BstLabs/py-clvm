@@ -26,5 +26,5 @@ jobs:
       with:
         ACCESS_TOKEN: ${{secrets.CHANGELOG}}
         PATH: 'CHANGELOG.md'
-        COMMIT_MESSAGE: 'docs(changelog): update release notes'
-        TYPE: 'feat:Feature,fix:Bug Fixes,fixes:Bug Fixes,fixed:Bug Fixes,docs:Documentation,refactor:Refactor,perf:Performance Improvements'
+        COMMIT_MESSAGE: 'Docs(changelog): update release notes'
+        TYPE: 'Feat:Feature,Fix:Bug Fixes,Fixes:Bug Fixes,Fixed:Bug Fixes,Docs:Documentation,Refactor:Refactor,Perf:Performance Improvements'
