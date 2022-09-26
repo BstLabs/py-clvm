@@ -41,6 +41,7 @@ dependencies = [
 [project.urls]
 Source = "https://github.com/bstlabs/py-clvm"
 Home = "https://github.com/bstlabs/py-clvm"
+Changelog = "https://github.com/BstLabs/py-clvm/blob/main/CHANGELOG.md"
 
 
 [project.optional-dependencies]
