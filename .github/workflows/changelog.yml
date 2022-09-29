@@ -1,0 +1,29 @@
+name: Changelog
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+  release:
+    types: [created, edited]
+  push:
+    branches: [$default-branch]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+jobs:
+  generate-changelog:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: BobAnkh/auto-generate-changelog@master
+      with:
+        ACCESS_TOKEN: ${{secrets.CHANGELOG}}
+        PATH: 'CHANGELOG.md'
+        COMMIT_MESSAGE: 'Docs(changelog): update release notes'
+        TYPE: 'Feat:Feature,Fix:Bug Fixes,Fixes:Bug Fixes,Fixed:Bug Fixes,Docs:Documentation,Refactor:Refactor,Perf:Performance Improvements'

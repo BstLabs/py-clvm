@@ -118,15 +118,13 @@ def _aws_config_lines(instance: Ec2RemoteShellProxy, **kwargs: str) -> List:
     }
     # ---
     instance.start(wait=True)
-    timeout = 10
-    while timeout > 0:
+    for _ in range(10, 0, -1):
         print(".", end="")
         time.sleep(1)
-        timeout -= 1
     print()
     # ---
     instance.execute(
-        "pip3 install --upgrade authk",
+        "pip3 install --upgrade authk --quiet",
         f'runuser -u ssm-user -- authk add "{pubkey}"',
         **kwargs,
     )
