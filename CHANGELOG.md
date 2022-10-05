@@ -2,42 +2,6 @@
 
 ## [v1.1.8](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.8) - 2022-09-29 15:11:42
 
-## What's Changed
-* Add AWS conf cmd with profile by @zoosmand (https://github.com/BstLabs/py-clvm/pull/186)
-
-* Disabled workflow trigger for push action on develop branch by @orkhanshirin 
-
-* Refactor(ssh-new): Removed redundant output for ssh-new by @orkhanshirin  (https://github.com/BstLabs/py-clvm/pull/190)
-Description:
-- Added `--quiet` flag to `pip install authk`
-- Minor refactoring
-
-* Feat(PyPi): Added `Changelog` link to PyPi  by @orkhanshirin (https://github.com/BstLabs/py-clvm/pull/192)
-
-* Refactor(ssh-new): Removed redundant output for ssh-new by @orkhanshirin 
-Description:
-- Added `--quiet` flag to `pip install authk`
-- Minor refactoring
-
-* Feat(PyPi): Added `Changelog` link to PyPi by @orkhanshirin 
-Description:
-- Modified pyproject.toml and added `Changelog` link to PyPi.org
-
-* Fix dependencies version by @zoosmand  (https://github.com/BstLabs/py-clvm/pull/194)
-
-* Fixed azure dependency version
-* Fixed help message errors by @orkhanshirin in https://github.com/BstLabs/py-clvm/pull/174
-* Fixed `clvm instance command` pwd by @orkhanshirin in https://github.com/BstLabs/py-clvm/pull/176
-* Issue-178, ignores kwarg platform=platform-name by @zoosmand in https://github.com/BstLabs/py-clvm/pull/179
-* Issue-181, fix bugs related to authk by @zoosmand in https://github.com/BstLabs/py-clvm/pull/183
-
-**Full Changelog**: https://github.com/BstLabs/py-clvm/compare/v1.1.7...v1.1.8
-
-### Documentation
-
-- changelog:
-  - update release notes ([84c143f](https://github.com/BstLabs/py-clvm/commit/84c143f517c2be8e55d1fe3a3bd9e1fb44906153))
-
 ## [v1.1.8b1](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.8b1) - 2022-09-20 16:43:53
 
 *No description*
