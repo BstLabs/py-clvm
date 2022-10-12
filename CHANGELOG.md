@@ -2,22 +2,12 @@
 
 ## [v1.1.9](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.9) - 2022-10-12 15:41:38
 
-## What's Changed
+### Feature
 * Feat(config): Implemented the first version of `configure` for AWS by @orkhanshirin in https://github.com/BstLabs/py-clvm/pull/202
 
 
 **Full Changelog**: https://github.com/BstLabs/py-clvm/compare/v1.1.8...v1.1.9
 
-### Feature
-
-- config:
-  - Implemented first version of `configure` (#197) ([b39c611](https://github.com/BstLabs/py-clvm/commit/b39c611835f1116e5f90ec400b6eec03a02c8160)) ([#197](https://github.com/BstLabs/py-clvm/pull/197))
-
-### Documentation
-
-- changelog:
-  - update release notes ([89e2ce9](https://github.com/BstLabs/py-clvm/commit/89e2ce9370858e77814d75d1ac3f9a01cd2c9677))
-  - update release notes ([43747e8](https://github.com/BstLabs/py-clvm/commit/43747e811bb8f015b89094d7a0b8cb5715258c0c)) ([#199](https://github.com/BstLabs/py-clvm/pull/199))
 
 ## [v1.1.8](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.8) - 2022-09-29 15:11:42
 
