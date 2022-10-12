@@ -9,6 +9,24 @@ from platform import platform
 from shutil import which
 
 
+def _print_prerequisites() -> None:
+    info = """
+                            [INFO] Prerequisites...
+      Please, make sure you have been provided with the required credentials.
+      If you don't have it then please, contact your system administrator.
+
+    > AWS credentials `.csv` file containing:
+    - User Name
+    - Access key ID
+    - Secret access key
+
+    > Role ARN
+
+    > MFA device ARN (if activated)
+    """
+    print(info)
+
+
 # for handling $HOME or %USERPROFILE% prefix
 def _os() -> str:
     os_name = platform().split("-")[0]
@@ -16,7 +34,7 @@ def _os() -> str:
     return {
         "Linux": "~/",
         "Darwin": "~/",
-        "Windows": "%USERPROFILE% .\\",
+        "Windows": "%USERPROFILE%\\",
     }[os_name]
 
 
@@ -110,6 +128,7 @@ def aws(**kwargs: str):
     Returns:
         None
     """
+    _print_prerequisites()
     try:
         _add_access_keys(**kwargs)
         _set_mfa_serial(**kwargs)
