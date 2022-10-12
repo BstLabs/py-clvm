@@ -1,42 +1,25 @@
 # CHANGELOG
 
-## [v1.1.8](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.8) - 2022-09-29 15:11:42
+## [v1.1.9](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.9) - 2022-10-12 15:41:38
 
 ## What's Changed
-* Add AWS conf cmd with profile by @zoosmand (https://github.com/BstLabs/py-clvm/pull/186)
+* Feat(config): Implemented the first version of `configure` for AWS by @orkhanshirin in https://github.com/BstLabs/py-clvm/pull/202
 
-* Disabled workflow trigger for push action on develop branch by @orkhanshirin 
 
-* Refactor(ssh-new): Removed redundant output for ssh-new by @orkhanshirin  (https://github.com/BstLabs/py-clvm/pull/190)
-Description:
-- Added `--quiet` flag to `pip install authk`
-- Minor refactoring
+**Full Changelog**: https://github.com/BstLabs/py-clvm/compare/v1.1.8...v1.1.9
 
-* Feat(PyPi): Added `Changelog` link to PyPi  by @orkhanshirin (https://github.com/BstLabs/py-clvm/pull/192)
+### Feature
 
-* Refactor(ssh-new): Removed redundant output for ssh-new by @orkhanshirin 
-Description:
-- Added `--quiet` flag to `pip install authk`
-- Minor refactoring
-
-* Feat(PyPi): Added `Changelog` link to PyPi by @orkhanshirin 
-Description:
-- Modified pyproject.toml and added `Changelog` link to PyPi.org
-
-* Fix dependencies version by @zoosmand  (https://github.com/BstLabs/py-clvm/pull/194)
-
-* Fixed azure dependency version
-* Fixed help message errors by @orkhanshirin in https://github.com/BstLabs/py-clvm/pull/174
-* Fixed `clvm instance command` pwd by @orkhanshirin in https://github.com/BstLabs/py-clvm/pull/176
-* Issue-178, ignores kwarg platform=platform-name by @zoosmand in https://github.com/BstLabs/py-clvm/pull/179
-* Issue-181, fix bugs related to authk by @zoosmand in https://github.com/BstLabs/py-clvm/pull/183
-
-**Full Changelog**: https://github.com/BstLabs/py-clvm/compare/v1.1.7...v1.1.8
+- config:
+  - Implemented first version of `configure` (#197) ([b39c611](https://github.com/BstLabs/py-clvm/commit/b39c611835f1116e5f90ec400b6eec03a02c8160)) ([#197](https://github.com/BstLabs/py-clvm/pull/197))
 
 ### Documentation
 
 - changelog:
-  - update release notes ([84c143f](https://github.com/BstLabs/py-clvm/commit/84c143f517c2be8e55d1fe3a3bd9e1fb44906153))
+  - update release notes ([89e2ce9](https://github.com/BstLabs/py-clvm/commit/89e2ce9370858e77814d75d1ac3f9a01cd2c9677))
+  - update release notes ([43747e8](https://github.com/BstLabs/py-clvm/commit/43747e811bb8f015b89094d7a0b8cb5715258c0c)) ([#199](https://github.com/BstLabs/py-clvm/pull/199))
+
+## [v1.1.8](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.8) - 2022-09-29 15:11:42
 
 ## [v1.1.8b1](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.8b1) - 2022-09-20 16:43:53
 
