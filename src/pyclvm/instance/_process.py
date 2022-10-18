@@ -44,7 +44,10 @@ def _return_instances(**kwargs) -> Union[Dict, None]:
 
 
 def _process_many(
-    func: Callable, state: str, instance_names: Tuple[str], kwargs: Dict[str, str]
+    func: Callable,
+    state: str,
+    instance_names: Tuple[str],
+    **kwargs: str,
 ) -> None:
     # TODO realize platform selection
     instances = [
@@ -60,7 +63,9 @@ def _process_many(
 
 
 def _process_one(
-    func: Callable, instance_name: str, kwargs: Dict[str, str]
+    func: Callable,
+    instance_name: str,
+    **kwargs: str,
 ) -> Optional[Tuple[Session, str]]:
     try:
         instance = _return_instances(**kwargs).get(instance_name)
@@ -72,10 +77,13 @@ def _process_one(
 
 
 def process_instances(
-    func: Callable, state: str, instance_names: Tuple[str], kwargs: Dict[str, str]
+    func: Callable,
+    state: str,
+    instance_names: Tuple[str],
+    **kwargs: str,
 ) -> Optional[Tuple[Session, str]]:
     return (
-        _process_one(func, instance_names[0], kwargs)
+        _process_one(func, instance_names[0], **kwargs)
         if len(instance_names) == 1
-        else _process_many(func, state, instance_names, kwargs)
+        else _process_many(func, state, instance_names, **kwargs)
     )
