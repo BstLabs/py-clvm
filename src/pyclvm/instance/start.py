@@ -20,13 +20,17 @@ def _start_instance_aws(
     instance_name: str, instance: Ec2InstanceProxy, **kwargs: str
 ) -> Any:
     return {
-        "running": partial(_is_running, instance_name),
-        "stopped": partial(_is_stopped_or_terminated, instance_name, instance),
-        "terminated": partial(_is_stopped_or_terminated, instance_name, instance),
-        "stopping": partial(_in_transition, instance_name, instance),
-        "pending": partial(_in_transition, instance_name, instance),
-        "shutting-down": partial(_in_transition, instance_name, instance),
-        "rebooting": partial(_in_transition, instance_name, instance),
+        "running": partial(_is_running, instance_name, **kwargs),
+        "stopped": partial(
+            _is_stopped_or_terminated, instance_name, instance, **kwargs
+        ),
+        "terminated": partial(
+            _is_stopped_or_terminated, instance_name, instance, **kwargs
+        ),
+        "stopping": partial(_in_transition, instance_name, instance, **kwargs),
+        "pending": partial(_in_transition, instance_name, instance, **kwargs),
+        "shutting-down": partial(_in_transition, instance_name, instance, **kwargs),
+        "rebooting": partial(_in_transition, instance_name, instance, **kwargs),
     }[instance.state.name]()
 
 
@@ -34,16 +38,22 @@ def _start_instance_gcp(
     instance_name: str, instance: GcpInstanceProxy, **kwargs: str
 ) -> Any:
     return {
-        "RUNNING": partial(_is_running, instance_name),
-        "STOPPED": partial(_is_stopped_or_terminated, instance_name, instance),
-        "TERMINATED": partial(_is_stopped_or_terminated, instance_name, instance),
-        "SUSPENDED": partial(_is_stopped_or_terminated, instance_name, instance),
-        "STOPPING": partial(_in_transition, instance_name, instance),
-        "PROVISIONING": partial(_in_transition, instance_name, instance),
-        "DEPROVISIONING": partial(_in_transition, instance_name, instance),
-        "REPAIRING": partial(_in_transition, instance_name, instance),
-        "STAGING": partial(_in_transition, instance_name, instance),
-        "SUSPENDING": partial(_in_transition, instance_name, instance),
+        "RUNNING": partial(_is_running, instance_name, **kwargs),
+        "STOPPED": partial(
+            _is_stopped_or_terminated, instance_name, instance, **kwargs
+        ),
+        "TERMINATED": partial(
+            _is_stopped_or_terminated, instance_name, instance, **kwargs
+        ),
+        "SUSPENDED": partial(
+            _is_stopped_or_terminated, instance_name, instance, **kwargs
+        ),
+        "STOPPING": partial(_in_transition, instance_name, instance, **kwargs),
+        "PROVISIONING": partial(_in_transition, instance_name, instance, **kwargs),
+        "DEPROVISIONING": partial(_in_transition, instance_name, instance, **kwargs),
+        "REPAIRING": partial(_in_transition, instance_name, instance, **kwargs),
+        "STAGING": partial(_in_transition, instance_name, instance, **kwargs),
+        "SUSPENDING": partial(_in_transition, instance_name, instance, **kwargs),
     }[instance.state]()
 
 
@@ -51,33 +61,42 @@ def _start_instance_azure(
     instance_name: str, instance: AzureInstanceProxy, **kwargs: str
 ) -> Any:
     return {
-        "VM running": partial(_is_running, instance_name),
-        "VM stopped": partial(_is_stopped_or_terminated, instance_name, instance),
-        "VM deallocated": partial(_is_stopped_or_terminated, instance_name, instance),
-        "VM stopping": partial(_in_transition, instance_name, instance),
-        "VM starting": partial(_in_transition, instance_name, instance),
-        "VM deallocating": partial(_in_transition, instance_name, instance),
-        "Provisioning succeeded": partial(_in_transition, instance_name, instance),
+        "VM running": partial(_is_running, instance_name, **kwargs),
+        "VM stopped": partial(
+            _is_stopped_or_terminated, instance_name, instance, **kwargs
+        ),
+        "VM deallocated": partial(
+            _is_stopped_or_terminated, instance_name, instance, **kwargs
+        ),
+        "VM stopping": partial(_in_transition, instance_name, instance, **kwargs),
+        "VM starting": partial(_in_transition, instance_name, instance, **kwargs),
+        "VM deallocating": partial(_in_transition, instance_name, instance, **kwargs),
+        "Provisioning succeeded": partial(
+            _in_transition, instance_name, instance, **kwargs
+        ),
     }[
         instance.state
     ]()  # type: ignore
 
 
-def _is_running(instance_name: str) -> None:
+def _is_running(instance_name: str, **kwargs) -> None:
     print(f"{instance_name} is running.")
 
 
 def _is_stopped_or_terminated(
     instance_name: str,
     instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
+    wait: bool = False,
+    **kwargs: str,
 ) -> None:
     print(f"Starting {instance_name} ...")
-    instance.start(wait=False)
+    instance.start(wait=wait)
 
 
 def _in_transition(
     instance_name: str,
     instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
+    **kwargs,
 ) -> None:
     print(
         f"{instance_name} is now in transition state. Wait untill current state is determined."
@@ -114,14 +133,16 @@ def start(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
 
 
 def _start_aws(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
-    return process_instances(_start_instance_aws, "stopped", instance_names, kwargs)
+    return process_instances(_start_instance_aws, "stopped", instance_names, **kwargs)
 
 
 def _start_gcp(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
-    return process_instances(_start_instance_gcp, "TERMINATED", instance_names, kwargs)
+    return process_instances(
+        _start_instance_gcp, "TERMINATED", instance_names, **kwargs
+    )
 
 
 def _start_azure(*instance_names: str, **kwargs: str) -> Union[Tuple, None]:
     return process_instances(
-        _start_instance_azure, "VM deallocated", instance_names, kwargs
+        _start_instance_azure, "VM deallocated", instance_names, **kwargs
     )

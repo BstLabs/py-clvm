@@ -121,14 +121,14 @@ def stop(*instance_names: str, **kwargs: str) -> Union[Dict, None]:
 
 # ---
 def _stop_aws(*instance_names: str, **kwargs: str):
-    process_instances(_stop_instance_aws, "running", instance_names, kwargs)
+    process_instances(_stop_instance_aws, "running", instance_names, **kwargs)
 
 
 # ---
 def _stop_gcp(*instance_names: str, **kwargs: str):
-    process_instances(_stop_instance_gcp, "RUNNING", instance_names, kwargs)
+    process_instances(_stop_instance_gcp, "RUNNING", instance_names, **kwargs)
 
 
 # ---
 def _stop_azure(*instance_names: str, **kwargs: str):
-    process_instances(_stop_instance_azure, "VM running", instance_names, kwargs)
+    process_instances(_stop_instance_azure, "VM running", instance_names, **kwargs)

@@ -53,7 +53,7 @@ def start(instance_name: str, **kwargs: str) -> int:
         "--parameters",
         f"portNumber={port},localPortNumber={local_port}",
         **kwargs,
-        wait=False,
+        wait="False",
     ).pid
     _wait_for_port(local_port)
     session_id = _get_session_id(pid)
