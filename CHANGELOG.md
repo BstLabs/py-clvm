@@ -8,7 +8,6 @@
 
 **Full Changelog**: https://github.com/BstLabs/py-clvm/compare/v1.1.8...v1.1.9
 
-
 ## [v1.1.8](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.8) - 2022-09-29 15:11:42
 
 ## [v1.1.8b1](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.8b1) - 2022-09-20 16:43:53
