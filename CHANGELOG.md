@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [v1.1.10.b](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.10.b) - 2022-10-19 10:10:37
+
+*No description*
+
+### Documentation
+
+- changelog:
+  - update release notes ([0a49f6c](https://github.com/BstLabs/py-clvm/commit/0a49f6c33207b22dcf535ad0d87569907e4d3984))
+  - update release notes ([47af780](https://github.com/BstLabs/py-clvm/commit/47af780ebad69ee501a68c0c704c824f5372f008))
+
 ## [v1.1.9](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.9) - 2022-10-12 15:41:38
 
 ### Feature
