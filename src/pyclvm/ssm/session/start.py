@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from subprocess import Popen, TimeoutExpired
+from typing import Dict
 
 from ec2instances.common.session import Session
 from ec2instances.common.signal_handler import interrupt_handler
@@ -58,9 +59,8 @@ def start(instance_name: str, *args: str, **kwargs: str) -> Popen:
         None
 
     """
-    wait = json.loads(kwargs.get("wait", "True").lower())
     try:
-        session, instance_id = instance_start(instance_name, wait=True)  # type: ignore
-        return _start_ssm_session(instance_id, _make_env(session), wait, *args)
+        session, instance_id = instance_start(instance_name, **dict(kwargs, wait=True))  # type: ignore
+        return _start_ssm_session(instance_id, _make_env(session), True, *args)
     except RuntimeError as err:
         print(err)
