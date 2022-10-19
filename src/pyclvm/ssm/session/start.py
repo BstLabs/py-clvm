@@ -1,8 +1,6 @@
-import json
 import os
 import sys
 from subprocess import Popen, TimeoutExpired
-from typing import Dict
 
 from ec2instances.common.session import Session
 from ec2instances.common.signal_handler import interrupt_handler
