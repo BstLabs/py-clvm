@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*- #
 
 import os
+import json
+import importlib
 from collections import defaultdict
 from typing import Any, Dict, Tuple
 
@@ -18,6 +20,7 @@ class AzureSession:
     """
 
     def __init__(self, **kwargs):
+        importlib.reload(json)
         self._profile = self._zone = kwargs.get("profile", None)  # TODO handle profiles
         (
             self._credentials,
