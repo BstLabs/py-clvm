@@ -1,7 +1,9 @@
+"""start ssm session"""
+
 import os
 import sys
 from subprocess import Popen, TimeoutExpired
-from typing import Union
+from typing import Optional
 
 from ec2instances.common.session import Session
 from ec2instances.common.signal_handler import interrupt_handler
@@ -22,7 +24,7 @@ def _make_env(session: Session) -> dict:
     }
 
 
-def _call_subprocess(instance_id: str, env: dict, wait: Union[str, bool], *args: str):
+def _call_subprocess(instance_id: str, env: dict, wait: bool, *args: str):
     proc = Popen(
         args=["aws", "ssm", "start-session", "--target", instance_id, *args],
         env=env,
@@ -40,14 +42,12 @@ def _call_subprocess(instance_id: str, env: dict, wait: Union[str, bool], *args:
     return proc
 
 
-def _start_ssm_session(
-    instance_id: str, env: dict, wait: Union[str, bool], *args: str
-) -> Popen:
+def _start_ssm_session(instance_id: str, env: dict, wait: bool, *args: str) -> Popen:
     with interrupt_handler():
         return _call_subprocess(instance_id, env, wait, *args)
 
 
-def start(instance_name: str, *args: str, **kwargs: str) -> Popen:
+def start(instance_name: str, *args: str, **kwargs: str) -> Optional[Popen]:
     """
     start ssm session
 
@@ -61,9 +61,11 @@ def start(instance_name: str, *args: str, **kwargs: str) -> Popen:
 
     """
     try:
-        session, instance_id = instance_start(instance_name, **kwargs)  # type: ignore
-        return _start_ssm_session(
-            instance_id, _make_env(session), kwargs.get("wait", True), *args
-        )
+        session, instance_id = instance_start(
+            instance_name,
+            **dict(kwargs, wait=True),
+        )  # type: ignore
+        return _start_ssm_session(instance_id, _make_env(session), True, *args)
     except RuntimeError as err:
         print(err)
+        return None
