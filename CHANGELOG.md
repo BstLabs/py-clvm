@@ -2,13 +2,21 @@
 
 ## [v1.1.10.b](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.10.b) - 2022-10-19 10:10:37
 
-*No description*
+## What's Changed
 
-### Documentation
+* Fixed(session): The stopped VM's failure on the first try to start a session. (#204)
+* Fixed: Lost support for profile argument solved.
+* Fixed(Azure): jdict codec serialization bug (#206)
 
-- changelog:
-  - update release notes ([0a49f6c](https://github.com/BstLabs/py-clvm/commit/0a49f6c33207b22dcf535ad0d87569907e4d3984))
-  - update release notes ([47af780](https://github.com/BstLabs/py-clvm/commit/47af780ebad69ee501a68c0c704c824f5372f008))
+Description:
+- Added waiter for starting instance
+- Modified the session start to wait until the VM is running
+
+Co-authored-by: Dmitry Slobodchikov <zoosman@mail.ru>
+
+
+**Full Changelog**: https://github.com/BstLabs/py-clvm/compare/v1.1.9...v1.1.10.b
+
 
 ## [v1.1.9](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.9) - 2022-10-12 15:41:38
 
