@@ -1,5 +1,12 @@
 # <div align="center"><b>CLVM</b></div>
 
+![](https://img.shields.io/pypi/v/pyclvm?label=PyPi)
+![](https://img.shields.io/github/license/BstLabs/py-clvm?color=blue&label=License)
+![Changelog](https://github.com/BstLabs/py-clvm/workflows/Changelog/badge.svg)
+[![Lint](https://github.com/BstLabs/py-clvm/actions/workflows/lint.yml/badge.svg)](https://github.com/BstLabs/py-clvm/actions/workflows/lint.yml)
+[![Type](https://github.com/BstLabs/py-clvm/actions/workflows/type.yml/badge.svg)](https://github.com/BstLabs/py-clvm/actions/workflows/type.yml)
+
+
 A Cloud VM command line tool for powerful and efficient management of cloud instances
 
 This tool addresses the inefficient hassle of having to use your mouse to click lots of buttons to start/stop instances and configure and use these cloud services via a web interface. This is an unproductive way to work. If you use VSCode Remote or port redirection to access your cloud instance resources, then the steps are doubled.
