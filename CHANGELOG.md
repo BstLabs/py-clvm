@@ -1,3 +1,11 @@
+# Version: v1.1.10b
+
+
+#### Documentation Updates
+
+* [#209](https://github.com/BstLabs/py-clvm/pull/209): Docs(update): Modified and enhanced existing documentation
+
+
 # CHANGELOG
 
 ## [v1.1.10.b](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.10.b) - 2022-10-19 10:10:37
