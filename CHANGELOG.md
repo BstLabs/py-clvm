@@ -24,7 +24,7 @@ Co-authored-by: Dmitry Slobodchikov <zoosman@mail.ru>
 * [f8f56b5](https://github.com/BstLabs/py-clvm/commit/f8f56b5611e9a3697e8e62f325cc7e961e7178c4): Update CHANGELOG.md
 * [7cbd47c](https://github.com/BstLabs/py-clvm/commit/7cbd47ccba209cca9f8dfe0faedfa7403e41ff62): Docs(changelog): update release notes
 
-Version: v1.1.10b (beta version)
+# Version: v1.1.10b (beta version)
 
 * Fixed(session): The stopped VM's failure on the first try to start a session. (#204)
 * Fixed: Lost support for profile argument solved.
