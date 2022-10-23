@@ -13,6 +13,7 @@ from typing import Tuple, Union
 from azure.core.exceptions import ClientAuthenticationError
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.subscription import SubscriptionClient
+from _common.azure_rest_api import AzureRestApi
 
 from pyclvm.plt import _default_platform, _get_os, plt
 
@@ -156,14 +157,13 @@ def _login_azure(**kwargs: str) -> Union[None, Tuple]:
             "exclude_shared_token_cache_credential": True,
         }
         default_credentials = DefaultAzureCredential(**credentials_params)
-        subscription_client = SubscriptionClient(default_credentials)
-
-        for subscription in subscription_client.subscriptions.list():
-            if subscription.subscription_id == subscription_id:
+        for subscription in AzureRestApi(credentials=default_credentials).list_of_subscriptions():
+            if subscription["subscriptionId"] == subscription_id:
                 return (
                     default_credentials,
-                    subscription.display_name,
-                    subscription.subscription_id,
+                    subscription["displayName"],
+                    subscription["subscriptionId"],
+                    # subscription["tenantId"],
                 )
         raise ClientAuthenticationError()
     except (ClientAuthenticationError, KeyError):
