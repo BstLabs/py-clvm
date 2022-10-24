@@ -90,7 +90,7 @@ def _is_stopped_or_terminated(
     **kwargs: str,
 ) -> None:
     print(f"Starting {instance_name} ...")
-    instance.start(wait=wait)
+    print(instance.start(wait=wait))
 
 
 def _in_transition(

@@ -6,7 +6,6 @@ import os
 from collections import defaultdict
 from typing import Any, Dict, Tuple
 
-from azure.mgmt.compute import ComputeManagementClient
 from singleton_decorator import singleton
 
 from pyclvm.login import _login_azure
@@ -27,10 +26,6 @@ class AzureSession:
             self._subscription_name,
             self._subscription_id,
         ) = _login_azure(**kwargs)
-        self._client = ComputeManagementClient(
-            credential=self._credentials,
-            subscription_id=self._subscription_id,
-        )
         self._location = kwargs.get(
             "location", os.getenv("AZURE_DEFAULT_LOCATION", "westeurope")
         )
@@ -38,8 +33,8 @@ class AzureSession:
 
     # ---
     def _get_instances(self) -> Dict:
-        r = AzureRestApi(credentials=self._credentials, subscription_id=self._subscription_id)
-        _instances = r.list_of_vm_instances(_filter={"statusOnly": "true"})
+        rest_client = AzureRestApi(credentials=self._credentials, subscription_id=self._subscription_id)
+        _instances = rest_client.list_of_vm_instances(_filter={"statusOnly": "true"})
 
         instances = defaultdict()
         for instance in _instances:
@@ -87,21 +82,6 @@ class AzureSession:
         Returns Azure Subscription name
         """
         return self._subscription_name
-
-    # ---
-    def get_client(self) -> ComputeManagementClient:
-        """
-        Returns Azure Compute client
-        """
-        return self._client
-
-    @property
-    # ---
-    def client(self) -> ComputeManagementClient:
-        """
-        Returns Azure Compute client
-        """
-        return self._client
 
 
 def get_session(**kwargs) -> AzureSession:

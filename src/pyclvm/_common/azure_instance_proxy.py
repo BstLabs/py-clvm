@@ -11,6 +11,7 @@ from distutils.util import strtobool
 from threading import Thread, ThreadError
 from time import sleep
 from typing import Any, Generator, Iterable, NewType, Optional, Union
+from _common.azure_rest_api import AzureRestApi
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.mgmt.storage import StorageManagementClient
@@ -39,9 +40,12 @@ class AzureInstanceProxy:
     ) -> None:
         self._session = session
         self._instance_name = instance_name
-        self._client = session.get_client()
         self._instance = self._session.instances[instance_name]
         self._wait_for_queue = kwargs.get("wait", "yes")
+        self._rest_api = AzureRestApi(
+            credentials=session.credentials,
+            subscription_id=session.subscription,
+        )
 
     # ---
     def _wait_for_extended_operation(self, state: str, timeout: int = 300) -> None:
@@ -56,14 +60,14 @@ class AzureInstanceProxy:
         """
         Starts the vm
         """
-        vm_operation = self._client.virtual_machines.begin_start(
-            self._instance["resource_group"].lower(), self._instance["instance_name"]
+        vm_operation = self._rest_api.vm_start(
+            resource_group_name=self._instance["resource_group"].lower(),
+            vm_instance_name=self._instance["instance_name"],
         )
         if wait:
             self._wait_for_extended_operation("VM running")
             if strtobool(self._wait_for_queue):
                 self._wait_runtime(timeout=30)
-
         return vm_operation
 
     # ---
@@ -71,8 +75,9 @@ class AzureInstanceProxy:
         """
         Stops the vm
         """
-        vm_operation = self._client.virtual_machines.begin_deallocate(
-            self._instance["resource_group"].lower(), self._instance["instance_name"]
+        vm_operation = self._rest_api.vm_deallocate(
+            resource_group_name=self._instance["resource_group"].lower(),
+            vm_instance_name=self._instance["instance_name"],
         )
         if wait:
             self._wait_for_extended_operation("VM deallocated")
@@ -80,13 +85,12 @@ class AzureInstanceProxy:
 
     @property
     def state(self) -> Optional[str]:
-        instance_details = self._client.virtual_machines.get(
+        instance_details = self._rest_api.vm_instance_view(
             self._instance["resource_group"].lower(),
             self._instance["instance_name"],
-            expand="instanceView",
         )
         with contextlib.suppress(IndexError):
-            return instance_details.instance_view.statuses[1].display_status
+            return instance_details["statuses"][1]["displayStatus"]
 
     @property
     def id(self) -> str:
