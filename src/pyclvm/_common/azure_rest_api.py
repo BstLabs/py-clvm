@@ -7,6 +7,7 @@ from typing import Tuple, Union, Dict, List, Optional
 import requests
 
 
+@singleton
 class AzureRestApi:
     """
     Base class for Azure REST API
