@@ -12,7 +12,6 @@ from typing import Tuple, Union
 
 from azure.core.exceptions import ClientAuthenticationError
 from azure.identity import DefaultAzureCredential
-from _common.azure_rest_api import AzureRestApi
 
 from pyclvm.plt import _default_platform, _get_os, plt
 

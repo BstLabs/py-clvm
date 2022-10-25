@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*- #
 
-from singleton_decorator import singleton
 import json
-from azure.identity import DefaultAzureCredential, AzureCliCredential
-from typing import Tuple, Union, Dict, List, Optional
-import requests
 import os
 from pathlib import Path
-from plt import _get_cache_path
 from time import time
+from typing import Dict, List, Optional, Union
+
+import requests
+from azure.identity import AzureCliCredential, DefaultAzureCredential
+from plt import _get_cache_path
+from singleton_decorator import singleton
 
 
 @singleton
@@ -16,7 +17,12 @@ class AzureRestApi:
     """
     Base class for Azure REST API
     """
-    def __init__(self, credentials: Union[DefaultAzureCredential, AzureCliCredential], subscription_id: Optional[str] = None):
+
+    def __init__(
+        self,
+        credentials: Union[DefaultAzureCredential, AzureCliCredential],
+        subscription_id: Optional[str] = None,
+    ):
         scope = [
             "https://management.azure.com/",
         ]
@@ -52,21 +58,25 @@ class AzureRestApi:
     def _get(self, url) -> Dict:
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self._token}"
+            "Authorization": f"Bearer {self._token}",
         }
         resp = requests.get(url=url, headers=headers)
         if resp.status_code != 200:
-            raise RuntimeError(f"Azure REST API error: {resp.reason}, code: {resp.status_code}")
+            raise RuntimeError(
+                f"Azure REST API error: {resp.reason}, code: {resp.status_code}"
+            )
         return json.loads(resp.text)
 
     def _post(self, url) -> str:
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self._token.token}"
+            "Authorization": f"Bearer {self._token.token}",
         }
         resp = requests.post(url=url, headers=headers)
         if resp.status_code not in [200, 202]:
-            raise RuntimeError(f"Azure REST API error: {resp.reason}, code: {resp.status_code}")
+            raise RuntimeError(
+                f"Azure REST API error: {resp.reason}, code: {resp.status_code}"
+            )
         return str(resp.elapsed)
 
     def _get_subscription_id(self, subscription_id: str) -> str:

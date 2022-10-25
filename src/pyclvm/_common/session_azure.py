@@ -6,10 +6,10 @@ import os
 from collections import defaultdict
 from typing import Any, Dict, Tuple
 
+from _common.azure_rest_api import AzureRestApi
 from singleton_decorator import singleton
 
 from pyclvm.login import _login_azure
-from _common.azure_rest_api import AzureRestApi
 
 
 @singleton
@@ -33,7 +33,9 @@ class AzureSession:
 
     # ---
     def _get_instances(self) -> Dict:
-        rest_client = AzureRestApi(credentials=self._credentials, subscription_id=self._subscription_id)
+        rest_client = AzureRestApi(
+            credentials=self._credentials, subscription_id=self._subscription_id
+        )
         _instances = rest_client.list_of_vm_instances(_filter={"statusOnly": "true"})
 
         instances = defaultdict()
@@ -44,7 +46,9 @@ class AzureSession:
                 "resource_group": resource_group,
                 "location": instance["location"],
                 "instance_name": instance["name"],
-                "state": instance["properties"]["instanceView"]["statuses"][1]["displayStatus"]
+                "state": instance["properties"]["instanceView"]["statuses"][1][
+                    "displayStatus"
+                ],
             }
         return dict(instances)
 

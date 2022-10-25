@@ -2,6 +2,7 @@ from functools import partial
 from typing import Dict, Final, Tuple, Union
 
 import boto3
+from _common.session_azure import get_session as azure_get_session
 from ec2instances.ec2_instance_mapping import Ec2AllInstancesData
 from rich.console import Console
 from rich.table import Table
@@ -13,7 +14,6 @@ from pyclvm.plt import (
     _get_supported_platforms,
     _unsupported_platform,
 )
-from _common.session_azure import get_session as azure_get_session
 
 _COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
 

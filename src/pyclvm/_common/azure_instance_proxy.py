@@ -11,8 +11,8 @@ from distutils.util import strtobool
 from threading import Thread, ThreadError
 from time import sleep
 from typing import Any, Generator, Iterable, NewType, Optional, Union
-from _common.azure_rest_api import AzureRestApi
 
+from _common.azure_rest_api import AzureRestApi
 from azure.core.exceptions import ResourceNotFoundError
 from azure.mgmt.storage import StorageManagementClient
 from azure.storage.queue import (
