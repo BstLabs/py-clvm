@@ -5,6 +5,10 @@ import json
 from azure.identity import DefaultAzureCredential, AzureCliCredential
 from typing import Tuple, Union, Dict, List, Optional
 import requests
+import os
+from pathlib import Path
+from plt import _get_cache_path
+from time import time
 
 
 @singleton
@@ -13,10 +17,11 @@ class AzureRestApi:
     Base class for Azure REST API
     """
     def __init__(self, credentials: Union[DefaultAzureCredential, AzureCliCredential], subscription_id: Optional[str] = None):
-        self._scope = [
+        scope = [
             "https://management.azure.com/",
         ]
-        self._token = credentials.get_token(*self._scope)
+        self._credentials = credentials
+        self._token = self._get_token(scope=scope)
         self._base_url = "https://management.azure.com/"
         self._base_api_version = "2022-01-01"
         self._subscription_id = self._get_subscription_id(subscription_id)
@@ -25,10 +30,29 @@ class AzureRestApi:
         _filters = "".join([f"&{k}={v}" for k, v in filters.items()])
         return f"{self._base_url}/{resource}?api-version={self._base_api_version}{_filters}"
 
+    def _get_token(self, scope: List):
+        token_path = Path(f"{os.path.dirname(_get_cache_path())}/token.json")
+        try:
+            t = open(token_path, "rb")
+            token = json.load(t)
+            t.close()
+            if token[1] - int(time()) < 100:
+                raise RuntimeError()
+            return token[0]
+        except (FileExistsError, PermissionError, RuntimeError):
+            token = self._credentials.get_token(*scope)
+            try:
+                t = open(token_path, "w+")
+                json.dump(token, t, indent=2)
+                t.close()
+            except (FileExistsError, PermissionError):
+                pass
+            return token.token
+
     def _get(self, url) -> Dict:
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self._token.token}"
+            "Authorization": f"Bearer {self._token}"
         }
         resp = requests.get(url=url, headers=headers)
         if resp.status_code != 200:
