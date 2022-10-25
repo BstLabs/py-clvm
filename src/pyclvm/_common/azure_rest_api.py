@@ -39,7 +39,7 @@ class AzureRestApi:
             if token[1] - int(time()) < 100:
                 raise RuntimeError()
             return token[0]
-        except (FileExistsError, PermissionError, RuntimeError):
+        except (FileNotFoundError, PermissionError, RuntimeError):
             token = self._credentials.get_token(*scope)
             try:
                 t = open(token_path, "w+")
