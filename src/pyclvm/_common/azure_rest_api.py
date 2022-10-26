@@ -70,7 +70,7 @@ class AzureRestApi:
     def _post(self, url) -> str:
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self._token.token}",
+            "Authorization": f"Bearer {self._token}",
         }
         resp = requests.post(url=url, headers=headers)
         if resp.status_code not in [200, 202]:
