@@ -1,16 +1,30 @@
-# Version: v1.1.10b
+# Version: v1.1.10
 
+* [2888655](https://github.com/BstLabs/py-clvm/commit/2888655d98afe7905f21b4a04592a50e1773baf8): Release PR v1.1.10 (#211)
 
-#### Documentation Updates
+* Docs: Changed changelog type to commit messages
 
-* [#209](https://github.com/BstLabs/py-clvm/pull/209): Docs(update): Modified and enhanced existing documentation
+* version bump v1.1.10 (stable)
+* [98b8a05](https://github.com/BstLabs/py-clvm/commit/98b8a054ad5ed3d852c56f86aaec73d848faf9d4): [Changelog CI] Add Changelog for Version v1.1.10b (#210)
+* [8077372](https://github.com/BstLabs/py-clvm/commit/80773727d2073c8dca7b47d2dbc2c3e93ef407ee): Docs(update): Modified and enhanced existing documentation (#209)
 
+* Docs(update): Modified and enhanced docs
 
-# CHANGELOG
+Description:
+- Removed redundant checklist from PR template
+- Applied new changelog workflow and config for it
+- Added new indicator badges to README for:
+	- PyPi version,
+	- License,
+	- Changelog,
+	- Linter
+	- Type checker
 
-## [v1.1.10.b](https://github.com/BstLabs/py-clvm/releases/tag/v1.1.10.b) - 2022-10-19 10:10:37
+Co-authored-by: Dmitry Slobodchikov <zoosman@mail.ru>
+* [f8f56b5](https://github.com/BstLabs/py-clvm/commit/f8f56b5611e9a3697e8e62f325cc7e961e7178c4): Update CHANGELOG.md
+* [7cbd47c](https://github.com/BstLabs/py-clvm/commit/7cbd47ccba209cca9f8dfe0faedfa7403e41ff62): Docs(changelog): update release notes
 
-## What's Changed
+# Version: v1.1.10b (beta version)
 
 * Fixed(session): The stopped VM's failure on the first try to start a session. (#204)
 * Fixed: Lost support for profile argument solved.

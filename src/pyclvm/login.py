@@ -12,7 +12,6 @@ from typing import Tuple, Union
 
 from azure.core.exceptions import ClientAuthenticationError
 from azure.identity import DefaultAzureCredential
-from azure.mgmt.subscription import SubscriptionClient
 
 from pyclvm.plt import _default_platform, _get_os, plt
 
@@ -145,25 +144,19 @@ def _login_azure(**kwargs: str) -> Union[None, Tuple]:
     with open(os.path.normpath(f"{config_path}/azureProfile.json"), "rb") as cfg:
         azure_cfg = json.load(cfg)
 
-    subscription_id = ""
-
     try:
-        for subscription in azure_cfg["subscriptions"]:
-            if subscription["isDefault"]:
-                subscription_id = subscription["id"]
-
         credentials_params = {
             "exclude_shared_token_cache_credential": True,
         }
         default_credentials = DefaultAzureCredential(**credentials_params)
-        subscription_client = SubscriptionClient(default_credentials)
-
-        for subscription in subscription_client.subscriptions.list():
-            if subscription.subscription_id == subscription_id:
+        for subscription in azure_cfg["subscriptions"]:
+            if subscription["isDefault"]:
                 return (
                     default_credentials,
-                    subscription.display_name,
-                    subscription.subscription_id,
+                    subscription["name"],
+                    subscription["id"],
+                    # subscription["tenantId"],
+                    # subscription.get("user", None),
                 )
         raise ClientAuthenticationError()
     except (ClientAuthenticationError, KeyError):

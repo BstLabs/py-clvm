@@ -16,7 +16,6 @@ class AzureComputeAllInstancesData:
 
     def __init__(self, **kwargs) -> None:
         self._session = get_session(**kwargs)  # TODO get session out of here
-        self._client = self._session.get_client()
         self._instances_data = self._instances()
 
     # ---
@@ -30,22 +29,7 @@ class AzureComputeAllInstancesData:
 
     # ---
     def _instances(self) -> Iterable:
-        instances = []
-        for _, instance_data in self._session.instances.items():
-            instance_details = self._client.virtual_machines.get(
-                instance_data["resource_group"],
-                instance_data["instance_name"],
-                expand="instanceView",
-            )
-            instances.append(
-                (
-                    instance_data["instance_id"],
-                    self._get_instance_name(instance_details.tags)
-                    or instance_data["instance_name"],
-                    instance_details.instance_view.statuses[1].display_status,
-                )
-            )
-        return instances
+        return self._session.instances
 
     # ---
     def __iter__(self) -> Iterator:
@@ -71,7 +55,6 @@ class AzureComputeAllInstancesData:
 class AzureInstanceMapping(VmInstanceMappingBase[VmInstanceProxy]):
     def __init__(self, **kwargs) -> None:
         self._session = get_session(**kwargs)  # TODO get session out of here
-        self._client = self._session.get_client()
         self._kwargs = kwargs
 
     def __getitem__(self, instance_name: str) -> AzureInstanceProxy:

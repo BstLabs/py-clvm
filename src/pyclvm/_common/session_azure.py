@@ -6,8 +6,7 @@ import os
 from collections import defaultdict
 from typing import Any, Dict, Tuple
 
-from azure.mgmt.compute import ComputeManagementClient
-from azure.mgmt.subscription import SubscriptionClient
+from _common.azure_rest_api import AzureRestApi
 from singleton_decorator import singleton
 
 from pyclvm.login import _login_azure
@@ -27,10 +26,6 @@ class AzureSession:
             self._subscription_name,
             self._subscription_id,
         ) = _login_azure(**kwargs)
-        self._client = ComputeManagementClient(
-            credential=self._credentials,
-            subscription_id=self._subscription_id,
-        )
         self._location = kwargs.get(
             "location", os.getenv("AZURE_DEFAULT_LOCATION", "westeurope")
         )
@@ -38,15 +33,22 @@ class AzureSession:
 
     # ---
     def _get_instances(self) -> Dict:
+        rest_client = AzureRestApi(
+            credentials=self._credentials, subscription_id=self._subscription_id
+        )
+        _instances = rest_client.list_of_vm_instances(_filter={"statusOnly": "true"})
+
         instances = defaultdict()
-        for instance in self._client.virtual_machines.list_all():
-            resource_group = instance.id.split("/")[4]
-            location = instance.location
-            instances[f"{instance.name}"] = {
-                "instance_id": instance.vm_id,
+        for instance in _instances:
+            resource_group = instance["id"].split("/")[4]
+            instances[f"{instance['name']}"] = {
+                "instance_id": instance["properties"]["vmId"],
                 "resource_group": resource_group,
-                "location": location,
-                "instance_name": instance.name,
+                "location": instance["location"],
+                "instance_name": instance["name"],
+                "state": instance["properties"]["instanceView"]["statuses"][1][
+                    "displayStatus"
+                ],
             }
         return dict(instances)
 
@@ -60,10 +62,7 @@ class AzureSession:
 
     # ---
     def _get_subscription(self) -> Tuple[str, str]:
-        subscription_client = SubscriptionClient(self._credentials)
-        for r in subscription_client.subscriptions.list():
-            if r.display_name:
-                return r.display_name, r.subscription_id
+        return self._subscription_name, self._subscription_id
 
     # ---
     @property
@@ -87,21 +86,6 @@ class AzureSession:
         Returns Azure Subscription name
         """
         return self._subscription_name
-
-    # ---
-    def get_client(self) -> ComputeManagementClient:
-        """
-        Returns Azure Compute client
-        """
-        return self._client
-
-    @property
-    # ---
-    def client(self) -> ComputeManagementClient:
-        """
-        Returns Azure Compute client
-        """
-        return self._client
 
 
 def get_session(**kwargs) -> AzureSession:

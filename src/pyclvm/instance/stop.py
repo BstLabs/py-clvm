@@ -77,7 +77,7 @@ def _stopping_instance(
     instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
 ) -> None:
     print(f"Stopping {instance_name} ...")
-    instance.stop(wait=False)
+    print(instance.stop(wait=False))
 
 
 def _in_transition(
