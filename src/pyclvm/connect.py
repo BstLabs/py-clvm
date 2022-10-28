@@ -21,7 +21,7 @@ def _connect(
     **kwargs,
 ) -> None:
     print(f"Starting {instance_name} ...")
-    instance.start()
+    instance.start(wait=False)
     print(f"{instance_name} is running")
 
     print(f"Connecting to {instance_name} ...")
@@ -49,10 +49,10 @@ def connect(instance_name: str, **kwargs: str) -> Union[Dict, None]:
         return {
             "AWS": partial(start_session, instance_name, **kwargs),
             "GCP": partial(
-                process_instances, _connect, "RUNNING", (instance_name,), kwargs
+                process_instances, _connect, "RUNNING", (instance_name,), **kwargs
             ),
             "AZURE": partial(
-                process_instances, _connect, "VM running", (instance_name,), kwargs
+                process_instances, _connect, "VM running", (instance_name,), **kwargs
             ),
         }[default_platform.upper()]()
     _unsupported_platform(default_platform)
