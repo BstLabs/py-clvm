@@ -6,9 +6,7 @@ import os
 import signal
 import socket
 import subprocess
-import sys
 from distutils.util import strtobool
-from threading import Thread, ThreadError
 from time import sleep
 from typing import Any, Generator, Iterable, NewType, Optional, Union
 
@@ -179,162 +177,15 @@ class AzureRemoteShellProxy(AzureInstanceProxy):
 
     # ---
     def execute(self, *commands: Union[str, Iterable], **kwargs) -> Any:
-        _port = next_free_port()
-        _connector = AzureRemoteConnector(self, _port)
-        _executor = AzureRemoteExecutor(self, _connector, _port, *commands, **kwargs)
-        _connector.start()
-        _executor.start()
-        _connector.join()
-        _executor.join()
+        port = next_free_port()
+        tunnel_proc = build_azure_tunnel(self, port, **kwargs)
+        sleep(3)
+        exec_command(self, tunnel_proc, port, *commands, **kwargs)
 
     # ---
     @property
     def session(self):
         return self._session
-
-
-# ---
-class AzureRemoteConnector(Thread):
-    """
-    Azure remote connector class
-    """
-
-    def __init__(self, instance: AzureRemoteShellProxy, port: int, **kwargs) -> None:
-        super().__init__()
-        self._instance = instance
-        self._proc = None
-        self._port = port
-
-    # ---
-    def run(self):
-        resource_group = self._instance.session.instances[self._instance.name][
-            "resource_group"
-        ].lower()
-        subscription = self._instance.session.subscription
-        instance_name = self._instance.name
-        self._proc = subprocess
-
-        with contextlib.suppress(ThreadError, RuntimeError):
-            cmd = [
-                "az.cmd" if _OS == "Windows" else "az",
-                "network",
-                "bastion",
-                "tunnel",
-                "--port",
-                str(self._port),
-                "--resource-port",
-                "22",
-                "--name",
-                f"{resource_group}-vpc-bastion",
-                "--resource-group",
-                resource_group,
-                "--target-resource-id",
-                f"/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.Compute/virtualMachines/{instance_name}",
-                "--only-show-errors",
-            ]
-            self._proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL)
-            raise ThreadError
-
-    def stop(self):
-        if _OS == "Windows":
-            os.kill(self._proc.pid, signal.SIGTERM)
-        else:
-            os.killpg(os.getpgid(self._proc.pid), signal.SIGTERM)
-
-
-# ---
-class AzureRemoteExecutor(Thread):
-    """
-    Azure remote socket class
-    """
-
-    def __init__(
-        self,
-        instance: AzureRemoteShellProxy,
-        connector: AzureRemoteConnector,
-        port: int,
-        *commands: Union[str, Iterable],
-        **kwargs: str,
-    ):
-        super().__init__()
-        self._instance = instance
-        self._connector = connector
-        self._commands = commands
-        self._port = port
-        self._account = kwargs.get("account")
-        self._key = kwargs.get("key")
-
-        if not self._account or not self._key:
-            print(
-                "\n-----------\nSpecify account=account_name or/and key=/path/to/ssh/key/file\n"
-                "e.g.\n\tclvm connect vm-instance-name account=username key=/path/to/ssh/key platform=azure\n"
-            )
-            sys.exit(-1)
-
-    # ---
-    def run(self):
-        sleep(5)
-        command = " ".join(*self._commands) if len(self._commands) > 0 else ""
-        with contextlib.suppress(ThreadError, RuntimeError):
-            cmd = [
-                "ssh",
-                "-p",
-                str(self._port),
-                "-i",
-                os.path.normpath(self._key),
-                f"{self._account}@localhost",
-                "-o",
-                "UserKnownHostsFile=/dev/null",
-                "-o",
-                "StrictHostKeyChecking=no",
-            ]
-            if command:
-                cmd.append(command)
-            subprocess.run(cmd)
-            self._connector.stop()
-
-
-# ---
-class AzureRemoteSocket(Thread):
-    """
-    Azure remote socket class
-    """
-
-    def __init__(
-        self,
-        instance: AzureRemoteShellProxy,
-        connector: AzureRemoteConnector,
-        port: int,
-        **kwargs,
-    ):
-        super().__init__()
-        self._instance = instance
-        self._connector = connector
-        self._port = port
-        self._account = kwargs.get("account")
-        self._key = kwargs.get("key")
-
-    # ---
-    def run(self):
-        sleep(5)  # Delay to run az tunnel
-        subprocess.run(
-            [
-                "ssh",
-                "-p",
-                f"{self._port}",
-                "-i",
-                os.path.normpath(f"{self._key}"),
-                f"{self._account}@localhost",
-                "-o",
-                "UserKnownHostsFile=/dev/null",
-                "-o",
-                "StrictHostKeyChecking=no",
-                "-W",
-                "localhost:22",
-            ]
-        )
-        self._connector.stop()
-        raise ThreadError()
 
 
 # ---
@@ -348,3 +199,95 @@ def next_free_port(port=44500, max_port=45500):
         except OSError:
             port += 1
     raise IOError("no free ports")
+
+
+# ---
+def build_azure_tunnel(instance: AzureRemoteShellProxy, port: int, **kwargs):
+    instance_name = instance.name
+    resource_group = instance.session.instances[instance_name]["resource_group"].lower()
+    subscription = instance.session.subscription
+
+    cmd = [
+        "az.cmd" if _OS == "Windows" else "az",
+        "network",
+        "bastion",
+        "tunnel",
+        "--port",
+        str(port),
+        "--resource-port",
+        "22",
+        "--name",
+        f"{resource_group}-vpc-bastion",  # TODO Retrieve Bastion name via REST API
+        "--resource-group",
+        resource_group,
+        "--target-resource-id",
+        f"/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.Compute/virtualMachines/{instance_name}",
+        "--only-show-errors",
+    ]
+    return subprocess.Popen(cmd, stdout=subprocess.DEVNULL)
+
+
+def create_socket(
+    instance: AzureRemoteShellProxy,
+    tunnel_proc: subprocess,
+    port: int,
+    *args,
+    **kwargs: str,
+):
+    # command = " ".join(*self._commands) if len(self._commands) > 0 else ""
+    account = kwargs.get("account")
+    key = kwargs.get("key")
+    cmd = [
+        "ssh",
+        "-p",
+        f"{port}",
+        "-i",
+        os.path.normpath(f"{key}"),
+        f"{account}@localhost",
+        "-o",
+        "UserKnownHostsFile=/dev/null",
+        "-o",
+        "StrictHostKeyChecking=no",
+        "-W",
+        "localhost:22",
+    ]
+    subprocess.run(cmd)
+
+    if _OS == "Windows":
+        os.kill(tunnel_proc.pid, signal.SIGTERM)
+    else:
+        os.killpg(os.getpgid(tunnel_proc.pid), signal.SIGTERM)
+
+
+def exec_command(
+    instance: AzureRemoteShellProxy,
+    tunnel_proc: subprocess,
+    port: int,
+    *commands: Union[str, Iterable],
+    **kwargs: str,
+):
+
+    account = kwargs.get("account")
+    key = kwargs.get("key")
+
+    cmd = [
+        "ssh",
+        "-p",
+        str(port),
+        "-i",
+        os.path.normpath(key),
+        f"{account}@localhost",
+        "-o",
+        "UserKnownHostsFile=/dev/null",
+        "-o",
+        "StrictHostKeyChecking=no",
+    ]
+    _commands = " ".join(*commands) if len(commands) > 0 else ""
+    if _commands:
+        cmd.append(f"cd $HOME && {_commands}")
+    subprocess.run(cmd)
+
+    if _OS == "Windows":
+        os.kill(tunnel_proc.pid, signal.SIGTERM)
+    else:
+        os.killpg(os.getpgid(tunnel_proc.pid), signal.SIGTERM)
