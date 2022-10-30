@@ -1,10 +1,9 @@
 import subprocess
 from functools import partial
-from time import sleep
 from typing import Optional
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
-from pyclvm._common.azure_instance_proxy import build_azure_tunnel, create_socket
+from pyclvm._common.azure_instance_proxy import build_azure_tunnel
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
 from pyclvm.plt import (
     _default_platform,
@@ -83,6 +82,4 @@ def _start_azure(instance_name: str, port: int, **kwargs: str) -> None:
     instance.start(wait=False)  # type: ignore
     print(f"\n{instance_name} is running")
 
-    tunnel_proc = build_azure_tunnel(instance, port, **kwargs)
-    sleep(3)
-    create_socket(instance, tunnel_proc, port, **kwargs)
+    build_azure_tunnel(instance, port, **kwargs)

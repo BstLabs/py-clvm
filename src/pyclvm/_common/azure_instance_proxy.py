@@ -7,7 +7,7 @@ import signal
 import socket
 import subprocess
 from distutils.util import strtobool
-from time import sleep
+from time import sleep, time
 from typing import Any, Generator, Iterable, NewType, Optional, Union
 
 from _common.azure_rest_api import AzureRestApi
@@ -180,7 +180,7 @@ class AzureRemoteShellProxy(AzureInstanceProxy):
         port = next_free_port()
         tunnel_proc = build_azure_tunnel(self, port, **kwargs)
         sleep(3)
-        exec_command(self, tunnel_proc, port, *commands, **kwargs)
+        exec_command(tunnel_proc, port, *commands, **kwargs)
 
     # ---
     @property
@@ -202,7 +202,7 @@ def next_free_port(port=44500, max_port=45500):
 
 
 # ---
-def build_azure_tunnel(instance: AzureRemoteShellProxy, port: int, **kwargs):
+def build_azure_tunnel(instance: AzureRemoteShellProxy, port: int, **kwargs) -> None:
     instance_name = instance.name
     resource_group = instance.session.instances[instance_name]["resource_group"].lower()
     subscription = instance.session.subscription
@@ -224,17 +224,14 @@ def build_azure_tunnel(instance: AzureRemoteShellProxy, port: int, **kwargs):
         f"/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.Compute/virtualMachines/{instance_name}",
         "--only-show-errors",
     ]
-    return subprocess.Popen(cmd, stdout=subprocess.DEVNULL)
+    create_socket(
+        tunnel_proc=subprocess.Popen(cmd, stdout=subprocess.DEVNULL),
+        port=port,
+        **kwargs,
+    )
 
 
-def create_socket(
-    instance: AzureRemoteShellProxy,
-    tunnel_proc: subprocess,
-    port: int,
-    *args,
-    **kwargs: str,
-):
-    # command = " ".join(*self._commands) if len(self._commands) > 0 else ""
+def create_socket(tunnel_proc: subprocess, port: int, **kwargs) -> bool:
     account = kwargs.get("account")
     key = kwargs.get("key")
     cmd = [
@@ -248,10 +245,21 @@ def create_socket(
         "UserKnownHostsFile=/dev/null",
         "-o",
         "StrictHostKeyChecking=no",
+        "-o",
+        "ConnectTimeout=3",
         "-W",
         "localhost:22",
     ]
-    subprocess.run(cmd)
+    sleep(3)  # Wait until tunnel to build
+
+    cnt = 10
+    while cnt > 0:
+        enter_sec = int(time())
+        subprocess.run(cmd)
+        if int(time() - enter_sec) > 5:
+            break
+        sleep(3)
+        cnt -= 1
 
     if _OS == "Windows":
         os.kill(tunnel_proc.pid, signal.SIGTERM)
@@ -260,7 +268,6 @@ def create_socket(
 
 
 def exec_command(
-    instance: AzureRemoteShellProxy,
     tunnel_proc: subprocess,
     port: int,
     *commands: Union[str, Iterable],
@@ -281,11 +288,22 @@ def exec_command(
         "UserKnownHostsFile=/dev/null",
         "-o",
         "StrictHostKeyChecking=no",
+        "-o",
+        "ConnectTimeout=5",
     ]
     _commands = " ".join(*commands) if len(commands) > 0 else ""
     if _commands:
         cmd.append(f"cd $HOME && {_commands}")
-    subprocess.run(cmd)
+
+    cnt = 10
+    while cnt > 0:
+        enter_sec = time()
+        subprocess.run(cmd)
+        lag = time() - enter_sec
+        if lag < 5.01 or lag > 5.02:  # TODO Fix it. It relies on SSH ConnectTimeout.
+            break
+        sleep(1)
+        cnt -= 1
 
     if _OS == "Windows":
         os.kill(tunnel_proc.pid, signal.SIGTERM)
