@@ -294,10 +294,10 @@ def exec_command(
 
     cnt = 10
     while cnt > 0:
-        enter_sec = time()
+        enter_time = time()
         subprocess.run(cmd)
-        lag = time() - enter_sec
-        if lag < 5.01 or lag > 5.02:  # TODO Fix it. It relies on SSH ConnectTimeout.
+        lag = time() - enter_time
+        if lag < 5.001 or lag > 5.02:  # TODO Fix it. It relies on SSH ConnectTimeout.
             break
         sleep(1)
         cnt -= 1
@@ -306,3 +306,12 @@ def exec_command(
         os.kill(tunnel_proc.pid, signal.SIGTERM)
     else:
         os.killpg(os.getpgid(tunnel_proc.pid), signal.SIGTERM)
+
+
+def ssh_connection_std_output(instance: AzureRemoteShellProxy, **kwargs) -> None:
+    port = next_free_port()
+    create_socket(
+        tunnel_proc=build_azure_tunnel(instance, port, **kwargs),
+        port=port,
+        **kwargs,
+    )
