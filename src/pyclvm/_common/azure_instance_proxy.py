@@ -178,9 +178,9 @@ class AzureRemoteShellProxy(AzureInstanceProxy):
     # ---
     def execute(self, *commands: Union[str, Iterable], **kwargs) -> Any:
         port = next_free_port()
-        tunnel_proc = build_azure_tunnel(self, port, **kwargs)
-        sleep(3)
-        exec_command(tunnel_proc, port, *commands, **kwargs)
+        exec_command(
+            build_azure_tunnel(self, port, **kwargs), port, *commands, **kwargs
+        )
 
     # ---
     @property
@@ -202,7 +202,9 @@ def next_free_port(port=44500, max_port=45500):
 
 
 # ---
-def build_azure_tunnel(instance: AzureRemoteShellProxy, port: int, **kwargs) -> None:
+def build_azure_tunnel(
+    instance: AzureRemoteShellProxy, port: int, **kwargs
+) -> subprocess:
     instance_name = instance.name
     resource_group = instance.session.instances[instance_name]["resource_group"].lower()
     subscription = instance.session.subscription
@@ -224,14 +226,12 @@ def build_azure_tunnel(instance: AzureRemoteShellProxy, port: int, **kwargs) -> 
         f"/subscriptions/{subscription}/resourceGroups/{resource_group}/providers/Microsoft.Compute/virtualMachines/{instance_name}",
         "--only-show-errors",
     ]
-    create_socket(
-        tunnel_proc=subprocess.Popen(cmd, stdout=subprocess.DEVNULL),
-        port=port,
-        **kwargs,
-    )
+    tunnel_proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL)
+    sleep(3)  # Wait until tunnel to build
+    return tunnel_proc
 
 
-def create_socket(tunnel_proc: subprocess, port: int, **kwargs) -> bool:
+def create_socket(tunnel_proc: subprocess, port: int, **kwargs) -> None:
     account = kwargs.get("account")
     key = kwargs.get("key")
     cmd = [
@@ -250,7 +250,6 @@ def create_socket(tunnel_proc: subprocess, port: int, **kwargs) -> bool:
         "-W",
         "localhost:22",
     ]
-    sleep(3)  # Wait until tunnel to build
 
     cnt = 10
     while cnt > 0:
@@ -272,11 +271,9 @@ def exec_command(
     port: int,
     *commands: Union[str, Iterable],
     **kwargs: str,
-):
-
+) -> None:
     account = kwargs.get("account")
     key = kwargs.get("key")
-
     cmd = [
         "ssh",
         "-p",
