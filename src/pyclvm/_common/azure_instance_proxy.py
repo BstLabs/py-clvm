@@ -245,11 +245,16 @@ def create_socket(tunnel_proc: subprocess, port: int, **kwargs) -> None:
         "UserKnownHostsFile=/dev/null",
         "-o",
         "StrictHostKeyChecking=no",
-        "-o",
-        "ConnectTimeout=3",
         "-W",
         "localhost:22",
     ]
+    if _OS != "Windows":
+        cmd.extend(
+            [
+                "-o",
+                "ConnectTimeout=3",
+            ]
+        )
 
     cnt = 10
     while cnt > 0:
@@ -285,19 +290,25 @@ def exec_command(
         "UserKnownHostsFile=/dev/null",
         "-o",
         "StrictHostKeyChecking=no",
-        "-o",
-        "ConnectTimeout=5",
     ]
+    if _OS != "Windows":
+        cmd.extend(
+            [
+                "-o",
+                "ConnectTimeout=5",
+            ]
+        )
+
     _commands = " ".join(*commands) if len(commands) > 0 else ""
     if _commands:
         cmd.append(f"cd $HOME && {_commands}")
 
     cnt = 10
     while cnt > 0:
-        enter_sec = time()
+        enter_time = time()
         subprocess.run(cmd)
-        lag = time() - enter_sec
-        if lag < 5.01 or lag > 5.02:  # TODO Fix it. It relies on SSH ConnectTimeout.
+        lag = time() - enter_time
+        if lag < 5.001 or lag > 5.02:  # TODO Fix it. It relies on SSH ConnectTimeout.
             break
         sleep(1)
         cnt -= 1
@@ -306,3 +317,12 @@ def exec_command(
         os.kill(tunnel_proc.pid, signal.SIGTERM)
     else:
         os.killpg(os.getpgid(tunnel_proc.pid), signal.SIGTERM)
+
+
+def ssh_connection_std_output(instance: AzureRemoteShellProxy, **kwargs) -> None:
+    port = next_free_port()
+    create_socket(
+        tunnel_proc=build_azure_tunnel(instance, port, **kwargs),
+        port=port,
+        **kwargs,
+    )

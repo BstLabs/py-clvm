@@ -19,7 +19,6 @@ from pyclvm._common.azure_instance_mapping import (
     AzureRemoteShellMapping,
     AzureRemoteShellProxy,
 )
-from pyclvm._common.azure_instance_proxy import next_free_port
 from pyclvm._common.gcp_instance_mapping import (
     GcpRemoteShellMapping,
     GcpRemoteShellProxy,
@@ -153,10 +152,9 @@ def _azure_config_lines(instance: AzureRemoteShellProxy, **kwargs: str) -> List:
         )
         sys.exit(-1)
 
-    port = next_free_port(port=22060, max_port=22960)
     proxy_data = {
         "identity_file": key,
-        "proxy_command": f"{str(_MAIN)} ssh start {instance.name} {port} profile={profile} platform={cloud_platform} account={account} key={os.path.normpath(key)}",
+        "proxy_command": f"{str(_MAIN)} ssh start {instance.name} 0 profile={profile} platform={cloud_platform} account={account} key={os.path.normpath(key)}",
         "user_name": account,
     }
     return _config_lines(instance.name, proxy_data)
