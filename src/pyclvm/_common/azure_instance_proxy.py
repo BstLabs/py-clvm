@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*- #
 
 import contextlib
+import enum
 import json
 import os
 import signal
@@ -231,6 +232,15 @@ def build_azure_tunnel(
     return tunnel_proc
 
 
+def grace_kill(proc: subprocess, sig: signal) -> enum:
+    # TODO Add any clearance procedures if necessary (e.g. stop VM)
+    if _OS == "Windows":
+        os.kill(proc.pid, sig)
+    else:
+        os.killpg(os.getpgid(proc.pid), sig)
+    return signal.getsignal(sig)
+
+
 def create_socket(tunnel_proc: subprocess, port: int, **kwargs) -> None:
     account = kwargs.get("account")
     key = kwargs.get("key")
@@ -265,10 +275,7 @@ def create_socket(tunnel_proc: subprocess, port: int, **kwargs) -> None:
         sleep(3)
         cnt -= 1
 
-    if _OS == "Windows":
-        os.kill(tunnel_proc.pid, signal.SIGTERM)
-    else:
-        os.killpg(os.getpgid(tunnel_proc.pid), signal.SIGTERM)
+    signal.signal(signal.SIGTERM, grace_kill(tunnel_proc, signal.SIGTERM))
 
 
 def exec_command(
@@ -313,10 +320,7 @@ def exec_command(
         sleep(1)
         cnt -= 1
 
-    if _OS == "Windows":
-        os.kill(tunnel_proc.pid, signal.SIGTERM)
-    else:
-        os.killpg(os.getpgid(tunnel_proc.pid), signal.SIGTERM)
+    signal.signal(signal.SIGTERM, grace_kill(tunnel_proc, signal.SIGTERM))
 
 
 def ssh_connection_std_output(instance: AzureRemoteShellProxy, **kwargs) -> None:
