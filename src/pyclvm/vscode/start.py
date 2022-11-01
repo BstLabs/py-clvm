@@ -4,6 +4,7 @@ from typing import Any, List
 
 import psutil
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
+from plt import _get_os
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
@@ -14,7 +15,6 @@ from pyclvm.plt import (
     _unsupported_platform,
 )
 
-from plt import _get_os
 
 def start(instance_name: str, **kwargs: str) -> None:
     """
