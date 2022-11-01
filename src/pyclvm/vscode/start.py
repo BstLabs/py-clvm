@@ -14,6 +14,7 @@ from pyclvm.plt import (
     _unsupported_platform,
 )
 
+from plt import _get_os
 
 def start(instance_name: str, **kwargs: str) -> None:
     """
@@ -47,7 +48,7 @@ def _start_vscode_with_given_platform(
 
 def _get_vscode_cmd(instance_name: str, path: str, _platform: str) -> List[str]:
     return [
-        "code",
+        "code.cmd" if "Windows" == _get_os() else "code",
         "--folder-uri",
         f"vscode-remote://ssh-remote+{instance_name}-{_platform.lower()}{path}",
     ]
@@ -76,10 +77,6 @@ def _run_subprocess(instance_name: str, _platform: str, **kwargs: str) -> None:
         ).stop(wait=False)
     except StopIteration:
         return
-
-
-def _get_path(**kwargs: str) -> str:
-    return kwargs.get("path", "/home")
 
 
 def _get_platform_instance(instance_name: str, _platform: str, **kwargs: str) -> Any:
