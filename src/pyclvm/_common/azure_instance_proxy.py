@@ -249,10 +249,12 @@ def create_socket(tunnel_proc: subprocess, port: int, **kwargs) -> None:
         "localhost:22",
     ]
     if _OS != "Windows":
-        cmd.extend([
-            "-o",
-            "ConnectTimeout=3",
-        ])
+        cmd.extend(
+            [
+                "-o",
+                "ConnectTimeout=3",
+            ]
+        )
 
     cnt = 10
     while cnt > 0:
@@ -290,10 +292,12 @@ def exec_command(
         "StrictHostKeyChecking=no",
     ]
     if _OS != "Windows":
-        cmd.extend([
-            "-o",
-            "ConnectTimeout=5",
-        ])
+        cmd.extend(
+            [
+                "-o",
+                "ConnectTimeout=5",
+            ]
+        )
 
     _commands = " ".join(*commands) if len(commands) > 0 else ""
     if _commands:
