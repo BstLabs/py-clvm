@@ -245,11 +245,14 @@ def create_socket(tunnel_proc: subprocess, port: int, **kwargs) -> None:
         "UserKnownHostsFile=/dev/null",
         "-o",
         "StrictHostKeyChecking=no",
-        "-o",
-        "ConnectTimeout=3",
         "-W",
         "localhost:22",
     ]
+    if _OS != "Windows":
+        cmd.extend([
+            "-o",
+            "ConnectTimeout=3",
+        ])
 
     cnt = 10
     while cnt > 0:
@@ -285,9 +288,13 @@ def exec_command(
         "UserKnownHostsFile=/dev/null",
         "-o",
         "StrictHostKeyChecking=no",
-        "-o",
-        "ConnectTimeout=5",
     ]
+    if _OS != "Windows":
+        cmd.extend([
+            "-o",
+            "ConnectTimeout=5",
+        ])
+
     _commands = " ".join(*commands) if len(commands) > 0 else ""
     if _commands:
         cmd.append(f"cd $HOME && {_commands}")
