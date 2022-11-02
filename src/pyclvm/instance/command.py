@@ -40,11 +40,11 @@ def _execute_azure(
     instance_name: str, instance: AzureRemoteShellProxy, **kwargs
 ) -> None:
     print(f"Starting {instance_name} ...")
-    instance.start()
+    instance.start(wait=False)
     print(f"{instance_name} is running")
     print(f"Working {instance_name} ...")
 
-    instance.execute((f"cd $HOME && {kwargs.get('script')}",), **kwargs)
+    instance.execute((kwargs.get("script"),), **kwargs)
 
 
 def command(
@@ -70,17 +70,17 @@ def command(
     if default_platform in supported_platforms:
         return {
             "AWS": partial(
-                process_instances, _execute_aws, "running", (instance_name,), kwargs
+                process_instances, _execute_aws, "running", (instance_name,), **kwargs
             ),
             "GCP": partial(
-                process_instances, _execute_gcp, "RUNNING", (instance_name,), kwargs
+                process_instances, _execute_gcp, "RUNNING", (instance_name,), **kwargs
             ),
             "AZURE": partial(
                 process_instances,
                 _execute_azure,
                 "VM running",
                 (instance_name,),
-                kwargs,
+                **kwargs,
             ),
         }[default_platform.upper()]()
     _unsupported_platform(default_platform)

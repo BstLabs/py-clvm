@@ -2,11 +2,11 @@ from functools import partial
 from typing import Dict, Final, Tuple, Union
 
 import boto3
+from _common.session_azure import get_session as azure_get_session
 from ec2instances.ec2_instance_mapping import Ec2AllInstancesData
 from rich.console import Console
 from rich.table import Table
 
-from pyclvm._common.azure_instance_mapping import AzureComputeAllInstancesData
 from pyclvm._common.gcp_instance_mapping import GcpComputeAllInstancesData
 from pyclvm.login import _login_aws
 from pyclvm.plt import (
@@ -159,17 +159,18 @@ def _ls_azure(**kwargs: str) -> None:
         None
 
     """
-    instances = AzureComputeAllInstancesData(**kwargs)
-    table = Table(title=f"{instances.session.subscription_name} Azure Instances")
+    _session = azure_get_session()
+
+    table = Table(title=f"{_session.subscription_name} Azure Instances")
     for column in _COLUMNS:
         table.add_column(column, justify="left", no_wrap=True)
 
-    for instance_id, instance_name, state in instances:
+    for instance, params in _session.instances.items():
         table.add_row(
             *(
-                str(instance_id),
-                instance_name,
-                f"[{_STATE_COLOR_AZURE[state]}]{state}",
+                str(params["instance_id"]),
+                instance,
+                f"[{_STATE_COLOR_AZURE[params['state']]}]{params['state']}",
             )
         )
     console = Console()

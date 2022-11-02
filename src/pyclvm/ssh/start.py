@@ -3,7 +3,7 @@ from functools import partial
 from typing import Optional
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
-from pyclvm._common.azure_instance_proxy import AzureRemoteConnector, AzureRemoteSocket
+from pyclvm._common.azure_instance_proxy import ssh_connection_std_output
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
 from pyclvm.plt import (
     _default_platform,
@@ -75,16 +75,11 @@ def _start_gcp(instance_name: str, port: Optional[int] = None, **kwargs: str) ->
     subprocess.run(cmd, check=True)
 
 
-def _start_azure(instance_name: str, port: int, **kwargs: str) -> None:
+def _start_azure(instance_name: str, port: Optional[int] = None, **kwargs: str) -> None:
     instance = AzureRemoteShellMapping().get(instance_name)
 
     print(f"Starting {instance_name} ...")
-    instance.start()  # type: ignore
+    instance.start(wait=False)  # type: ignore
     print(f"\n{instance_name} is running")
 
-    connector = AzureRemoteConnector(instance, port, **kwargs)  # type: ignore
-    socket = AzureRemoteSocket(instance, connector, port, **kwargs)  # type: ignore
-    connector.start()
-    socket.start()
-    connector.join()
-    socket.join()
+    ssh_connection_std_output(instance, **kwargs)
