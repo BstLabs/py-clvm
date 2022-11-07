@@ -1,8 +1,8 @@
 # <div align="center"><b>CLVM</b></div>
 
-![](https://img.shields.io/pypi/v/pyclvm?label=PyPi)
-![](https://img.shields.io/github/license/BstLabs/py-clvm?color=blue&label=License)
-![Changelog](https://github.com/BstLabs/py-clvm/workflows/Changelog/badge.svg)
+[![](https://img.shields.io/pypi/v/pyclvm?label=PyPi)](https://pypi.org/project/pyclvm/)
+[![](https://img.shields.io/github/license/BstLabs/py-clvm?color=blue&label=License)](https://github.com/BstLabs/py-clvm/blob/main/LICENSE.md)
+[![Changelog](https://github.com/BstLabs/py-clvm/workflows/Changelog/badge.svg)](https://github.com/BstLabs/py-clvm/blob/main/CHANGELOG.md)
 [![Lint](https://github.com/BstLabs/py-clvm/actions/workflows/lint.yml/badge.svg)](https://github.com/BstLabs/py-clvm/actions/workflows/lint.yml)
 [![Type](https://github.com/BstLabs/py-clvm/actions/workflows/type.yml/badge.svg)](https://github.com/BstLabs/py-clvm/actions/workflows/type.yml)
 
