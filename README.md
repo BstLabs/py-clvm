@@ -1,5 +1,6 @@
 # <div align="center"><b>CLVM</b></div>
 
+[![Downloads](https://static.pepy.tech/personalized-badge/pyclvm?period=total&units=none&left_color=orange&right_color=blue&left_text=Downloads)](https://pepy.tech/project/pyclvm)
 [![](https://img.shields.io/pypi/v/pyclvm?label=PyPi)](https://pypi.org/project/pyclvm/)
 [![](https://img.shields.io/github/license/BstLabs/py-clvm?color=blue&label=License)](https://github.com/BstLabs/py-clvm/blob/main/LICENSE.md)
 [![Changelog](https://github.com/BstLabs/py-clvm/workflows/Changelog/badge.svg)](https://github.com/BstLabs/py-clvm/blob/main/CHANGELOG.md)
