@@ -3,7 +3,6 @@ import getpass
 import os
 import platform
 import sys
-import time
 from functools import partial
 from os.path import exists, join
 from shutil import copyfile, copymode, move
@@ -107,7 +106,7 @@ def _new_azure(instance_name: str, **kwargs: str) -> None:
 
 # ---
 def _aws_config_lines(instance: Ec2RemoteShellProxy, **kwargs: str) -> List:
-    profile = kwargs.get("profile", "default")
+    profile = kwargs.pop("profile", "default")
     private_key_name, pubkey = _save_keys(profile, instance.name)
 
     proxy_data = {
@@ -117,10 +116,7 @@ def _aws_config_lines(instance: Ec2RemoteShellProxy, **kwargs: str) -> List:
     }
     # ---
     instance.start(wait=True)
-    for _ in range(10, 0, -1):
-        print(".", end="")
-        time.sleep(1)
-    print()
+    print("*" * 10)
     # ---
     instance.execute(
         "pip3 install --upgrade authk --quiet",
