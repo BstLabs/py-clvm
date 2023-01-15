@@ -7,6 +7,7 @@ from collections import defaultdict
 from typing import Any, Dict, Tuple
 
 from _common.azure_rest_api import AzureRestApi
+from azure.core.exceptions import ClientAuthenticationError
 from singleton_decorator import singleton
 
 from pyclvm.login import _login_azure
@@ -21,15 +22,22 @@ class AzureSession:
     def __init__(self, **kwargs):
         importlib.reload(json)
         self._profile = self._zone = kwargs.get("profile", None)  # TODO handle profiles
+        self._login(**kwargs)
+        self._location = kwargs.get(
+            "location", os.getenv("AZURE_DEFAULT_LOCATION", "westeurope")
+        )
+        try:
+            self._instances = self._get_instances()
+        except ClientAuthenticationError:
+            self._login(**{**kwargs, **{"expired": True}})
+            self._instances = self._get_instances()
+
+    def _login(self, **kwargs):
         (
             self._credentials,
             self._subscription_name,
             self._subscription_id,
         ) = _login_azure(**kwargs)
-        self._location = kwargs.get(
-            "location", os.getenv("AZURE_DEFAULT_LOCATION", "westeurope")
-        )
-        self._instances = self._get_instances()
 
     # ---
     def _get_instances(self) -> Dict:
