@@ -13,11 +13,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       # Checks-out your repository
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Generate Changelog
         uses: saadmk11/changelog-ci@v1.0.0

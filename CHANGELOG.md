@@ -1,3 +1,44 @@
+# Version: v1.1.11b
+
+* [82086ec](https://github.com/BstLabs/py-clvm/commit/82086ec235025a7cdaeb2056c58c4b8c5a7c2503): Pre-Release PR v1.1.11b (#221)
+
+* Make Azure operation faster due to using REST API (#213)
+
+* Implement REST API in some functions
+
+* Add list VMs via REST API
+
+* Add some REST API operations
+
+* Make RestApi class singleton
+
+* Add token to cache
+
+* Add token to cache exceptions
+
+* Change running Azure tunnel
+
+* Change wait for VM runtime to be ready
+
+* Fix for "instance command" and "connect"
+
+* Add multi-session mode on Azure
+
+* Fix ssh call on Windows
+
+* Refactor lint
+
+* Stop VM after VSCode close
+
+* Fix vscode call on Windows
+
+* Refactor lint
+
+* version bump v1.1.11b (pre-release)
+
+Co-authored-by: Dmitry Slobodchikov <zoosman@mail.ru>
+
+
 # Version: v1.1.10
 
 * [2888655](https://github.com/BstLabs/py-clvm/commit/2888655d98afe7905f21b4a04592a50e1773baf8): Release PR v1.1.10 (#211)
