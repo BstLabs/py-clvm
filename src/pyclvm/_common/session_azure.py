@@ -38,6 +38,10 @@ class AzureSession:
             self._subscription_name,
             self._subscription_id,
         ) = _login_azure(**kwargs)
+        self._location = kwargs.get(
+            "location", os.getenv("AZURE_DEFAULT_LOCATION", "westeurope")
+        )
+        self._instances = self._get_instances()
 
     # ---
     def _get_instances(self) -> Dict:
