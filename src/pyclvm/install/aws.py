@@ -1,6 +1,10 @@
 from plt import _get_os
 import subprocess
 import os
+import requests
+from zipfile import ZipFile
+from uuid import uuid4
+import shutil
 
 
 def aws(**kwargs: str):
@@ -27,7 +31,25 @@ def _install_linux() -> None:
     Returns:
         None
     """
-    print(f"install Linux")
+    print(f"Install AWS CLI on Linux")
+    tmp_dir = f"{os.getenv('HOME')}/{uuid4()}"
+    os.mkdir(tmp_dir, 0o0700)
+    target_file = "awscli-exe-linux-x86_64.zip"
+    cli_file = requests.get(f"https://awscli.amazonaws.com/{target_file}")
+    tmp_file = f"{tmp_dir}/{target_file}"
+    open(tmp_file, "wb").write(cli_file.content)
+    with ZipFile(tmp_file, "r") as z:
+        z.extractall(path=tmp_dir)
+    subprocess.run(
+        [
+            "sudo",
+            "sh",
+            f"{tmp_dir}/aws/install",
+            "--update",
+        ],
+        check=True,
+    )
+    shutil.rmtree(tmp_dir, ignore_errors=False, onerror=None)
 
 
 def _install_windows() -> None:
