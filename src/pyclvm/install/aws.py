@@ -1,7 +1,7 @@
 import os
-import sys
 import shutil
 import subprocess
+import sys
 from platform import uname
 from uuid import uuid4
 from zipfile import ZipFile
