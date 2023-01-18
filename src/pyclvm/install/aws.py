@@ -84,33 +84,23 @@ def _install_macos() -> None:
     Returns:
         None
     """
-    os.chdir(os.getenv("HOME"))
-    subprocess.run(
-        [
-            "curl",
-            "https://awscli.amazonaws.com/AWSCLIV2.pkg",
-            "-o",
-            "AWSCLIV2.pkg",
-        ],
-        check=True,
-    )
+    print("\n---\nInstall AWS CLI on macOS\n")
+    tmp_dir = f"{os.getenv('HOME')}/{uuid4()}"
+    os.mkdir(path=tmp_dir, mode=0o0700)
+    target_file = "AWSCLIV2.pkg"
+    cli_file = requests.get(f"https://awscli.amazonaws.com/{target_file}")
+    tmp_file = f"{tmp_dir}/{target_file}"
+    open(tmp_file, "wb").write(cli_file.content)
     subprocess.run(
         [
             "sudo",
             "-S",
             "installer",
             "-pkg",
-            "AWSCLIV2.pkg",
+            tmp_file,
             "-target",
             "/",
         ],
         check=True,
     )
-    os.remove("./AWSCLIV2.pkg")
-
-
-# Linux or macOS
-# $ export AWS_PROFILE=user1
-#
-# Windows
-# C:\> setx AWS_PROFILE user1
+    shutil.rmtree(tmp_dir, ignore_errors=False, onerror=None)
