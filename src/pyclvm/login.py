@@ -8,6 +8,7 @@ import sys
 from configparser import ConfigParser, NoOptionError
 from functools import partial
 from pathlib import Path
+from subprocess import STDOUT, TimeoutExpired, check_output
 from typing import Tuple, Union
 
 from azure.core.exceptions import ClientAuthenticationError
@@ -128,17 +129,25 @@ def _login_gcp(**kwargs: str) -> None:
 # ---
 def _login_azure(**kwargs: str) -> Union[None, Tuple]:
     def _login():
-        subprocess.run(
-            [
-                "az.cmd" if _OS == "Windows" else "az",
-                "login",
-            ],
-            check=True,
-        )
+        try:
+            check_output(
+                [
+                    "az.cmd" if _OS == "Windows" else "az",
+                    "login",
+                ],
+                stderr=STDOUT,
+                timeout=30,
+            )
+        except TimeoutExpired as er:
+            print(f"\n---\n{er}\n---\n")
+            sys.exit(-1)
         sys.exit(0)
 
     config_path = _get_config_path(str(_default_platform()))
     if not os.path.isdir(config_path):
+        _login()
+
+    if kwargs.get("expired", False):
         _login()
 
     with open(os.path.normpath(f"{config_path}/azureProfile.json"), "rb") as cfg:
