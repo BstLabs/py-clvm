@@ -37,7 +37,14 @@ def _install_windows() -> None:
     Returns:
         None
     """
-    print(f"install Win")
+    subprocess.run(
+        [
+            "msiexec.exe",
+            "/i",
+            "https://awscli.amazonaws.com/AWSCLIV2.msi",
+        ],
+        check=True,
+    )
 
 
 def _install_macos() -> None:
@@ -47,7 +54,6 @@ def _install_macos() -> None:
     Returns:
         None
     """
-    print(f"install Mac")
     os.chdir(os.getenv("HOME"))
     subprocess.run(
         [
