@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import subprocess
 from platform import uname
@@ -57,24 +58,28 @@ def _install_linux() -> None:
 
 def _install_windows() -> None:
     """
-    Install AWC CLI on Linux OS
+    Install AWC CLI on Windows OS
 
     Returns:
         None
     """
-    subprocess.run(
-        [
-            "msiexec.exe",
-            "/i",
-            "https://awscli.amazonaws.com/AWSCLIV2.msi",
-        ],
-        check=True,
-    )
+    print("\n---\nInstall AWS CLI on Windows\n")
+    try:
+        subprocess.run(
+            [
+                "msiexec.exe",
+                "/i",
+                "https://awscli.amazonaws.com/AWSCLIV2.msi",
+            ],
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        sys.exit(-1)
 
 
 def _install_macos() -> None:
     """
-    Install AWC CLI on Linux OS
+    Install AWC CLI on macOS
 
     Returns:
         None
