@@ -7,13 +7,13 @@ from pyclvm._common.azure_instance_proxy import ssh_connection_std_output
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
 from pyclvm.plt import (
     _default_platform,
-    _get_os,
+    _get_hw,
     _get_supported_platforms,
     _unsupported_platform,
 )
 from pyclvm.ssm.session.start import start as start_session
 
-_OS = _get_os()
+_OS, _ = _get_hw()
 
 
 def start(instance_name: str, port: int, **kwargs: str) -> None:

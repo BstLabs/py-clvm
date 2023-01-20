@@ -4,9 +4,9 @@ from pathlib import Path
 
 import commentjson
 
-from pyclvm.plt import _get_os
+from pyclvm.plt import _get_hw
 
-_OS = _get_os()
+_OS, _ = _get_hw()
 
 
 def adjust() -> None:

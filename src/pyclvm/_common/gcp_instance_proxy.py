@@ -11,11 +11,11 @@ from google.api_core.extended_operation import ExtendedOperation
 from google.cloud import pubsub_v1
 from google.cloud.pubsub_v1.exceptions import TimeoutError
 
-from pyclvm.plt import _get_os
+from pyclvm.plt import _get_hw
 
 from .session_gcp import GcpSession
 
-_OS = _get_os()
+_OS, _ = _get_hw()
 
 Status = NewType("status", str)
 status = Status("down")

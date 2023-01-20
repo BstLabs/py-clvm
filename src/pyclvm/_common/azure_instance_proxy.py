@@ -20,11 +20,11 @@ from azure.storage.queue import (
     QueueClient,
 )
 
-from pyclvm.plt import _get_os
+from pyclvm.plt import _get_hw
 
 from .session_azure import AzureSession
 
-_OS = _get_os()
+_OS, _ = _get_hw()
 
 Status = NewType("status", str)
 status = Status("down")

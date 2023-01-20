@@ -15,9 +15,9 @@ from google.oauth2 import credentials, service_account
 from singleton_decorator import singleton
 
 from pyclvm.login import _get_config_path, _login_gcp
-from pyclvm.plt import _get_os
+from pyclvm.plt import _get_hw
 
-_OS = _get_os()
+_OS, _ = _get_hw()
 
 
 @singleton

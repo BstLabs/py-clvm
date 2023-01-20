@@ -7,7 +7,9 @@ from uuid import uuid4
 from zipfile import ZipFile
 
 import requests
-from plt import _get_os
+from plt import _get_hw
+
+_OS, _ARCH = _get_hw()
 
 
 def aws(**kwargs: str):
@@ -24,7 +26,7 @@ def aws(**kwargs: str):
         "Linux": _install_linux,
         "Windows": _install_windows,
         "Darwin": _install_macos,
-    }[_get_os()]()
+    }[_OS]()
 
 
 def _install_linux() -> None:
@@ -37,7 +39,7 @@ def _install_linux() -> None:
     print("\n---\nInstall AWS CLI on Linux\n")
     tmp_dir = f"{os.getenv('HOME')}/{uuid4()}"
     os.mkdir(path=tmp_dir, mode=0o0700)
-    target_file = f"awscli-exe-linux-{uname().machine}.zip"
+    target_file = f"awscli-exe-linux-{_ARCH}.zip"
     cli_file = requests.get(f"https://awscli.amazonaws.com/{target_file}")
     tmp_file = f"{tmp_dir}/{target_file}"
     open(tmp_file, "wb").write(cli_file.content)

@@ -25,12 +25,12 @@ from pyclvm._common.gcp_instance_mapping import (
 from pyclvm._common.session_aws import get_session
 from pyclvm.plt import (
     _default_platform,
-    _get_os,
+    _get_hw,
     _get_supported_platforms,
     _unsupported_platform,
 )
 
-_OS = _get_os()
+_OS, _ = _get_hw()
 
 _SSH_DIR: Final[str] = (
     os.path.normpath(f"{os.getenv('USERPROFILE')}/.ssh")

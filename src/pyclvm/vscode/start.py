@@ -4,7 +4,7 @@ from typing import Any, List
 
 import psutil
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
-from plt import _get_os
+from plt import _get_hw
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
@@ -14,6 +14,8 @@ from pyclvm.plt import (
     _get_supported_platforms,
     _unsupported_platform,
 )
+
+_OS, _ = _get_hw()
 
 
 def start(instance_name: str, **kwargs: str) -> None:
@@ -48,7 +50,7 @@ def _start_vscode_with_given_platform(
 
 def _get_vscode_cmd(instance_name: str, path: str, _platform: str) -> List[str]:
     return [
-        "code.cmd" if "Windows" == _get_os() else "code",
+        "code.cmd" if "Windows" == _OS else "code",
         "--folder-uri",
         f"vscode-remote://ssh-remote+{instance_name}-{_platform.lower()}{path}",
     ]

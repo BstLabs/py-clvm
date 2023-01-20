@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import Any, Set, Union
 
 
-def _get_os() -> str:
-    return platform.system()
+def _get_hw() -> tuple:
+    return platform.system(), platform.machine()
 
 
 def _get_supported_platforms() -> Set:

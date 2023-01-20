@@ -14,9 +14,9 @@ from typing import Tuple, Union
 from azure.core.exceptions import ClientAuthenticationError
 from azure.identity import DefaultAzureCredential
 
-from pyclvm.plt import _default_platform, _get_os, plt
+from pyclvm.plt import _default_platform, _get_hw, plt
 
-_OS = _get_os()
+_OS, _ = _get_hw()
 
 
 # ---
