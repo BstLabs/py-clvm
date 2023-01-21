@@ -3,7 +3,7 @@ import sys
 import os
 from plt import _get_hw
 import json
-from _common.user_data import get_config_path
+from _common import get_config_path
 
 from azure.core.exceptions import ClientAuthenticationError
 from azure.identity import DefaultAzureCredential

@@ -5,9 +5,9 @@ from typing import Any, Dict, Union
 
 from ec2instances.ec2_instance_mapping import Ec2InstanceProxy
 
-from pyclvm._common.azure_instance_mapping import AzureInstanceProxy
-from pyclvm._common.gcp_instance_mapping import GcpInstanceProxy
-from pyclvm.plt import (
+from _common.azure_instance_mapping import AzureInstanceProxy
+from _common.gcp_instance_mapping import GcpInstanceProxy
+from plt import (
     _default_platform,
     _get_supported_platforms,
     _unsupported_platform,
@@ -77,7 +77,7 @@ def _stopping_instance(
     instance: Union[Ec2InstanceProxy, GcpInstanceProxy, AzureInstanceProxy],
 ) -> None:
     print(f"Stopping {instance_name} ...")
-    print(instance.stop(wait=False))
+    instance.stop(wait=False)
 
 
 def _in_transition(

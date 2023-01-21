@@ -4,6 +4,7 @@ import platform
 import sys
 from datetime import datetime
 from typing import Dict, Final, Optional
+from singleton_decorator import singleton
 
 import backoff
 import boto3
@@ -11,7 +12,7 @@ import botocore
 from boto3.session import Session
 from jdict import jdict, patch_module
 
-from pyclvm.login import _login_aws
+from login.aws import aws as login_aws
 
 from .user_data import fetch, store
 
@@ -70,7 +71,7 @@ def _invalid_mfa_code_provided(details):
 
 def _give_up(e):
     print("\n > Giving up after multiple fails...")
-    _login_aws()
+    login_aws()
 
 
 @backoff.on_exception(
@@ -140,6 +141,7 @@ def _get_credentials(profile: str) -> Dict:
     )
 
 
+@singleton
 def _make_session(credentials, profile) -> Session:
     return Session(
         aws_access_key_id=credentials.AccessKeyId,
@@ -149,8 +151,7 @@ def _make_session(credentials, profile) -> Session:
         profile_name=profile,
     )
 
-
-def get_session(kwargs: Dict[str, str]) -> Session:
+def get_session(**kwargs: str) -> Session:
     profile = kwargs.get("profile", "default")
     boto3.setup_default_session(profile_name=profile)
     return _make_session(

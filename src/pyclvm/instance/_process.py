@@ -4,11 +4,11 @@ from typing import Callable, Dict, Optional, Tuple, Union
 
 from ec2instances.ec2_instance_mapping import Ec2RemoteShellMapping
 
-from pyclvm._common.azure_instance_mapping import AzureRemoteShellMapping
-from pyclvm._common.gcp_instance_mapping import GcpRemoteShellMapping
-from pyclvm._common.session_aws import Session, get_session
-from pyclvm.login import _login_aws
-from pyclvm.plt import (
+from _common.azure_instance_mapping import AzureRemoteShellMapping
+from _common.gcp_instance_mapping import GcpRemoteShellMapping
+from _common.session_aws import Session, get_session
+from login import aws as login_aws
+from plt import (
     _default_platform,
     _get_supported_platforms,
     _unsupported_platform,
@@ -16,7 +16,7 @@ from pyclvm.plt import (
 
 
 def _process_aws(**kwargs: str) -> Ec2RemoteShellMapping:
-    return Ec2RemoteShellMapping(get_session(kwargs), auth_callback=_login_aws)
+    return Ec2RemoteShellMapping(get_session(**kwargs), auth_callback=login_aws)
 
 
 def _process_gcp(**kwargs: str) -> GcpRemoteShellMapping:

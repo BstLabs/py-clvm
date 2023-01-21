@@ -14,8 +14,9 @@ from google.cloud.compute_v1 import AggregatedListInstancesRequest, InstancesCli
 from google.oauth2 import credentials, service_account
 from singleton_decorator import singleton
 
-from pyclvm.login import _get_config_path, _login_gcp
-from pyclvm.plt import _get_hw
+from login.gcp import gcp as login_gcp, _spawn as spawn_gcp
+from plt import _get_hw
+from _common import get_config_path
 
 _OS, _ = _get_hw()
 
@@ -33,7 +34,7 @@ class GcpSession:
 
         try:
             creds = os.path.normpath(
-                f"{_get_config_path('GCP')}/application_default_credentials.json"
+                f"{get_config_path()}/application_default_credentials.json"
             )
             with open(creds, "rb") as src:
                 info = json.load(src)
@@ -53,7 +54,7 @@ class GcpSession:
                 )
 
         if not self._credentials:
-            _login_gcp(**kwargs)
+            login_gcp(**kwargs)
 
         self._authed_session = AuthorizedSession(self._credentials)
 
@@ -67,7 +68,7 @@ class GcpSession:
                 config_default = ConfigParser()
                 config_default.read(
                     os.path.normpath(
-                        f"{_get_config_path('GCP')}/configurations/config_default"
+                        f"{get_config_path()}/configurations/config_default"
                     )
                 )
                 default_profile = config_default.sections()[0]
@@ -136,7 +137,7 @@ def get_session(**kwargs) -> GcpSession:
     try:
         return GcpSession(**kwargs)
     except RefreshError:
-        subprocess.run(
+        spawn_gcp(
             [
                 "gcloud.cmd" if _OS == "Windows" else "gcloud",
                 "auth",

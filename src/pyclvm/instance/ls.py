@@ -1,21 +1,20 @@
-from functools import partial
-from typing import Dict, Final, Tuple, Union
+from typing import Dict, Final, Tuple, Union, List, Any
 
-import boto3
+from _common.session_aws import get_session as aws_get_session
+
 from _common.session_azure import get_session as azure_get_session
 from ec2instances.ec2_instance_mapping import Ec2AllInstancesData
 from rich.console import Console
 from rich.table import Table
 
-from pyclvm._common.gcp_instance_mapping import GcpComputeAllInstancesData
-from pyclvm.login import _login_aws
-from pyclvm.plt import (
+
+from _common.gcp_instance_mapping import GcpComputeAllInstancesData
+from login.aws import aws as login_aws
+from plt import (
     _default_platform,
     _get_supported_platforms,
     _unsupported_platform,
 )
-
-_COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
 
 # --- The list of colours of "rich"
 # https://rich.readthedocs.io/en/stable/appendix/colors.html
@@ -53,6 +52,8 @@ _STATE_COLOR_AZURE: Final[Dict[str, str]] = {
     "Provisioning succeeded": "bright_red",
 }
 
+_COLUMNS: Final[Tuple[str, ...]] = ("Id", "Name", "Status")
+
 
 def ls(**kwargs: str) -> Union[Dict, None]:
     """
@@ -71,12 +72,34 @@ def ls(**kwargs: str) -> Union[Dict, None]:
     )
     if default_platform in supported_platforms:
         return {
-            "AWS": partial(_ls_aws, **kwargs),
-            "GCP": partial(_ls_gcp, **kwargs),
-            "AZURE": partial(_ls_azure, **kwargs),
-        }[default_platform.upper()]()
+            "AWS": _ls_aws,
+            "GCP": _ls_gcp,
+            "AZURE": _ls_azure,
+        }[default_platform.upper()](**kwargs)
     else:
         _unsupported_platform(default_platform)
+
+
+
+def _print_table(title: str, rows: List[Any]):
+    """
+    Prints the report table
+
+    Args:
+        title (str): the title on the top of the printed table
+        rows (list): the renderable list of row data
+    Returns:
+        None
+    """
+    final_report_table = Table(title=title)
+    for column in _COLUMNS:
+        final_report_table.add_column(column, justify="left", no_wrap=True)
+
+    for row in rows:
+        final_report_table.add_row(*row)
+
+    console = Console()
+    console.print(final_report_table)
 
 
 def _ls_aws(**kwargs: str) -> None:
@@ -90,29 +113,22 @@ def _ls_aws(**kwargs: str) -> None:
         None
 
     """
-    current_profile = kwargs.get("profile", "")
-    if current_profile:
-        boto3.setup_default_session(profile_name=current_profile)
-
-    instances = Ec2AllInstancesData(auth_callback=_login_aws)
-    sts_client = boto3.client("sts")
-
-    account = sts_client.get_caller_identity().Account
-    table = Table(title=f"{account} Account EC2 Instances")
-    for column in _COLUMNS:
-        table.add_column(column, justify="left", no_wrap=True)
-
+    current_session = aws_get_session(**kwargs)
+    instances = Ec2AllInstancesData(auth_callback=login_aws)
+    title = f"\n\n{current_session.client('sts').get_caller_identity().Account}" \
+            f" Account EC2 Instances" \
+            f"\nprofile: {kwargs.get('profile', 'default')}\n"
+    rows = []
     for instance_id, instance_name, state_value, state_name in instances:
-        table.add_row(
-            *(
+        rows.append(
+            (
                 instance_id,
                 instance_name,
                 f"[{_STATE_COLOR[state_value]}]{state_name}",
             )
         )
+    _print_table(title, rows)
 
-    console = Console()
-    console.print(table)
 
 
 # ---
@@ -128,27 +144,22 @@ def _ls_gcp(**kwargs: str) -> None:
 
     """
     instances = GcpComputeAllInstancesData(**kwargs)
-    table = Table(
-        title=f"{instances.get_session().account_email} Account GCP Instances"
-    )
-    for column in _COLUMNS:
-        table.add_column(column, justify="left", no_wrap=True)
-
+    title = f"\n\n{instances.get_session().account_email} Account GCP Instances" \
+            f"\nprofile: {kwargs.get('profile', 'default')}\n"
+    rows = []
     for instance_id, instance_name, state in instances:
-        table.add_row(
-            *(
+        rows.append(
+            (
                 str(instance_id),
                 instance_name,
                 f"[{_STATE_COLOR_GCP[state]}]{state}",
             )
         )
-
-    console = Console()
-    console.print(table)
+    _print_table(title, rows)
 
 
 # ---
-def _ls_azure(**kwargs: str) -> None:
+def _ls_azure(**kwargs: str) ->None:
     """
     list vm instances of Azure Cloud Platform
 
@@ -160,18 +171,15 @@ def _ls_azure(**kwargs: str) -> None:
 
     """
     _session = azure_get_session()
-
-    table = Table(title=f"{_session.subscription_name} Azure Instances")
-    for column in _COLUMNS:
-        table.add_column(column, justify="left", no_wrap=True)
-
+    title = f"\n\n{_session.subscription_name} Azure Instances" \
+            f"\nprofile: {kwargs.get('profile', 'default')}\n"
+    rows = []
     for instance, params in _session.instances.items():
-        table.add_row(
-            *(
+        rows.append(
+            (
                 str(params["instance_id"]),
                 instance,
                 f"[{_STATE_COLOR_AZURE[params['state']]}]{params['state']}",
             )
         )
-    console = Console()
-    console.print(table)
+    _print_table(title, rows)

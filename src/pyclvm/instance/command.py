@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*- #
-"""send system commands to VM"""
+"""Execute a system commands to VM"""
 
 from functools import partial
 from typing import Any, Tuple, Union
+import sys
 
 from ec2instances.ec2_instance_proxy import Ec2InstanceProxy
 
-from pyclvm._common.azure_instance_mapping import AzureRemoteShellProxy
-from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
-from pyclvm.plt import (
+from _common.azure_instance_mapping import AzureRemoteShellProxy
+from _common.gcp_instance_mapping import GcpRemoteShellProxy
+from plt import (
     _default_platform,
     _get_supported_platforms,
     _unsupported_platform,
@@ -24,7 +25,7 @@ def _execute_aws(instance_name: str, instance: Ec2InstanceProxy, **kwargs) -> No
     script = kwargs.get("script")
     # custom script ensures that the pwd is ssm-user
     custom_script = f"cd /home/ssm-user && {script}"
-    instance.execute(custom_script, **kwargs)
+    instance.execute(custom_script, **kwargs) # TODO to Orkhan to figure out
 
 
 def _execute_gcp(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) -> None:
@@ -68,19 +69,30 @@ def command(
     )
 
     if default_platform in supported_platforms:
-        return {
-            "AWS": partial(
-                process_instances, _execute_aws, "running", (instance_name,), **kwargs
-            ),
-            "GCP": partial(
-                process_instances, _execute_gcp, "RUNNING", (instance_name,), **kwargs
-            ),
-            "AZURE": partial(
-                process_instances,
-                _execute_azure,
-                "VM running",
-                (instance_name,),
-                **kwargs,
-            ),
-        }[default_platform.upper()]()
+        try:
+            return {
+                "AWS": partial(
+                    process_instances, _execute_aws, "running", (instance_name,), **kwargs
+                ),
+                "GCP": partial(
+                    process_instances, _execute_gcp, "RUNNING", (instance_name,), **kwargs
+                ),
+                "AZURE": partial(
+                    process_instances,
+                    _execute_azure,
+                    "VM running",
+                    (instance_name,),
+                    **kwargs,
+                ),
+            }[default_platform.upper()]()
+        except TypeError:
+            print({
+                "AWS": "",
+                "AZURE": "\n------------\nSpecify account=account_name or/and key=/path/to/ssh/key/file\n"
+                        'e.g "clvm ssh new vm-instance-name account=username '
+                        'key=/path/to/ssh/key/file platform=azure"\n',
+                "GCP":  "\n------------\nNo such VM name or/and account. Set the existing VM name or/and account.\n"
+                        'e.g "clvm ssh new vm-instance-name account=username@domain.com platform=gcp"\n',
+            }[default_platform.upper()])
+            sys.exit(-1)
     _unsupported_platform(default_platform)

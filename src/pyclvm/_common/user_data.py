@@ -10,7 +10,7 @@ from pathlib import Path
 
 from jdict import jdict, set_json_decoder
 
-from plt import _get_hw, _default_platform
+from plt import _get_hw
 
 _OS, _ = _get_hw()
 _PROFILE_PATH = Path.home()
@@ -45,17 +45,3 @@ def store(name: str, data: jdict) -> None:
 def remove(name: str) -> None:
     get_credentials_file_path(name).unlink(missing_ok=True)
 
-
-def get_config_path() -> str:
-    def _gcp_config_path():
-        if _OS == "Windows":
-            return os.path.normpath(f"{os.getenv('APPDATA')}/gcloud")
-        return f"{_PROFILE_PATH}/.config/gcloud"
-
-    return {
-        "AWS": f"{_PROFILE_PATH}/.aws",
-        "GCP": _gcp_config_path(),
-        "AZURE": f"{_PROFILE_PATH}/.azure",
-    }[_default_platform().upper()]
-
-    # return _path

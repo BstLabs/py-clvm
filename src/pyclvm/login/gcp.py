@@ -1,13 +1,37 @@
 import subprocess
+from subprocess import STDOUT, TimeoutExpired, check_output
 import sys
 from plt import _get_hw
 from configparser import ConfigParser, NoOptionError
-from _common.user_data import get_config_path
+from _common import get_config_path
 
 _OS, _ = _get_hw()
 _CMD = "gcloud.cmd" if _OS == "Windows" else "gcloud"
 
-def gcp(**kwargs: str):
+
+def _spawn(cmd: list, timeout: int = 30) -> None:
+    """
+    Runs a subprocess with timeout
+
+    Args:
+        cmd (list): a command with arguments in a list
+        timeout (int): (optional) timeout duration
+
+    Returns:
+        None
+    """
+    try:
+        check_output(
+            cmd,
+            stderr=STDOUT,
+            timeout=timeout,
+        )
+    except TimeoutExpired as er:
+        print(f"\n---\n{er}\n---\n")
+        sys.exit(-1)
+
+
+def gcp(**kwargs: str) -> None:
     """
     Login to GCP console
 
@@ -26,7 +50,7 @@ def gcp(**kwargs: str):
         project_id = config_default.get(default_profile, "project")
     except NoOptionError:
         if project_id:
-            subprocess.run(
+            _spawn(
                 [
                     _CMD,
                     "config",
@@ -34,7 +58,6 @@ def gcp(**kwargs: str):
                     "project",
                     project_id,
                 ],
-                check=True,
             )
         else:
             print(
@@ -43,25 +66,23 @@ def gcp(**kwargs: str):
             sys.exit(-1)
 
     except IndexError:
-        subprocess.run(
+        _spawn(
             [
                 _CMD,
                 "auth",
                 "login",
             ],
-            check=True,
         )
-        subprocess.run(
+        _spawn(
             [
                 _CMD,
                 "auth",
                 "application-default",
                 "login",
             ],
-            check=True,
         )
         if project_id:
-            subprocess.run(
+            _spawn(
                 [
                     _CMD,
                     "config",
@@ -69,6 +90,5 @@ def gcp(**kwargs: str):
                     "project",
                     project_id,
                 ],
-                check=True,
             )
         sys.exit(0)

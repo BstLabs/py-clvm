@@ -10,7 +10,7 @@ from _common.azure_rest_api import AzureRestApi
 from azure.core.exceptions import ClientAuthenticationError
 from singleton_decorator import singleton
 
-from pyclvm.login import _login_azure
+from login.azure import azure as login_azure
 
 
 @singleton
@@ -37,7 +37,7 @@ class AzureSession:
             self._credentials,
             self._subscription_name,
             self._subscription_id,
-        ) = _login_azure(**kwargs)
+        ) = login_azure(**kwargs)
 
     # ---
     def _get_instances(self) -> Dict:

@@ -2,23 +2,14 @@
 
 import contextlib
 import enum
-import json
 import os
 import signal
 import socket
 import subprocess
-from distutils.util import strtobool
 from time import sleep, time
 from typing import Any, Generator, Iterable, NewType, Optional, Union
 
 from _common.azure_rest_api import AzureRestApi
-from azure.core.exceptions import ResourceNotFoundError
-from azure.mgmt.storage import StorageManagementClient
-from azure.storage.queue import (
-    BinaryBase64DecodePolicy,
-    BinaryBase64EncodePolicy,
-    QueueClient,
-)
 
 from pyclvm.plt import _get_hw
 
@@ -40,7 +31,6 @@ class AzureInstanceProxy:
         self._session = session
         self._instance_name = instance_name
         self._instance = self._session.instances[instance_name]
-        self._wait_for_queue = kwargs.get("wait", "yes")
         self._rest_api = AzureRestApi(
             credentials=session.credentials,
             subscription_id=session.subscription,
@@ -65,8 +55,6 @@ class AzureInstanceProxy:
         )
         if wait:
             self._wait_for_extended_operation("VM running")
-            if strtobool(self._wait_for_queue):
-                self._wait_runtime(timeout=30)
         return vm_operation
 
     # ---
@@ -103,68 +91,6 @@ class AzureInstanceProxy:
                     return _value
         except AttributeError:
             return self._instance["instance_name"]
-
-    # ---
-    def _sub(self, timeout: Optional[float] = None) -> Status:
-        global status
-        storage_client = StorageManagementClient(
-            self._session.credentials, self._session.subscription
-        )
-        resource_group = self._instance_name[: self._instance_name.index("-desktop")]
-        rg_availability = storage_client.storage_accounts.check_name_availability(
-            {"name": resource_group}
-        )
-        if not rg_availability.reason:
-            return status
-
-        service_account = resource_group.replace("-", "")
-
-        try:
-
-            def storage_keys() -> Generator:
-                for key in storage_client.storage_accounts.list_keys(
-                    resource_group, service_account
-                ).keys:
-                    yield key.value
-
-            connection_string = f"DefaultEndpointsProtocol=https;AccountName={service_account};AccountKey={next(storage_keys())};EndpointSuffix=core.windows.net"
-
-            queue_name = self._instance_name
-            queue_client = QueueClient.from_connection_string(
-                connection_string,
-                queue_name,
-                message_encode_policy=BinaryBase64EncodePolicy(),
-                message_decode_policy=BinaryBase64DecodePolicy(),
-            )
-            messages = queue_client.peek_messages()
-            messages_content = [
-                {"id": message.id, "content": message.content} for message in messages
-            ]
-
-            for message in messages_content:
-                try:
-                    content = json.loads(message["content"])
-                    if self._instance_name == content["vm-id"].split("/")[8]:
-                        status = content["status"]
-                except KeyError:
-                    return status
-
-        except ResourceNotFoundError:
-            return status
-
-        return status
-
-    # ---
-    def _wait_runtime(self, timeout: int) -> None:
-        while timeout > 0:
-            timeout -= 1
-            if "up" == self._sub():
-                return
-            print(".", end="")
-
-        print(
-            "\n------\nQueue service is not adjusted. You can continue, but it takes time to start an VM instance.\n"
-        )
 
 
 # ---
