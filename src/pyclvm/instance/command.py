@@ -4,7 +4,7 @@
 from functools import partial
 from typing import Any, Tuple, Union
 
-from ec2instances.ec2_instance_proxy import Ec2InstanceProxy
+from ec2instances.ec2_instance_proxy import Ec2RemoteShellProxy
 
 from pyclvm._common.azure_instance_mapping import AzureRemoteShellProxy
 from pyclvm._common.gcp_instance_mapping import GcpRemoteShellProxy
@@ -17,11 +17,11 @@ from pyclvm.plt import (
 from ._process import process_instances
 
 
-def _execute_aws(instance_name: str, instance: Ec2InstanceProxy, **kwargs) -> None:
+def _execute_aws(instance_name: str, instance: Ec2RemoteShellProxy, **kwargs) -> None:
     print(f"Working {instance_name} ...")
     instance.start()
     # to get rid of the overloading warning script assigned to a variable
-    script = kwargs.get("script")
+    script = kwargs.pop("script")
     # custom script ensures that the pwd is ssm-user
     custom_script = f"cd /home/ssm-user && {script}"
     instance.execute(custom_script, **kwargs)

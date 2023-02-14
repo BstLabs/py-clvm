@@ -1,3 +1,10 @@
+# Version v1.1.11
+
+# Change Summary
+- Added new command for installing `aws` cli #231 
+- Fixed `clvm ssh new` fails on non-default profile #228 
+- Fixed fails on Azure after changing password #229 
+
 # Version: v1.1.11b
 
 * [82086ec](https://github.com/BstLabs/py-clvm/commit/82086ec235025a7cdaeb2056c58c4b8c5a7c2503): Pre-Release PR v1.1.11b (#221)
