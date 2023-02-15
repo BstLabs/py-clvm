@@ -5,7 +5,7 @@ import sys
 from subprocess import Popen, TimeoutExpired
 from typing import Optional
 
-from ec2instances.common.session import Session
+from boto3.session import Session
 from ec2instances.common.signal_handler import interrupt_handler
 
 from pyclvm.instance import start as instance_start
@@ -25,6 +25,7 @@ def _make_env(session: Session) -> dict:
 
 
 def _call_subprocess(instance_id: str, env: dict, wait: bool, *args: str):
+    # TODO Make more robust, refactor the timeout, STDOUT
     proc = Popen(
         args=["aws", "ssm", "start-session", "--target", instance_id, *args],
         env=env,

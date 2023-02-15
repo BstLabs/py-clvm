@@ -2,8 +2,8 @@
 
 import os
 
-from pyclvm._common.session_aws import make_file_name
-from pyclvm._common.user_data import get_credentials_file_path
+from _common.session_aws import make_file_name
+from _common.user_data import get_credentials_file_path
 
 
 def clear(**kwargs: str) -> None:
