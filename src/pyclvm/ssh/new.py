@@ -118,6 +118,7 @@ def _aws_config_lines(instance: Ec2RemoteShellProxy, **kwargs: str) -> List:
     instance.start(wait=True)
     print("*" * 10)
     # ---
+    # TODO: consider implementing `sudo chown -hR ssm-user:ssm-user /tmp` on authk ssh directory creation
     instance.execute(
         "pip3 install --upgrade authk --quiet",
         f'runuser -u ssm-user -- authk add "{pubkey}"',

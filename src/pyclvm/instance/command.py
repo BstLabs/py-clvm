@@ -24,7 +24,7 @@ def _execute_aws(instance_name: str, instance: Ec2RemoteShellProxy, **kwargs) ->
     script = kwargs.pop("script")
     # custom script ensures that the pwd is ssm-user
     custom_script = f"cd /home/ssm-user && {script}"
-    instance.execute(custom_script, **kwargs)
+    print("\n".join(instance.execute(custom_script)))
 
 
 def _execute_gcp(instance_name: str, instance: GcpRemoteShellProxy, **kwargs) -> None:
